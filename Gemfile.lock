@@ -101,6 +101,7 @@ PATH
   remote: .
   specs:
     active_record-tenanted (0.1.0)
+      activerecord (>= 8.0)
 
 GEM
   remote: https://rubygems.org/
