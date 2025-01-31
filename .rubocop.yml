@@ -173,6 +173,10 @@ Style/RedundantFreeze:
 Layout/SpaceBeforeBlockBraces:
   Enabled: true
 
+Layout/SpaceInsideArrayLiteralBrackets:
+  Enabled: true
+  EnforcedStyle: space
+
 # Use `foo { bar }` not `foo {bar}`.
 Layout/SpaceInsideBlockBraces:
   Enabled: true
