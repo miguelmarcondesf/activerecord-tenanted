@@ -11,6 +11,12 @@ module ActiveRecord
           end
         end
       end
+
+      initializer "active_record_tenanted.base_records" do
+        ActiveSupport.on_load(:active_record) do
+          prepend ActiveRecord::Tenanted::ConnectionMethods
+        end
+      end
     end
   end
 end
