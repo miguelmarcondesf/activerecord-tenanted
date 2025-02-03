@@ -5,7 +5,7 @@ require "test_helper"
 describe ActiveRecord::Tenanted::DatabaseConfigurations do
   let(:all_configs) { ActiveRecord::Base.configurations.configs_for(include_hidden: true) }
 
-  for_each_db_config do
+  with_each_db_config do
     test "it instantiates a RootConfig for the tenanted database" do
       assert_equal(
         {

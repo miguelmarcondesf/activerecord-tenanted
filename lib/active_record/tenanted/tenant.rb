@@ -2,13 +2,8 @@
 
 module ActiveRecord
   module Tenanted
-    module ConnectionMethods
+    module Tenant
       extend ActiveSupport::Concern
-
-      class_methods do
-        def tenanted
-        end
-      end
     end
   end
 end
