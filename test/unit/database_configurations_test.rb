@@ -3,17 +3,23 @@
 require "test_helper"
 
 describe ActiveRecord::Tenanted::DatabaseConfigurations do
+  let(:all_configs) { ActiveRecord::Base.configurations.configs_for(include_hidden: true) }
+
   for_each_db_config do
     test "it instantiates a RootConfig for the tenanted database" do
-      config = ActiveRecord::Base.configurations.configs_for
-
       assert_equal(
         {
           "tenanted" => ActiveRecord::Tenanted::DatabaseConfigurations::RootConfig,
           "shared" => ActiveRecord::DatabaseConfigurations::HashConfig,
         },
-        config.each_with_object({}) { |c, h| h[c.name] = c.class }
+        all_configs.each_with_object({}) { |c, h| h[c.name] = c.class }
       )
+    end
+
+    test "the RootConfig has tasks turned off by default" do
+      tenanted_config = all_configs.find { |c| c.name == "tenanted" }
+
+      assert_not tenanted_config.database_tasks?
     end
   end
 end

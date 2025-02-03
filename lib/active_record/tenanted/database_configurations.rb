@@ -6,6 +6,9 @@ module ActiveRecord
   module Tenanted
     module DatabaseConfigurations
       class RootConfig < ActiveRecord::DatabaseConfigurations::HashConfig
+        def database_tasks?
+          false
+        end
       end
     end
   end

@@ -51,6 +51,7 @@ Documentation:
 TODO:
 - implement `AR::Tenanted::DatabaseConfigurations::RootConfig` (name?)
   - [x] create the specialized RootConfig for `tenanted: true` databases
+  - [x] RootConfig disables database tasks initially
   - [ ] `#database_path_for(tenant_name)`
   - [ ] `#tenants` returns all the tenants on disk (for iteration)
 
@@ -76,6 +77,7 @@ TODO:
     - make sure we pay attention to Rails.config.active_record.migration_error when we turn off auto-migrating
 
 - database tasks
+  - [ ] RootConfig should conditionally re-enable database tasks ... when AR_TENANT is present?
   - [ ] make `db:migrate:tenants` iterate over all the tenants on disk
   - [ ] make `db:migrate AR_TENANT=asdf` run migrations on just that tenant
   - [ ] do that for all (?) the database tasks like `db:create`, `db:prepare`, `db:seeds`, etc.
