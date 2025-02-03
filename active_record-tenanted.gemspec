@@ -28,4 +28,5 @@ Gem::Specification.new do |spec|
 
   spec.add_dependency "railties", ">= 8.1.alpha"
   spec.add_dependency "activerecord", ">= 8.1.alpha"
+  spec.add_dependency "zeitwerk"
 end

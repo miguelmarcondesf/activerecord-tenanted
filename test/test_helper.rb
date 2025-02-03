@@ -4,12 +4,11 @@
 ENV["RAILS_ENV"] = "test"
 
 require "rails"
-require "rails/test_help" # should be before active_record to avoid schema/fixture setup
-require "active_record"
-
-require "minitest/spec"
+require "rails/test_help" # should be before active_record is loaded to avoid schema/fixture setup
 
 require_relative "../lib/active_record/tenanted"
+
+require "minitest/spec"
 
 module ActiveRecord
   module Tenanted

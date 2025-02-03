@@ -1,12 +1,14 @@
 # frozen_string_literal: true
 
-require_relative "tenanted/version"
+require "active_record"
+
+require "zeitwerk"
+loader = Zeitwerk::Loader.for_gem_extension(ActiveRecord)
+loader.setup
 
 module ActiveRecord
   module Tenanted
   end
 end
 
-require_relative "tenanted/database_configurations"
-
-require_relative "tenanted/railtie"
+loader.eager_load

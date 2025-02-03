@@ -103,6 +103,7 @@ PATH
     active_record-tenanted (0.1.0)
       activerecord (>= 8.1.alpha)
       railties (>= 8.1.alpha)
+      zeitwerk
 
 GEM
   remote: https://rubygems.org/
