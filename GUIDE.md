@@ -60,14 +60,12 @@ TODO:
 
 - Active Record class methods
   - [ ] `.tenanted`
-    - extends with `Base`
-    - sets `Tenant.base_class=`
-    - must only be set ONCE in the application
+    - [x] mixin `Tenant`
+    - [x] should error if self is not an abstract base class
+  - [x] `tenant_config_name` and `.tenanted?`
   - [ ] `.tenanted_with`
-    - extends with `Sublet`
-    - should error if self is not an abstract base class or if target is not tenanted abstract base class
-    - is the name right? should we have to provide the name of the tenanted class?
-  - [ ] `.tenanted?`
+    - [ ] mixin `Subtenant`
+    - [ ] should error if self is not an abstract base class or if target is not tenanted abstract base class
   - [ ] `.tenanted_class` nil or the abstract base class
   - [ ] all the creation and schema migration complications (we have existing tests for this)
     - think about race conditions here, maybe use a file lock to figure it out
@@ -75,6 +73,10 @@ TODO:
       - loading schemas (if the first thread loads the schema and inserts data, can the second thread accidentally drop/load causing data loss?)
   - [ ] feature to turn off automatic creation/migration
     - make sure we pay attention to Rails.config.active_record.migration_error when we turn off auto-migrating
+  - thinking
+    - should there be a global singleton `Tenant`? I'm not sure we need it or the limitations of a global.
+    - if we do, though, then `.tenanted` should set `Tenant.base_class=`
+    - and we need to add checks that `.tenanted` is called only ONCE in the application
 
 - database tasks
   - [ ] RootConfig should conditionally re-enable database tasks ... when AR_TENANT is present?

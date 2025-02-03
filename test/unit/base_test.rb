@@ -20,6 +20,22 @@ describe ActiveRecord::Tenanted::Base do
       end
     end
 
+    with_scenario(:vanilla, :tenanted_primary) do
+      test "it can only be called once" do
+        e = assert_raises(ActiveRecord::Tenanted::Error) do
+          TenantedApplicationRecord.tenanted
+        end
+        assert_includes(e.message, "already tenanted")
+      end
+
+      test "it can only be called on abstract classes" do
+        e = assert_raises(ActiveRecord::Tenanted::Error) do
+          Announcement.tenanted
+        end
+        assert_includes(e.message, "not an abstract connection class")
+      end
+    end
+
     with_each_scenario do
       test "it includes the Tenant module" do
         assert_includes(TenantedApplicationRecord.ancestors, ActiveRecord::Tenanted::Tenant)

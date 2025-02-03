@@ -13,6 +13,9 @@ module ActiveRecord
         end
 
         def tenanted(config_name = "primary")
+          raise Error, "Class #{self} is already tenanted" if tenanted?
+          raise Error, "Class #{self} is not an abstract connection class" unless abstract_class?
+
           include Tenant
 
           @tenanted_config_name = config_name

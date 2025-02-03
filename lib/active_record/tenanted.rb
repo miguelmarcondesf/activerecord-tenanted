@@ -8,6 +8,7 @@ loader.setup
 
 module ActiveRecord
   module Tenanted
+    class Error < StandardError; end
   end
 end
 
