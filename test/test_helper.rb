@@ -8,6 +8,7 @@ require "rails/test_help" # should be before active_record is loaded to avoid sc
 
 require_relative "../lib/active_record/tenanted"
 
+require_relative "dummy/config/environment"
 require "minitest/spec"
 
 module ActiveRecord
