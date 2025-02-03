@@ -59,13 +59,15 @@ TODO:
   - [ ] make sure the logs include the tenant name (via `#new_connection`)
 
 - Active Record class methods
-  - [ ] `.tenanted`
+  - [x] `.tenanted`
     - [x] mixin `Tenant`
     - [x] should error if self is not an abstract base class
-  - [x] `tenant_config_name` and `.tenanted?`
+    - [x] `Tenant.with_tenant` and `.current_tenant`
+    - [x] use a sentinel value to avoid needing a protoshard
   - [ ] `.tenanted_with`
     - [ ] mixin `Subtenant`
     - [ ] should error if self is not an abstract base class or if target is not tenanted abstract base class
+  - [x] `tenant_config_name` and `.tenanted?`
   - [ ] `.tenanted_class` nil or the abstract base class
   - [ ] all the creation and schema migration complications (we have existing tests for this)
     - think about race conditions here, maybe use a file lock to figure it out
