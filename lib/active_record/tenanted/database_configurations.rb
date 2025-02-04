@@ -19,6 +19,22 @@ module ActiveRecord
       end
 
       class TenantConfig < RootConfig
+        def tenant
+          configuration_hash.fetch(:tenant)
+        end
+
+        def new_connection
+          conn = super
+          log_addition = " [tenant=#{tenant}]"
+          conn.instance_eval <<~CODE, __FILE__, __LINE__ + 1
+            def log(sql, name = "SQL", binds = [], type_casted_binds = [], async: false, &block)
+              name ||= ""
+              name += "#{log_addition}"
+              super(sql, name, binds, type_casted_binds, async: async, &block)
+            end
+          CODE
+          conn
+        end
       end
     end
   end

@@ -83,4 +83,17 @@ describe ActiveRecord::Tenanted::Tenant do
       end
     end
   end
+
+  describe "logging" do
+    with_each_scenario do
+      test "database logs should emit the tenant name" do
+        log = capture_log do
+          TenantedApplicationRecord.while_tenanted("foo") do
+            User.count
+          end
+        end
+        assert_includes(log.string, "[tenant=foo]")
+      end
+    end
+  end
 end

@@ -99,6 +99,15 @@ module ActiveRecord
         end
       end
 
+      def capture_log
+        StringIO.new.tap do |log|
+          logger_was, ActiveRecord::Base.logger = ActiveRecord::Base.logger, ActiveSupport::Logger.new(log)
+          yield
+        ensure
+          ActiveRecord::Base.logger = logger_was
+        end
+      end
+
       private def create_fake_record
         # emulate models like ActiveStorage::Record that inherit directly from AR::Base
         Object.const_set(:FakeRecord, Class.new(ActiveRecord::Base))

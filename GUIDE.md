@@ -57,7 +57,7 @@ TODO:
   - [ ] `#tenants` returns all the tenants on disk (for iteration)
 
 - implement `AR::Tenanted::DatabaseConfigurations::TenantConfig` (name?)
-  - [ ] make sure the logs include the tenant name (via `#new_connection`)
+  - [x] make sure the logs include the tenant name (via `#new_connection`)
 
 - Active Record class methods
   - [x] `.tenanted`
@@ -102,8 +102,8 @@ TODO:
   - [ ] do that for all (?) the database tasks like `db:create`, `db:prepare`, `db:seeds`, etc.
 
 - old `Tenant` singleton methods that need to be migrated to the AR model
-  - [ ] `.current` (MOVED to the AR model `.current_tenant`)
-  - [ ] `.while_tenanted` (MOVED to the AR model)
+  - [x] `.current` (MOVED to the AR model `.current_tenant`)
+  - [x] `.while_tenanted` (MOVED to the AR model)
   - [ ] `.current=`
   - [ ] `.exist?`
   - [ ] `.all`

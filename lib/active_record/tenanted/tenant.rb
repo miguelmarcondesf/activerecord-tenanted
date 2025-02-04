@@ -57,6 +57,7 @@ module ActiveRecord
           base_config = ActiveRecord::Base.configurations.resolve(tenanted_config_name.to_sym)
           tenant_name = "#{tenanted_config_name}_#{tenant}"
           config_hash = base_config.configuration_hash.dup.tap do |hash|
+            hash[:tenant] = tenant
             hash[:database] = base_config.database_path_for(tenant)
           end
           config = Tenanted::DatabaseConfigurations::TenantConfig.new(base_config.env_name, tenant_name, config_hash)
