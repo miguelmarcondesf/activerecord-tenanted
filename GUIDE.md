@@ -10,10 +10,10 @@ In the meantime, it is a work-in-progress containing:
 
 ## Introduction
 
-Documentation:
-
 > [!TIP]
 > If you're not familiar with how Rails's built-in horizontal sharding works, it may be worth reading the Rails Guide on [Multiple Databases with Active Record](https://guides.rubyonrails.org/active_record_multiple_databases.html#setting-up-your-application) before proceeding.
+
+Documentation outline:
 
 - this gem primarily extends Active Record,
   - essentially creating a new Connection Pool for each tenant,
@@ -38,7 +38,8 @@ Documentation:
 
 ### Configuration
 
-Documentation:
+Documentation outline:
+
 - how to configure database.yml for tenanting a primary database
 - how to configure database.yml for tenanting a non-primary database
 - how to make a class that inherits from ActiveRecord::Base "sublet" from a tenanted database
@@ -49,9 +50,11 @@ Documentation:
   - example TenantSelector proc
 
 TODO:
+
 - implement `AR::Tenanted::DatabaseConfigurations::RootConfig` (name?)
   - [x] create the specialized RootConfig for `tenanted: true` databases
   - [x] RootConfig disables database tasks initially
+  - [x] RootConfig raises if a connection is attempted
   - [x] `#database_path_for(tenant_name)`
   - [ ] bucketed database paths
   - [ ] `#tenants` returns all the tenants on disk (for iteration)
@@ -104,11 +107,9 @@ TODO:
 - old `Tenant` singleton methods that need to be migrated to the AR model
   - [x] `.current` (MOVED to the AR model `.current_tenant`)
   - [x] `.while_tenanted` (MOVED to the AR model)
+  - [x] `.exist?`
   - [ ] `.current=`
-  - [ ] `.exist?`
-  - [ ] `.all`
   - [ ] `.create`
-    - think about race conditions here, maybe use a file lock to figure it out
   - [ ] `.destroy`
 
 - installation
@@ -135,7 +136,8 @@ TODO:
 
 ### Tenanting in your application
 
-Documentation:
+Documentation outline:
+
 - introduce the `Tenant` module
   - demonstrate how to create a tenant, destroy a tenant, etc.
 - troubleshooting: what errors you might see in your app and how to deal with it
@@ -144,12 +146,14 @@ Documentation:
 
 ### Testing
 
-Documentation:
+Documentation outline:
+
 - explain the concept of a default tenant
 - explain `while_untenanted`
 
 
 TODO:
+
 - testing
   - [ ] set up test helper to default to a tenanted named "test-tenant"
   - [ ] set up test helpers to deal with parallelized tests, too (e.g. "test-tenant-19")
@@ -161,10 +165,12 @@ TODO:
 
 ## Caching
 
-Documentation:
+Documentation outline:
+
 - explain why we need to be careful
 
 TODO:
+
 - [ ] need to do some exploration on how to make sure all caching is tenanted
   - and then we can have belt-and-suspenders like we do with ActiveJob
 
@@ -172,18 +178,21 @@ TODO:
 ## Action View Fragment Caching
 
 TODO:
+
 - [ ] extend `#cache_key` on Base
 - [ ] extend `#cache_key` on Sublet
 
 
 ### Solid Cache
 
-Documentation:
+Documentation outline:
+
 - describe one-big-cache and cache-in-the-tenanted-database strategies
 - how to configure Solid Cache for one-big-cache
 - how to configure Solid Cache for tenanted-cache
 
 TODO:
+
 - upstream
   - [ ] feature: make shard swap prohibition database-specific
     - which would work around Solid Cache config wonkiness caused by https://github.com/rails/solid_cache/pull/219
@@ -191,7 +200,8 @@ TODO:
 
 ## Active Job
 
-Documentation:
+Documentation outline:
+
 - explain why we need to be careful
 - explain belt-and-suspenders of
   - ActiveJob including the current tenant,
@@ -199,6 +209,7 @@ Documentation:
 
 
 TODO:
+
 - [ ] extend `to_global_id` and friends for Base
 - [ ] extend `to_global_id` and friends for Sublet
 - [ ] extend `ActiveJob` to set the tenant in `perform_now`
@@ -206,19 +217,22 @@ TODO:
 
 ## Active Storage
 
-Documentation:
+Documentation outline:
+
 - explain why we need to be careful
 - how to configure Disk Service so that each client is in a tenanted subdirectory
 - how to configure S3 so that each client is in a tenanted bucket
 
 TODO:
+
 - [ ] still have to do some exploration here to figure out how best to tackle it
   - and then we can have belt-and-suspenders like we do with ActiveJob (hopefully)
 
 
 ## Action Cable
 
-Documentation:
+Documentation outline:
+
 - explain why we need to be careful
 - how to make a channel "tenant safe"
  - identified_by
@@ -230,6 +244,7 @@ Documentation:
   - redis?
 
 TODO:
+
 - [ ] explore if there's something we can/should do in Channel base case to automatically tenant
   - and then we can have belt-and-suspenders like we do with ActiveJob
 - [ ] understand action_cable_meta_tag
@@ -238,14 +253,17 @@ TODO:
 
 ### Turbo Rails
 
-Documentation:
+Documentation outline:
+
 - explain why we need to be careful
 
 TODO:
+
 - [ ] some testing around global id would be good here
 
 
 ## ActionMailbox
 
 TODO:
+
 - [ ] I need a use case here around mail routing before I tackle it

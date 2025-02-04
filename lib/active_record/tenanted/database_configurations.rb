@@ -16,9 +16,13 @@ module ActiveRecord
           }
           database % format_specifiers
         end
+
+        def new_connection
+          raise NoTenantError, "Cannot use an untenanted ActiveRecord::Base connection. If you have a model that inherits directly from ActiveRecord::Base, make sure to use 'subtenant_of'. In development, you may see this error if constant reloading is not being done properly."
+        end
       end
 
-      class TenantConfig < RootConfig
+      class TenantConfig < ActiveRecord::DatabaseConfigurations::HashConfig
         def tenant
           configuration_hash.fetch(:tenant)
         end

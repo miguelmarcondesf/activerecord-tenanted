@@ -22,4 +22,16 @@ describe ActiveRecord::Tenanted::DatabaseConfigurations do
       assert_not tenanted_config.database_tasks?
     end
   end
+
+  describe "RootConfig" do
+    with_each_scenario do
+      test "raises if a connection is attempted" do
+        config = ActiveRecord::Base.configurations.configs_for(include_hidden: true)
+                   .find { |c| c.configuration_hash[:tenanted] }
+
+        assert(config)
+        assert_raises(ActiveRecord::Tenanted::NoTenantError) { config.new_connection }
+      end
+    end
+  end
 end
