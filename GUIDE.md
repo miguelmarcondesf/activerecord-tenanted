@@ -90,10 +90,10 @@ TODO:
       - relevant issue/pull-request https://github.com/rails/rails/pull/53893
 
 - tenant selector
-  - [ ] rebuild `AR::Tenanted::TenantSelector` to take a proc
-    - make sure it sets the tenant and prohibits shard swapping
-    - or explicitly untenanted, we allow shard swapping
-    - or else 404s if an unrecognized tenant
+  - [x] rebuild `AR::Tenanted::TenantSelector` to take a proc
+    - [x] make sure it sets the tenant and prohibits shard swapping
+    - [x] or explicitly untenanted, we allow shard swapping
+    - [x] or else 404s if an unrecognized tenant
 
 - database tasks
   - [ ] RootConfig should conditionally re-enable database tasks ... when AR_TENANT is present?
