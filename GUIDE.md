@@ -72,26 +72,22 @@ TODO:
     - [x] `.tenanted?`
   - [x] shared connection pools
   - [x] all the creation and schema migration complications (we have existing tests for this)
-accidentally drop/load causing data loss?)
-  - [ ] `.tenanted_class` nil or the abstract base class
-    - do we need this? let's wait and see.
   - [ ] feature to turn off automatic creation/migration
     - make sure we pay attention to Rails.config.active_record.migration_error when we turn off auto-migrating
-  - thinking
-    - should there be a global singleton `Tenant`? I'm not sure we need it or the limitations of a global.
-    - if we do, though, then `.tenanted` should set `Tenant.base_class=`
-    - and we need to add checks that `.tenanted` is called only ONCE in the application
 
-- [ ] think about race conditions with database creation and schema migrations
-  - maybe use a file lock to figure it out
-  - running migrations (they are done in a transaction, but the second thread's migration may fail resulting in a 500?)
-  - loading schemas (if the first thread loads the schema and inserts data, can the second thread
-
-- database tasks
-  - [ ] RootConfig should conditionally re-enable database tasks ... when AR_TENANT is present?
-  - [ ] make `db:migrate:tenants` iterate over all the tenants on disk
-  - [ ] make `db:migrate AR_TENANT=asdf` run migrations on just that tenant
-  - [ ] do that for all (?) the database tasks like `db:create`, `db:prepare`, `db:seeds`, etc.
+- [ ] think about race conditions
+  - maybe use a file lock to figure it out?
+  - [ ] create
+    - if two threads are racing
+  - [ ] migrations
+    - done in a transaction, but the second thread's migration may fail resulting in a 500?
+  - [ ] schema load
+    - if first thread loads the schema and inserts data, can the second thread accidentally drop/load causing data loss?
+  - [ ] destroy
+    - should delete the wal and shm files, too
+    - we need to be close existing connections / statements / transactions(?)
+      - relevant adapter code https://github.com/rails/rails/blob/91d456366638ac6c3f6dec38670c8ada5e7c69b1/activerecord/lib/active_record/tasks/sqlite_database_tasks.rb#L23-L26
+      - relevant issue/pull-request https://github.com/rails/rails/pull/53893
 
 - tenant selector
   - [ ] rebuild `AR::Tenanted::TenantSelector` to take a proc
@@ -99,20 +95,21 @@ accidentally drop/load causing data loss?)
     - or explicitly untenanted, we allow shard swapping
     - or else 404s if an unrecognized tenant
 
-- `Tenant`
-  - `.current`
-  - `.current=`
-  - `.while_tenanted`
-  - `.exist?`
-  - `.all`
-  - `.create`
+- database tasks
+  - [ ] RootConfig should conditionally re-enable database tasks ... when AR_TENANT is present?
+  - [ ] make `db:migrate:tenants` iterate over all the tenants on disk
+  - [ ] make `db:migrate AR_TENANT=asdf` run migrations on just that tenant
+  - [ ] do that for all (?) the database tasks like `db:create`, `db:prepare`, `db:seeds`, etc.
+
+- old `Tenant` singleton methods that need to be migrated to the AR model
+  - [ ] `.current` (MOVED to the AR model `.current_tenant`)
+  - [ ] `.while_tenanted` (MOVED to the AR model)
+  - [ ] `.current=`
+  - [ ] `.exist?`
+  - [ ] `.all`
+  - [ ] `.create`
     - think about race conditions here, maybe use a file lock to figure it out
-  - `.destroy`
-    - think about race conditions here, maybe use a file lock to figure it out
-    - should delete the wal and shm files, too
-    - we need to be close existing connections / statements / transactions(?)
-      - relevant adapter code https://github.com/rails/rails/blob/91d456366638ac6c3f6dec38670c8ada5e7c69b1/activerecord/lib/active_record/tasks/sqlite_database_tasks.rb#L23-L26
-      - relevant issue/pull-request https://github.com/rails/rails/pull/53893
+  - [ ] `.destroy`
 
 - installation
   - [ ] install a variation on the default database.yml with primary tenanted and non-primary "global" untenanted
@@ -128,6 +125,12 @@ accidentally drop/load causing data loss?)
 - autoloading and configuration hooks
   - [ ] create a zeitwerk loader
   - [ ] install some load hooks (where?)
+
+- design thinking re: global singleton (I think I've decided to not have one in this iteration)
+  - should there be a global singleton `Tenant`? I'm not sure we need it or the limitations of a global.
+  - if we do, though, then `.tenanted` should set `Tenant.base_class=`
+  - and we need to add checks that `.tenanted` is called only ONCE in the application
+  - `.tenanted_class` returns nil or the abstract base class. do we need this? let's wait and see.
 
 
 ### Tenanting in your application
