@@ -65,13 +65,15 @@ module ActiveRecord
           ensure_schema_migrations(config)
         end
 
+        # this is essentially a simplified implementation of ActiveRecord::Tasks::DatabaseTasks.migrate
         def ensure_schema_migrations(config) # :nodoc:
           ActiveRecord::Tasks::DatabaseTasks.with_temporary_connection(config) do |conn|
             pool = conn.pool
 
+            # migrate
             if pool.migration_context.pending_migration_versions.present?
-              ActiveRecord::Tasks::DatabaseTasks.migrate(nil)
-              # ActiveRecord::Tasks::DatabaseTasks.dump_schema(config) if Rails.env.development?
+              pool.migration_context.migrate(nil)
+              pool.schema_cache.clear!
             end
           end
         end

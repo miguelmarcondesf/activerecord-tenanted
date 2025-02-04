@@ -78,9 +78,11 @@ module ActiveRecord
               clear_dummy_models
               create_fake_record
               load models_scenario_file
+              @migration_verbose_was, ActiveRecord::Migration.verbose = ActiveRecord::Migration.verbose, false
             end
 
             teardown do
+              ActiveRecord::Migration.verbose = @migration_verbose_was
               clear_dummy_models
             end
 
