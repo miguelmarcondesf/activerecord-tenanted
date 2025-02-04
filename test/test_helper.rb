@@ -76,6 +76,7 @@ module ActiveRecord
           describe models_scenario_name do
             setup do
               clear_dummy_models
+              create_fake_record
               load models_scenario_file
             end
 
@@ -96,8 +97,13 @@ module ActiveRecord
         end
       end
 
+      private def create_fake_record
+        # emulate models like ActiveStorage::Record that inherit directly from AR::Base
+        Object.const_set(:FakeRecord, Class.new(ActiveRecord::Base))
+      end
+
       private def dummy_model_names
-        %w[TenantedApplicationRecord User Post SharedApplicationRecord Announcement]
+        %w[TenantedApplicationRecord User Post SharedApplicationRecord Announcement FakeRecord]
       end
 
       private def clear_dummy_models

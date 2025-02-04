@@ -10,6 +10,7 @@ module ActiveRecord
           super
 
           @tenanted_config_name = nil
+          @tenanted_subtenant_of = nil
         end
 
         def tenanted(config_name = "primary")
@@ -22,12 +23,14 @@ module ActiveRecord
           self.connection_class = true
         end
 
-        def tenanted_config_name
-          @tenanted_config_name ||= (superclass.respond_to?(:tenanted_config_name) ? superclass.tenanted_config_name : nil)
+        def subtenant_of(class_name)
+          include Subtenant
+
+          @tenanted_subtenant_of = class_name
         end
 
         def tenanted?
-          tenanted_config_name.present?
+          false
         end
       end
     end

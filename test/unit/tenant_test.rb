@@ -3,6 +3,20 @@
 require "test_helper"
 
 describe ActiveRecord::Tenanted::Tenant do
+  describe ".tenanted_config_name" do
+    with_scenario(:vanilla, :tenanted_primary) do
+      test "it sets database configuration name to 'primary' by default" do
+        assert_equal("primary", TenantedApplicationRecord.tenanted_config_name)
+      end
+    end
+
+    with_scenario(:vanilla_named_primary, :tenanted_primary) do
+      test "it sets database configuration name" do
+        assert_equal("tenanted", TenantedApplicationRecord.tenanted_config_name)
+      end
+    end
+  end
+
   describe ".while_tenanted" do
     with_each_scenario do
       describe ".current_tenant" do

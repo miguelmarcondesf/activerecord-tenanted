@@ -9,18 +9,6 @@ describe ActiveRecord::Tenanted::Base do
 
   describe ".tenanted" do
     with_scenario(:vanilla, :tenanted_primary) do
-      test "it sets database configuration name to 'primary' by default" do
-        assert_equal("primary", TenantedApplicationRecord.tenanted_config_name)
-      end
-    end
-
-    with_scenario(:vanilla_named_primary, :tenanted_primary) do
-      test "it sets database configuration name" do
-        assert_equal("tenanted", TenantedApplicationRecord.tenanted_config_name)
-      end
-    end
-
-    with_scenario(:vanilla, :tenanted_primary) do
       test "it can only be called once" do
         e = assert_raises(ActiveRecord::Tenanted::Error) do
           TenantedApplicationRecord.tenanted

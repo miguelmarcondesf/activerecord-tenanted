@@ -65,14 +65,16 @@ TODO:
     - [x] should error if self is not an abstract base class
     - [x] `Tenant.with_tenant` and `.current_tenant`
     - [x] use a sentinel value to avoid needing a protoshard
-  - [ ] `.tenanted_with`
-    - [ ] mixin `Subtenant`
-    - [ ] should error if self is not an abstract base class or if target is not tenanted abstract base class
-  - [x] `tenant_config_name` and `.tenanted?`
-  - [ ] `.tenanted_class` nil or the abstract base class
+    - [x] `tenant_config_name` and `.tenanted?`
+  - [x] `.tenanted_with`
+    - [x] mixin `Subtenant`
+    - [x] should error if self is not an abstract base class or if target is not tenanted abstract base class
+    - [x] `.tenanted?`
   - [x] shared connection pools
   - [x] all the creation and schema migration complications (we have existing tests for this)
 accidentally drop/load causing data loss?)
+  - [ ] `.tenanted_class` nil or the abstract base class
+    - do we need this? let's wait and see.
   - [ ] feature to turn off automatic creation/migration
     - make sure we pay attention to Rails.config.active_record.migration_error when we turn off auto-migrating
   - thinking

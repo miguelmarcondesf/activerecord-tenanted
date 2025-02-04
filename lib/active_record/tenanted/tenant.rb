@@ -17,6 +17,14 @@ module ActiveRecord
       end
 
       class_methods do
+        def tenanted?
+          true
+        end
+
+        def tenanted_config_name
+          @tenanted_config_name ||= (superclass.respond_to?(:tenanted_config_name) ? superclass.tenanted_config_name : nil)
+        end
+
         def current_tenant
           shard = current_shard
           shard != UNTENANTED_SENTINEL ? shard.to_s : nil
