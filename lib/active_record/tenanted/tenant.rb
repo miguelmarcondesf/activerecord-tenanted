@@ -30,6 +30,11 @@ module ActiveRecord
           shard != UNTENANTED_SENTINEL ? shard.to_s : nil
         end
 
+        def tenant_exist?(tenant_name)
+          # this will have to be an adapter-specific implementation if we support other than sqlite
+          File.exist?(tenanted_root_config.database_path_for(tenant_name))
+        end
+
         def while_tenanted(tenant_name, &block)
           connected_to(shard: tenant_name, role: ActiveRecord.writing_role) do
             prohibit_shard_swapping(true, &block)
@@ -54,13 +59,14 @@ module ActiveRecord
           return superclass.create_tenanted_pool unless connection_class?
 
           tenant = current_tenant
-          base_config = ActiveRecord::Base.configurations.resolve(tenanted_config_name.to_sym)
+          root_config = tenanted_root_config
           tenant_name = "#{tenanted_config_name}_#{tenant}"
-          config_hash = base_config.configuration_hash.dup.tap do |hash|
+          config_hash = root_config.configuration_hash.dup.tap do |hash|
             hash[:tenant] = tenant
-            hash[:database] = base_config.database_path_for(tenant)
+            hash[:database] = root_config.database_path_for(tenant)
+            # hash[:tenanted_config_name] = tenanted_config_name
           end
-          config = Tenanted::DatabaseConfigurations::TenantConfig.new(base_config.env_name, tenant_name, config_hash)
+          config = Tenanted::DatabaseConfigurations::TenantConfig.new(root_config.env_name, tenant_name, config_hash)
 
           establish_connection(config)
           ensure_schema_migrations(config)
@@ -77,6 +83,10 @@ module ActiveRecord
               pool.schema_cache.clear!
             end
           end
+        end
+
+        def tenanted_root_config # :nodoc:
+          ActiveRecord::Base.configurations.resolve(tenanted_config_name.to_sym)
         end
       end
     end

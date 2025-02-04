@@ -61,6 +61,20 @@ describe ActiveRecord::Tenanted::Tenant do
     end
   end
 
+  describe ".tenant_exist?" do
+    with_each_scenario do
+      test "it returns false if the tenant database has not been created" do
+        assert_not(TenantedApplicationRecord.tenant_exist?("doesnotexist"))
+      end
+
+      test "it returns true if the tenant database has not been created" do
+        TenantedApplicationRecord.while_tenanted("foo") { User.count }
+
+        assert(TenantedApplicationRecord.tenant_exist?("foo"))
+      end
+    end
+  end
+
   describe "connection pools" do
     with_each_scenario do
       test "models should share connection pools" do
