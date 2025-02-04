@@ -9,6 +9,9 @@ end
 class User < TenantedApplicationRecord
 end
 
+class Post < TenantedApplicationRecord
+end
+
 class SharedApplicationRecord < ActiveRecord::Base
   self.abstract_class = true
 

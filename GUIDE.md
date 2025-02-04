@@ -52,7 +52,8 @@ TODO:
 - implement `AR::Tenanted::DatabaseConfigurations::RootConfig` (name?)
   - [x] create the specialized RootConfig for `tenanted: true` databases
   - [x] RootConfig disables database tasks initially
-  - [ ] `#database_path_for(tenant_name)`
+  - [x] `#database_path_for(tenant_name)`
+  - [ ] bucketed database paths
   - [ ] `#tenants` returns all the tenants on disk (for iteration)
 
 - implement `AR::Tenanted::DatabaseConfigurations::TenantConfig` (name?)
@@ -69,16 +70,20 @@ TODO:
     - [ ] should error if self is not an abstract base class or if target is not tenanted abstract base class
   - [x] `tenant_config_name` and `.tenanted?`
   - [ ] `.tenanted_class` nil or the abstract base class
-  - [ ] all the creation and schema migration complications (we have existing tests for this)
-    - think about race conditions here, maybe use a file lock to figure it out
-      - running migrations (they are done in a transaction, but the second thread's migration may fail resulting in a 500?)
-      - loading schemas (if the first thread loads the schema and inserts data, can the second thread accidentally drop/load causing data loss?)
+  - [x] shared connection pools
+  - [x] all the creation and schema migration complications (we have existing tests for this)
+accidentally drop/load causing data loss?)
   - [ ] feature to turn off automatic creation/migration
     - make sure we pay attention to Rails.config.active_record.migration_error when we turn off auto-migrating
   - thinking
     - should there be a global singleton `Tenant`? I'm not sure we need it or the limitations of a global.
     - if we do, though, then `.tenanted` should set `Tenant.base_class=`
     - and we need to add checks that `.tenanted` is called only ONCE in the application
+
+- [ ] think about race conditions with database creation and schema migrations
+  - maybe use a file lock to figure it out
+  - running migrations (they are done in a transaction, but the second thread's migration may fail resulting in a 500?)
+  - loading schemas (if the first thread loads the schema and inserts data, can the second thread
 
 - database tasks
   - [ ] RootConfig should conditionally re-enable database tasks ... when AR_TENANT is present?

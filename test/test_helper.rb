@@ -29,14 +29,16 @@ module ActiveRecord
           end
 
           describe "scenario::#{db_config_name}" do
-            @db_config_path = File.dirname(db_config_path)
+            @db_config_dir = File.dirname(db_config_path)
 
-            let(:storage_dir) { Dir.mktmpdir(db_config_name) }
-            let(:scenario_name) { "unknown" }
+            let(:storage_path) { Dir.mktmpdir(db_config_name) }
 
             setup do
               db_config_yml = sprintf(File.read(db_config_path),
-                                      __dir__: __dir__, storage: storage_dir)
+                                      __dir__: __dir__,
+                                      storage: storage_path,
+                                      scenario: File.dirname(db_config_path)
+                                     )
               db_config = YAML.load(db_config_yml)
 
               @old_configurations = ActiveRecord::Base.configurations
@@ -45,7 +47,8 @@ module ActiveRecord
 
             teardown do
               ActiveRecord::Base.configurations = @old_configurations
-              FileUtils.remove_entry storage_dir
+              FileUtils.remove_entry storage_path
+              ActiveRecord::Base.connection_handler = ActiveRecord::ConnectionAdapters::ConnectionHandler.new
             end
 
             instance_eval(&block)
@@ -71,8 +74,6 @@ module ActiveRecord
           models_scenario_name = File.basename(models_scenario_file, ".*")
 
           describe models_scenario_name do
-            let(:scenario_name) { models_scenario_name }
-
             setup do
               clear_dummy_models
               load models_scenario_file
@@ -88,7 +89,7 @@ module ActiveRecord
 
         def with_each_scenario(&block)
           with_each_db_config do |db_config|
-            Dir.glob(File.join(@db_config_path, "*.rb")).each do |models_scenario_file|
+            Dir.glob(File.join(@db_config_dir, "*.rb")).each do |models_scenario_file|
               with_scenario_given_db_config(models_scenario_file, &block)
             end
           end
@@ -96,7 +97,7 @@ module ActiveRecord
       end
 
       private def dummy_model_names
-        %w[TenantedApplicationRecord SharedApplicationRecord User Announcement]
+        %w[TenantedApplicationRecord User Post SharedApplicationRecord Announcement]
       end
 
       private def clear_dummy_models

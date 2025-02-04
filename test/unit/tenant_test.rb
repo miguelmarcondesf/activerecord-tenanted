@@ -46,4 +46,27 @@ describe ActiveRecord::Tenanted::Tenant do
       end
     end
   end
+
+  describe "connection pools" do
+    with_each_scenario do
+      test "models should share connection pools" do
+        TenantedApplicationRecord.while_tenanted("foo") do
+          assert_same(User.connection_pool, Post.connection_pool)
+        end
+      end
+    end
+  end
+
+  describe "creation and migration" do
+    with_each_scenario do
+      test "database should be created" do
+        dbpath = TenantedApplicationRecord.while_tenanted("foo") do
+          User.first
+          User.connection_db_config.database
+        end
+
+        assert(File.exist?(dbpath))
+      end
+    end
+  end
 end

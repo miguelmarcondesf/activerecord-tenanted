@@ -9,6 +9,16 @@ module ActiveRecord
         def database_tasks?
           false
         end
+
+        def database_path_for(tenant_name)
+          format_specifiers = {
+            tenant: tenant_name,
+          }
+          database % format_specifiers
+        end
+      end
+
+      class TenantConfig < RootConfig
       end
     end
   end
