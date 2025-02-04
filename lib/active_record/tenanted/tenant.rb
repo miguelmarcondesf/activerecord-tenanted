@@ -64,7 +64,7 @@ module ActiveRecord
           config_hash = root_config.configuration_hash.dup.tap do |hash|
             hash[:tenant] = tenant
             hash[:database] = root_config.database_path_for(tenant)
-            # hash[:tenanted_config_name] = tenanted_config_name
+            hash[:tenanted_config_name] = tenanted_config_name
           end
           config = Tenanted::DatabaseConfigurations::TenantConfig.new(root_config.env_name, tenant_name, config_hash)
 
@@ -77,10 +77,19 @@ module ActiveRecord
           ActiveRecord::Tasks::DatabaseTasks.with_temporary_connection(config) do |conn|
             pool = conn.pool
 
+            # initialize_database
+            unless pool.schema_migration.table_exists?
+              schema_dump_path = ActiveRecord::Tasks::DatabaseTasks.schema_dump_path(config)
+              if schema_dump_path && File.exist?(schema_dump_path)
+                ActiveRecord::Tasks::DatabaseTasks.load_schema(config)
+              end
+            end
+
             # migrate
             if pool.migration_context.pending_migration_versions.present?
               pool.migration_context.migrate(nil)
               pool.schema_cache.clear!
+              ActiveRecord::Tasks::DatabaseTasks.dump_schema(config) if Rails.env.development?
             end
           end
         end

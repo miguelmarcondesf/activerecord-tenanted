@@ -75,6 +75,7 @@ TODO:
     - [x] `.tenanted?`
   - [x] shared connection pools
   - [x] all the creation and schema migration complications (we have existing tests for this)
+    - [x] read and write to the schema dump file
   - [ ] feature to turn off automatic creation/migration
     - make sure we pay attention to Rails.config.active_record.migration_error when we turn off auto-migrating
 
@@ -132,6 +133,9 @@ TODO:
   - if we do, though, then `.tenanted` should set `Tenant.base_class=`
   - and we need to add checks that `.tenanted` is called only ONCE in the application
   - `.tenanted_class` returns nil or the abstract base class. do we need this? let's wait and see.
+
+- test coverage
+  - [ ] need more complete coverage on `Tenant.ensure_schema_migrations`
 
 
 ### Tenanting in your application
