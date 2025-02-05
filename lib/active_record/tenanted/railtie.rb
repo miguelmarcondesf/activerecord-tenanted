@@ -24,6 +24,10 @@ module ActiveRecord
           # ActiveRecord::Generators::Migration.prepend(ActiveRecord::Tenanted::Patches::Migration)
           ActiveRecord::Tasks::DatabaseTasks.prepend(ActiveRecord::Tenanted::Patches::DatabaseTasks)
         end
+
+        ActiveSupport.on_load(:active_record_fixtures) do
+          include(ActiveRecord::Tenanted::Patches::TestFixtures)
+        end
       end
     end
   end

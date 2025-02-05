@@ -22,6 +22,22 @@ describe ActiveRecord::Tenanted::Base do
         end
         assert_includes(e.message, "not an abstract connection class")
       end
+
+      test "raises if the database configuration does not exist" do
+        FakeRecord.abstract_class = true
+        e = assert_raises(ActiveRecord::AdapterNotSpecified) do
+          FakeRecord.tenanted(:does_not_exist)
+        end
+        assert_includes(e.message, "database is not configured")
+      end
+
+      test "only tenanted database configurations can be targetted" do
+        FakeRecord.abstract_class = true
+        e = assert_raises(ActiveRecord::Tenanted::Error) do
+          FakeRecord.tenanted(:shared)
+        end
+        assert_includes(e.message, "database is not configured as tenanted")
+      end
     end
 
     for_each_scenario do

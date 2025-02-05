@@ -19,8 +19,12 @@ module ActiveRecord
 
           include Tenant
 
-          @tenanted_config_name = config_name
           self.connection_class = true
+          @tenanted_config_name = config_name
+
+          unless tenanted_root_config.configuration_hash[:tenanted]
+            raise Error, "The '#{tenanted_config_name}' database is not configured as tenanted."
+          end
         end
 
         def subtenant_of(class_name)

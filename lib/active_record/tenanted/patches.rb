@@ -22,6 +22,17 @@ module ActiveRecord
           end
         end
       end
+
+      module TestFixtures
+        # TODO: upstream this to prevent the tenanted RootConfig from creating transactional
+        # fixtures on an unnecessary database, which would result in sporadic locking errors.
+        #
+        # see https://github.com/rails/rails/pull/53139 for the introduction of this method.
+        def transactional_tests_for_pool?(pool)
+          return false if pool.db_config.instance_of?(ActiveRecord::Tenanted::DatabaseConfigurations::RootConfig)
+          super
+        end
+      end
     end
   end
 end
