@@ -3,6 +3,9 @@
 require "test_helper"
 
 describe ActiveRecord::Tenanted::Tenant do
+  let(:all_configs) { ActiveRecord::Base.configurations.configs_for(include_hidden: true) }
+  let(:tenanted_config) { all_configs.find { |c| c.configuration_hash[:tenanted] } }
+
   describe ".tenanted_config_name" do
     for_each_scenario({ primary_db: [ :primary_record, :secondary_record ] }) do
       test "it sets database configuration name to 'primary' by default" do
@@ -95,6 +98,83 @@ describe ActiveRecord::Tenanted::Tenant do
         end
 
         assert(File.exist?(dbpath))
+      end
+
+      test "database should be migrated" do
+        ActiveRecord::Migration.verbose = true
+
+        TenantedApplicationRecord.while_tenanted("foo") do
+          assert_output(/migrating.*create_table/m, nil) do
+            User.first
+          end
+          assert_equal(20250203191115, User.connection_pool.migration_context.current_version)
+        end
+      end
+
+      describe "when schema dump file exists" do
+        setup do
+          # migrate
+          config = TenantedApplicationRecord.while_tenanted("foo") do
+            User.count
+            User.connection_db_config
+          end
+
+          # force a schema dump
+          @db_dir, ActiveRecord::Tasks::DatabaseTasks.db_dir = ActiveRecord::Tasks::DatabaseTasks.db_dir, storage_path
+          ActiveRecord::Tasks::DatabaseTasks.with_temporary_connection(config) do
+            ActiveRecord::Tasks::DatabaseTasks.dump_schema(config)
+          end
+        end
+
+        teardown do
+          ActiveRecord::Tasks::DatabaseTasks.db_dir = @old_db_dir
+        end
+
+        test "database should load the schema dump file" do
+          ActiveRecord::Migration.verbose = true
+
+          TenantedApplicationRecord.while_tenanted("bar") do
+            assert_silent do
+              User.first
+            end
+            assert_equal(20250203191115, User.connection_pool.migration_context.current_version)
+          end
+        end
+
+        describe "and there are pending migrations" do
+          setup do
+            migrations_path = tenanted_config.configuration_hash[:migrations_paths]
+            @new_migration_path = File.join(migrations_path, "20250203191116_create_posts.rb")
+
+            File.open(@new_migration_path, "w") do |f|
+              f.write(<<~RUBY)
+                class CreatePosts < ActiveRecord::Migration[8.1]
+                  def change
+                    create_table :posts do |t|
+                      t.string :title
+                      t.timestamps
+                    end
+                  end
+                end
+              RUBY
+            end
+          end
+
+          teardown do
+            FileUtils.rm(@new_migration_path)
+          end
+
+          test "it runs the migrations after loading the schema" do
+            ActiveRecord::Migration.verbose = true
+
+            TenantedApplicationRecord.while_tenanted("bar") do
+              assert_output(/migrating.*create_table/m, nil) do
+                Post.first
+              end
+              assert_equal(20250203191116, User.connection_pool.migration_context.current_version)
+            end
+          end
+        end
       end
     end
   end

@@ -135,7 +135,7 @@ TODO:
   - `.tenanted_class` returns nil or the abstract base class. do we need this? let's wait and see.
 
 - test coverage
-  - [ ] need more complete coverage on `Tenant.ensure_schema_migrations`
+  - [x] need more complete coverage on `Tenant.ensure_schema_migrations`
 
 
 ### Tenanting in your application
