@@ -109,7 +109,7 @@ TODO:
   - [x] `.current` (MOVED to the AR model `.current_tenant`)
   - [x] `.while_tenanted` (MOVED to the AR model)
   - [x] `.exist?`
-  - [ ] `.current=`
+  - [x] `.current=` (MOVED to the AR model `.current_tenant=`)
   - [ ] `.create`
   - [ ] `.destroy`
 

@@ -65,6 +65,19 @@ describe ActiveRecord::Tenanted::Tenant do
     end
   end
 
+  describe ".current_tenant=" do
+    for_each_scenario do
+      test "sets tenant context" do
+        assert_nil(TenantedApplicationRecord.current_tenant)
+
+        TenantedApplicationRecord.current_tenant = "foo"
+
+        assert_equal("foo", TenantedApplicationRecord.current_tenant)
+        assert_nothing_raised { User.first }
+      end
+    end
+  end
+
   describe ".tenant_exist?" do
     for_each_scenario do
       test "it returns false if the tenant database has not been created" do

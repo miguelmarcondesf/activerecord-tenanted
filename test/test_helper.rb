@@ -82,6 +82,7 @@ module ActiveRecord
             teardown do
               ActiveRecord::Migration.verbose = @migration_verbose_was
               clear_dummy_models
+              clear_connected_to_stack
             end
 
             instance_eval(&block)
@@ -118,6 +119,11 @@ module ActiveRecord
         dummy_model_names.each do |model_name|
           Object.send(:remove_const, model_name) if Object.const_defined?(model_name)
         end
+      end
+
+      private def clear_connected_to_stack
+        # definitely mucking with Rails private API here
+        ActiveSupport::IsolatedExecutionState[:active_record_connected_to_stack] = nil
       end
     end
   end
