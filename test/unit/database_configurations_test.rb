@@ -34,6 +34,22 @@ describe ActiveRecord::Tenanted::DatabaseConfigurations do
   end
 
   describe "TenantConfig" do
+    describe "#primary?" do
+      for_each_scenario({ primary_db: [ :primary_record ], primary_named_db: [ :primary_record ] }) do
+        it "returns true" do
+          config = TenantedApplicationRecord.while_tenanted("foo") { User.connection_db_config }
+          assert_predicate(config, :primary?)
+        end
+      end
+
+      with_scenario(:secondary_db, :primary_record) do
+        it "returns false" do
+          config = TenantedApplicationRecord.while_tenanted("foo") { User.connection_db_config }
+          assert_not_predicate(config, :primary?)
+        end
+      end
+    end
+
     describe "schema dump" do
       with_scenario(:primary_db, :primary_record) do
         test "to the default primary dump file" do
