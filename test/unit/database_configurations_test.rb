@@ -7,7 +7,7 @@ describe ActiveRecord::Tenanted::DatabaseConfigurations do
   let(:tenanted_config) { all_configs.find { |c| c.configuration_hash[:tenanted] } }
 
   describe Rails do
-    with_scenario(:vanilla_named_primary, :tenanted_primary) do
+    with_scenario(:primary_named_db, :primary_record) do
       test "instantiates a RootConfig for the tenanted database" do
         assert_equal(
           {
@@ -25,7 +25,7 @@ describe ActiveRecord::Tenanted::DatabaseConfigurations do
   end
 
   describe "RootConfig" do
-    with_each_scenario do
+    for_each_scenario do
       test "raises if a connection is attempted" do
         assert(tenanted_config)
         assert_raises(ActiveRecord::Tenanted::NoTenantError) { tenanted_config.new_connection }
@@ -35,21 +35,21 @@ describe ActiveRecord::Tenanted::DatabaseConfigurations do
 
   describe "TenantConfig" do
     describe "schema dump" do
-      with_scenario(:vanilla, :tenanted_primary) do
+      with_scenario(:primary_db, :primary_record) do
         test "to the default primary dump file" do
           config = TenantedApplicationRecord.while_tenanted("foo") { User.connection_db_config }
           assert_equal("schema.rb", config.schema_dump)
         end
       end
 
-      with_scenario(:vanilla_named_primary, :tenanted_primary) do
+      with_scenario(:primary_named_db, :primary_record) do
         test "to the default primary dump file" do
           config = TenantedApplicationRecord.while_tenanted("foo") { User.connection_db_config }
           assert_equal("schema.rb", config.schema_dump)
         end
       end
 
-      with_scenario(:vanilla_named_primary, :tenanted_secondary) do
+      with_scenario(:primary_named_db, :secondary_record) do
         test "to a named dump file" do
           config = TenantedApplicationRecord.while_tenanted("foo") { User.connection_db_config }
           assert_equal("schema.rb", config.schema_dump)

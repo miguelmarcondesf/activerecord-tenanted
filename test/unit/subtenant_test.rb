@@ -3,7 +3,7 @@
 require "test_helper"
 
 describe ActiveRecord::Tenanted::Subtenant do
-  with_each_scenario do
+  for_each_scenario do
     test "connection pool is shared between subtenant and tenant classes" do
       FakeRecord.subtenant_of "TenantedApplicationRecord"
 

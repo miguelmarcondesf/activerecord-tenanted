@@ -18,7 +18,7 @@ describe ActiveRecord::Tenanted::TenantSelector do
     end.new
   end
 
-  with_scenario(:vanilla, :tenanted_primary) do
+  with_scenario(:primary_db, :primary_record) do
     describe "when no tenant is resolved" do
       let(:resolver) { ->(request) { nil } }
 

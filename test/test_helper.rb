@@ -17,28 +17,40 @@ module ActiveRecord
       extend Minitest::Spec::DSL
 
       class << self
-        def with_db_config(name_or_path_to_yml, &block)
-          name_or_path_to_yml = name_or_path_to_yml.to_s
-          if File.exist?(name_or_path_to_yml)
-            db_config_path = name_or_path_to_yml
-            db_config_name = File.basename(File.dirname(db_config_path))
-          else
-            db_config_name = name_or_path_to_yml
-            db_config_path = File.join(__dir__, "scenarios", db_config_name, "database.yml")
-            raise "Could not find scenario db config: #{db_config_path}" unless File.exist?(db_config_path)
+        def for_each_scenario(s = all_scenarios, &block)
+          s.each do |db_scenario, model_scenarios|
+            with_db_scenario(db_scenario) do
+              model_scenarios.each do |model_scenario|
+                with_model_scenario(model_scenario, &block)
+              end
+            end
           end
+        end
 
-          describe "scenario::#{db_config_name}" do
-            @db_config_dir = File.dirname(db_config_path)
+        def all_scenarios
+          Dir.glob(File.join(__dir__, "scenarios", "*", "database.yml"))
+            .each_with_object({}) do |db_config_path, scenarios|
+            db_config_dir = File.dirname(db_config_path)
+            db_scenario = File.basename(db_config_dir)
+            model_files = Dir.glob(File.join(db_config_dir, "*.rb"))
 
-            let(:storage_path) { Dir.mktmpdir(db_config_name) }
+            scenarios[db_scenario] = model_files.map { File.basename(_1, ".*") }
+          end
+        end
+
+        def with_db_scenario(db_scenario, &block)
+          db_config_path = File.join(__dir__, "scenarios", db_scenario.to_s, "database.yml")
+          raise "Could not find scenario db config: #{db_config_path}" unless File.exist?(db_config_path)
+
+          describe "scenario::#{db_scenario}" do
+            @db_config_dir = db_config_dir = File.dirname(db_config_path)
+
+            let(:storage_path) { Dir.mktmpdir("test-active_record-tenanted-") }
 
             setup do
               db_config_yml = sprintf(File.read(db_config_path),
-                                      __dir__: __dir__,
                                       storage: storage_path,
-                                      scenario: File.dirname(db_config_path)
-                                     )
+                                      scenario: db_config_dir)
               db_config = YAML.load(db_config_yml)
 
               @old_configurations = ActiveRecord::Base.configurations
@@ -55,25 +67,11 @@ module ActiveRecord
           end
         end
 
-        def with_each_db_config(&block)
-          Dir.glob(File.join(__dir__, "scenarios", "*", "database.yml")).each do |db_config_path|
-            with_db_config(db_config_path, &block)
-          end
-        end
+        def with_model_scenario(models_scenario, &block)
+          models_scenario_file = File.join(@db_config_dir, "#{models_scenario}.rb")
+          raise "Could not find model scenario: #{models_scenario_file}" unless File.exist?(models_scenario_file)
 
-        def with_scenario(db_config_name, model_scenario_name, &block)
-          model_scenario_file = File.join(__dir__, "scenarios", db_config_name.to_s, "#{model_scenario_name}.rb")
-          raise "Cannot find scenario: #{model_scenario_file}" unless File.exist?(model_scenario_file)
-
-          with_db_config(db_config_name) do
-            with_scenario_given_db_config(model_scenario_file, &block)
-          end
-        end
-
-        def with_scenario_given_db_config(models_scenario_file, &block)
-          models_scenario_name = File.basename(models_scenario_file, ".*")
-
-          describe models_scenario_name do
+          describe models_scenario do
             setup do
               clear_dummy_models
               create_fake_record
@@ -90,11 +88,9 @@ module ActiveRecord
           end
         end
 
-        def with_each_scenario(&block)
-          with_each_db_config do |db_config|
-            Dir.glob(File.join(@db_config_dir, "*.rb")).each do |models_scenario_file|
-              with_scenario_given_db_config(models_scenario_file, &block)
-            end
+        def with_scenario(db_scenario, model_scenario, &block)
+          with_db_scenario(db_scenario) do
+            with_model_scenario(model_scenario, &block)
           end
         end
       end

@@ -8,7 +8,7 @@ describe ActiveRecord::Tenanted::Base do
   end
 
   describe ".tenanted" do
-    with_scenario(:vanilla, :tenanted_primary) do
+    with_scenario(:primary_db, :primary_record) do
       test "it can only be called once" do
         e = assert_raises(ActiveRecord::Tenanted::Error) do
           TenantedApplicationRecord.tenanted
@@ -24,7 +24,7 @@ describe ActiveRecord::Tenanted::Base do
       end
     end
 
-    with_each_scenario do
+    for_each_scenario do
       test "it includes the Tenant module" do
         assert_includes(TenantedApplicationRecord.ancestors, ActiveRecord::Tenanted::Tenant)
         assert_includes(User.ancestors, ActiveRecord::Tenanted::Tenant)
