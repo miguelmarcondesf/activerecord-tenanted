@@ -79,6 +79,8 @@ module ActiveRecord
 
         ActiveSupport.on_load(:action_dispatch_integration_test) do
           include ActiveRecord::Tenanted::Testing::IntegrationTest
+
+          ActionDispatch::Integration::Session.prepend(ActiveRecord::Tenanted::Testing::IntegrationSession)
         end
       end
     end
