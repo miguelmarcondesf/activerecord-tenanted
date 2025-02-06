@@ -50,6 +50,27 @@ module ActiveRecord
           while_tenanted(ActiveRecord::Tenanted::Tenant::UNTENANTED_SENTINEL, prohibit_shard_swapping: false, &block)
         end
 
+        def create_tenant(tenant_name, &block)
+          raise TenantExistsError if tenant_exist?(tenant_name)
+
+          while_tenanted(tenant_name) do
+            connection_pool
+            yield if block_given?
+          end
+        end
+
+        def destroy_tenant(tenant_name)
+          return unless tenant_exist?(tenant_name)
+
+          while_tenanted(tenant_name) do
+            lease_connection.log("/* destroying tenant database */", "DESTROY [tenant=#{tenant_name}]")
+          ensure
+            remove_connection
+          end
+
+          FileUtils.rm(tenanted_root_config.database_path_for(tenant_name))
+        end
+
         def connection_pool # :nodoc:
           raise NoTenantError unless current_tenant
 

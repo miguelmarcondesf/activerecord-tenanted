@@ -122,6 +122,84 @@ describe ActiveRecord::Tenanted::Tenant do
     end
   end
 
+  describe ".create_tenant" do
+    for_each_scenario do
+      test "raises an Exception if the tenant already exists" do
+        TenantedApplicationRecord.while_tenanted("foo") { User.count }
+
+        assert_raises(ActiveRecord::Tenanted::TenantExistsError) do
+          TenantedApplicationRecord.create_tenant("foo")
+        end
+      end
+
+      test "creates the database" do
+        assert_not(TenantedApplicationRecord.tenant_exist?("foo"))
+
+        TenantedApplicationRecord.create_tenant("foo")
+
+        assert(TenantedApplicationRecord.tenant_exist?("foo"))
+      end
+
+      test "sets up the schema" do
+        TenantedApplicationRecord.create_tenant("foo")
+
+        ActiveRecord::Migration.verbose = true
+
+        TenantedApplicationRecord.while_tenanted("foo") do
+          assert_silent do
+            User.first
+          end
+        end
+      end
+
+      test "yields the block in the context of the created tenant" do
+        TenantedApplicationRecord.create_tenant("foo") do
+          assert_equal("foo", TenantedApplicationRecord.current_tenant)
+        end
+      end
+    end
+  end
+
+  describe ".destroy_tenant" do
+    for_each_scenario do
+      test "it returns if the tenant does not exist" do
+        assert_nothing_raised do
+          TenantedApplicationRecord.destroy_tenant("doesnotexist")
+        end
+      end
+
+      describe "when the tenant exists" do
+        setup { TenantedApplicationRecord.create_tenant("foo") }
+
+        test "it deletes the connection pool" do
+          TenantedApplicationRecord.destroy_tenant("foo")
+
+          pool = TenantedApplicationRecord.connection_handler.retrieve_connection_pool(
+            TenantedApplicationRecord.connection_specification_name,
+            role: TenantedApplicationRecord.current_role,
+            shard: "foo",
+            strict: false)
+
+          assert_nil(pool)
+        end
+
+        test "it logs the deletion" do
+          log = capture_log do
+            TenantedApplicationRecord.destroy_tenant("foo")
+          end
+          assert_includes(log.string, "destroying tenant database")
+          assert_includes(log.string, "DESTROY [tenant=foo]")
+        end
+
+        test "it deletes the database file" do
+          TenantedApplicationRecord.destroy_tenant("foo")
+
+          assert_not(TenantedApplicationRecord.tenant_exist?("foo"))
+        end
+      end
+    end
+  end
+
   describe "connection pools" do
     for_each_scenario do
       test "models should share connection pools" do

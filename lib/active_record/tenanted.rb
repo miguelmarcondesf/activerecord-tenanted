@@ -13,6 +13,9 @@ module ActiveRecord
 
     # Raised when database access is attempted without a current tenant having been set.
     class NoTenantError < Error; end
+
+    # Raised when attempting to create a tenant that already exists.
+    class TenantExistsError < Error; end
   end
 end
 

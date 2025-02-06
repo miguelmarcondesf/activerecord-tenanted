@@ -107,12 +107,12 @@ TODO:
   - [ ] do that for all (?) the database tasks like `db:create`, `db:prepare`, `db:seeds`, etc.
 
 - old `Tenant` singleton methods that need to be migrated to the AR model
-  - [x] `.current` (MOVED to the AR model `.current_tenant`)
-  - [x] `.while_tenanted` (MOVED to the AR model)
-  - [x] `.exist?`
-  - [x] `.current=` (MOVED to the AR model `.current_tenant=`)
-  - [ ] `.create`
-  - [ ] `.destroy`
+  - [x] `.current_tenant`
+  - [x] `.current_tenant=`
+  - [x] `.tenant_exist?`
+  - [x] `.while_tenanted`
+  - [x] `.create_tenant`
+  - [x] `.destroy_tenant`
 
 - installation
   - [ ] install a variation on the default database.yml with primary tenanted and non-primary "global" untenanted
@@ -156,12 +156,15 @@ Documentation outline:
 TODO:
 
 - testing
+  - [x] a `while_untenanted` test helper
   - [x] set up test helper to default to a tenanted named "test-tenant"
   - [x] set up test helpers to deal with parallelized tests, too (e.g. "test-tenant-19")
+  - [x] set up integration tests to do the right things ...
+    - [x] set the domain name in tests
+    - [x] wrap the HTTP verbs with `while_untenanted`
   - [ ] allow the creation of tenants within transactional tests if we can?
     - either by cleaning up properly (hard)
     - or by providing a test helper that does `ensure ... Tenant.destroy`
-  - [ ] a `while_untenanted` test helper
 
 
 ## Caching
