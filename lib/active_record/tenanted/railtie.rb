@@ -74,22 +74,11 @@ module ActiveRecord
         end
 
         ActiveSupport.on_load(:active_support_test_case) do
-          if Rails.application.config.active_record_tenanted.connection_class.present?
-            klass = Rails.application.config.active_record_tenanted.connection_class.constantize
-
-            klass.current_tenant = "#{Rails.env}-tenant" if Rails.env.test?
-            parallelize_setup do |worker|
-              klass.current_tenant = "#{Rails.env}-tenant-#{worker}"
-            end
-          end
+          include ActiveRecord::Tenanted::Testing::TestCase
         end
 
         ActiveSupport.on_load(:action_dispatch_integration_test) do
-          setup do
-            klass = Rails.application.config.active_record_tenanted.connection_class.constantize
-
-            integration_session.host = "#{klass.current_tenant}.example.com"
-          end
+          include ActiveRecord::Tenanted::Testing::IntegrationTest
         end
       end
     end
