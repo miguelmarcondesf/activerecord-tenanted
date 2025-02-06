@@ -62,6 +62,36 @@ describe ActiveRecord::Tenanted::Tenant do
           assert_includes(e.message, "shard swapping is prohibited")
         end
       end
+
+      test "may allow shard swapping if explicitly asked" do
+        TenantedApplicationRecord.while_tenanted("foo", prohibit_shard_swapping: false) do
+          assert_nothing_raised do
+            TenantedApplicationRecord.while_tenanted("bar") { }
+          end
+        end
+      end
+    end
+  end
+
+  describe ".while_untenanted" do
+    for_each_scenario do
+      describe ".current_tenant" do
+        test "is nil" do
+          TenantedApplicationRecord.current_tenant = "foo"
+          TenantedApplicationRecord.while_untenanted do
+            assert_nil(TenantedApplicationRecord.current_tenant)
+          end
+        end
+      end
+
+      test "may allow shard swapping if explicitly asked" do
+        TenantedApplicationRecord.current_tenant = "foo"
+        TenantedApplicationRecord.while_untenanted do
+          TenantedApplicationRecord.while_tenanted("bar") do
+            assert_equal("bar", TenantedApplicationRecord.current_tenant)
+          end
+        end
+      end
     end
   end
 

@@ -39,13 +39,18 @@ module ActiveRecord
           File.exist?(tenanted_root_config.database_path_for(tenant_name))
         end
 
-        def while_tenanted(tenant_name, &block)
+        def while_tenanted(tenant_name, prohibit_shard_swapping: true, &block)
           connected_to(shard: tenant_name, role: ActiveRecord.writing_role) do
-            prohibit_shard_swapping(true, &block)
+            prohibit_shard_swapping(prohibit_shard_swapping, &block)
           end
         end
 
-        def connection_pool
+        # This method is really only intended to be used for testing.
+        def while_untenanted(&block) # :nodoc:
+          while_tenanted(ActiveRecord::Tenanted::Tenant::UNTENANTED_SENTINEL, prohibit_shard_swapping: false, &block)
+        end
+
+        def connection_pool # :nodoc:
           raise NoTenantError unless current_tenant
 
           pool = connection_handler.retrieve_connection_pool(connection_specification_name, role: current_role, shard: current_tenant, strict: false)
