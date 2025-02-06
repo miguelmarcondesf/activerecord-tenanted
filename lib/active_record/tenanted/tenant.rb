@@ -21,10 +21,6 @@ module ActiveRecord
           true
         end
 
-        def tenanted_config_name
-          @tenanted_config_name ||= (superclass.respond_to?(:tenanted_config_name) ? superclass.tenanted_config_name : nil)
-        end
-
         def current_tenant
           shard = current_shard
           shard != UNTENANTED_SENTINEL ? shard.to_s : nil
@@ -43,11 +39,6 @@ module ActiveRecord
           connected_to(shard: tenant_name, role: ActiveRecord.writing_role) do
             prohibit_shard_swapping(prohibit_shard_swapping, &block)
           end
-        end
-
-        # This method is really only intended to be used for testing.
-        def while_untenanted(&block) # :nodoc:
-          while_tenanted(ActiveRecord::Tenanted::Tenant::UNTENANTED_SENTINEL, prohibit_shard_swapping: false, &block)
         end
 
         def create_tenant(tenant_name, &block)
@@ -69,6 +60,11 @@ module ActiveRecord
           end
 
           FileUtils.rm(tenanted_root_config.database_path_for(tenant_name))
+        end
+
+        # This method is really only intended to be used for testing.
+        def while_untenanted(&block) # :nodoc:
+          while_tenanted(ActiveRecord::Tenanted::Tenant::UNTENANTED_SENTINEL, prohibit_shard_swapping: false, &block)
         end
 
         def connection_pool # :nodoc:
@@ -126,6 +122,10 @@ module ActiveRecord
 
         def tenanted_root_config # :nodoc:
           ActiveRecord::Base.configurations.resolve(tenanted_config_name.to_sym)
+        end
+
+        def tenanted_config_name # :nodoc:
+          @tenanted_config_name ||= (superclass.respond_to?(:tenanted_config_name) ? superclass.tenanted_config_name : nil)
         end
       end
     end
