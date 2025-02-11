@@ -16,6 +16,20 @@ module ActiveRecord
     class TestCase < ActiveSupport::TestCase
       extend Minitest::Spec::DSL
 
+      # When used with Minitest::Spec's `describe`, ActiveSupport::Testing's `test` creates methods
+      # that may be inherited by subsequent describe blocks and run multiple times. Warn us if this
+      # happens. (Note that Minitest::Spec's `it` doesn't do this.)
+      def self.test(name, &block)
+        if self.children.any?
+          c = caller_locations[0]
+          path = Pathname.new(c.path).relative_path_from(Pathname.new(Dir.pwd))
+          puts "WARNING: #{path}:#{__LINE__}: test #{name.inspect} is being inherited"
+        end
+
+        super
+      end
+
+
       class << self
         def for_each_scenario(s = all_scenarios, &block)
           s.each do |db_scenario, model_scenarios|

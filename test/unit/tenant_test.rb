@@ -21,35 +21,50 @@ describe ActiveRecord::Tenanted::Tenant do
     end
   end
 
-  describe ".while_tenanted" do
+  describe "no current tenant" do
     for_each_scenario do
-      describe ".current_tenant" do
-        test "returns nil by default" do
-          assert_nil(TenantedApplicationRecord.current_tenant)
-        end
-
-        test "returns the string name of the tenant if in a tenant context " do
-          TenantedApplicationRecord.while_tenanted(:foo) do
-            assert_equal("foo", TenantedApplicationRecord.current_tenant)
-          end
-
-          TenantedApplicationRecord.while_tenanted("foo") do
-            assert_equal("foo", TenantedApplicationRecord.current_tenant)
-          end
-        end
-
-        test "subclasses see the same tenant" do
-          assert_nil(User.current_tenant)
-
-          TenantedApplicationRecord.while_tenanted("foo") do
-            assert_equal("foo", User.current_tenant)
-          end
-        end
-      end
-
       test "raise NoTenantError on database access if there is no current tenant" do
         assert_raises(ActiveRecord::Tenanted::NoTenantError) do
           User.first
+        end
+      end
+    end
+  end
+
+  describe ".current_tenant" do
+    for_each_scenario do
+      test "returns nil by default" do
+        assert_nil(TenantedApplicationRecord.current_tenant)
+      end
+
+      test ".current_tenant= sets tenant context" do
+        assert_nil(TenantedApplicationRecord.current_tenant)
+
+        TenantedApplicationRecord.current_tenant = "foo"
+
+        assert_equal("foo", TenantedApplicationRecord.current_tenant)
+        assert_nothing_raised { User.first }
+      end
+    end
+  end
+
+  describe ".while_tenanted" do
+    for_each_scenario do
+      test "returns the string name of the tenant if in a tenant context " do
+        TenantedApplicationRecord.while_tenanted(:foo) do
+          assert_equal("foo", TenantedApplicationRecord.current_tenant)
+        end
+
+        TenantedApplicationRecord.while_tenanted("foo") do
+          assert_equal("foo", TenantedApplicationRecord.current_tenant)
+        end
+      end
+
+      test "subclasses see the same tenant" do
+        assert_nil(User.current_tenant)
+
+        TenantedApplicationRecord.while_tenanted("foo") do
+          assert_equal("foo", User.current_tenant)
         end
       end
 
@@ -75,35 +90,20 @@ describe ActiveRecord::Tenanted::Tenant do
 
   describe ".while_untenanted" do
     for_each_scenario do
-      describe ".current_tenant" do
-        test "is nil" do
-          TenantedApplicationRecord.current_tenant = "foo"
-          TenantedApplicationRecord.while_untenanted do
-            assert_nil(TenantedApplicationRecord.current_tenant)
-          end
+      test "current_tenant is nil" do
+        TenantedApplicationRecord.current_tenant = "foo"
+        TenantedApplicationRecord.while_untenanted do
+          assert_nil(TenantedApplicationRecord.current_tenant)
         end
       end
 
-      test "may allow shard swapping if explicitly asked" do
+      test "allows shard swapping" do
         TenantedApplicationRecord.current_tenant = "foo"
         TenantedApplicationRecord.while_untenanted do
           TenantedApplicationRecord.while_tenanted("bar") do
             assert_equal("bar", TenantedApplicationRecord.current_tenant)
           end
         end
-      end
-    end
-  end
-
-  describe ".current_tenant=" do
-    for_each_scenario do
-      test "sets tenant context" do
-        assert_nil(TenantedApplicationRecord.current_tenant)
-
-        TenantedApplicationRecord.current_tenant = "foo"
-
-        assert_equal("foo", TenantedApplicationRecord.current_tenant)
-        assert_nothing_raised { User.first }
       end
     end
   end
