@@ -56,6 +56,17 @@ describe ActiveRecord::Tenanted::DatabaseConfigurations do
           config = TenantedApplicationRecord.while_tenanted("foo") { User.connection_db_config }
           assert_equal("schema.rb", config.schema_dump)
         end
+
+        test "can be overridden" do
+          config = TenantedApplicationRecord.while_tenanted("foo") { User.connection_db_config }
+
+          config_hash = config.configuration_hash.dup.tap do |h|
+            h[:schema_dump] = "custom_file_name.rb"
+          end.freeze
+          config.instance_variable_set(:@configuration_hash, config_hash)
+
+          assert_equal("custom_file_name.rb", config.schema_dump)
+        end
       end
 
       with_scenario(:primary_named_db, :primary_record) do
@@ -65,10 +76,10 @@ describe ActiveRecord::Tenanted::DatabaseConfigurations do
         end
       end
 
-      with_scenario(:primary_named_db, :secondary_record) do
+      with_scenario(:secondary_db, :primary_record) do
         test "to a named dump file" do
           config = TenantedApplicationRecord.while_tenanted("foo") { User.connection_db_config }
-          assert_equal("schema.rb", config.schema_dump)
+          assert_equal("tenanted_schema.rb", config.schema_dump)
         end
       end
     end
