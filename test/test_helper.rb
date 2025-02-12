@@ -2,6 +2,7 @@
 
 # Configure Rails Environment
 ENV["RAILS_ENV"] = "test"
+ENV["AR_TENANT_SCHEMA_DUMP"] = "t" # we don't normally dump schemas outside of development
 
 require "rails"
 require "rails/test_help" # should be before active_record is loaded to avoid schema/fixture setup
@@ -59,7 +60,9 @@ module ActiveRecord
           describe "scenario::#{db_scenario}" do
             @db_config_dir = db_config_dir = File.dirname(db_config_path)
 
-            let(:storage_path) { Dir.mktmpdir("test-active_record-tenanted-") }
+            let(:ephemeral_path) { Dir.mktmpdir("test-active_record-tenanted-") }
+            let(:storage_path) { File.join(ephemeral_path, "storage") }
+            let(:db_path) { File.join(ephemeral_path, "db") }
 
             setup do
               db_config_yml = sprintf(File.read(db_config_path),
@@ -67,14 +70,18 @@ module ActiveRecord
                                       scenario: db_config_dir)
               db_config = YAML.load(db_config_yml)
 
+              @old_db_dir = ActiveRecord::Tasks::DatabaseTasks.db_dir
+              ActiveRecord::Tasks::DatabaseTasks.db_dir = db_path
+
               @old_configurations = ActiveRecord::Base.configurations
               ActiveRecord::Base.configurations = db_config
             end
 
             teardown do
               ActiveRecord::Base.configurations = @old_configurations
-              FileUtils.remove_entry storage_path
+              ActiveRecord::Tasks::DatabaseTasks.db_dir = @old_db_dir
               ActiveRecord::Base.connection_handler = ActiveRecord::ConnectionAdapters::ConnectionHandler.new
+              FileUtils.remove_entry ephemeral_path
             end
 
             instance_eval(&block)

@@ -77,6 +77,9 @@ TODO:
   - [x] shared connection pools
   - [x] all the creation and schema migration complications (we have existing tests for this)
     - [x] read and write to the schema dump file
+    - [x] write to the schema cache dump file
+    - [ ] make sure we read from the schema cache dump file when untenanted
+    - [ ] test production eager loading of the schema cache from dump files
   - [ ] feature to turn off automatic creation/migration
     - make sure we pay attention to Rails.config.active_record.migration_error when we turn off auto-migrating
 
@@ -120,6 +123,7 @@ TODO:
     - [ ] install `TenantSelector` and configure it with a proc
     - [ ] commented line like `self.connection_class = "ApplicationRecord"`
     - [ ] commented line like `self.tenanted_rails_records = true`
+    - [ ] set `config.active_record.check_schema_cache_dump_version = false`
 
 - pruning connections and connection pools
   - [ ] look into whether the proposed Reaper changes will allow us to set appropriate connection min/max/timeouts

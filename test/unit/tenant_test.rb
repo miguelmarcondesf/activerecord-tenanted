@@ -213,12 +213,12 @@ describe ActiveRecord::Tenanted::Tenant do
   describe "creation and migration" do
     for_each_scenario do
       test "database should be created" do
-        dbpath = TenantedApplicationRecord.while_tenanted("foo") do
+        db_path = TenantedApplicationRecord.while_tenanted("foo") do
           User.first
           User.connection_db_config.database
         end
 
-        assert(File.exist?(dbpath))
+        assert(File.exist?(db_path))
       end
 
       test "database should be migrated" do
@@ -232,23 +232,33 @@ describe ActiveRecord::Tenanted::Tenant do
         end
       end
 
-      describe "when schema dump file exists" do
-        setup do
-          # migrate
-          config = TenantedApplicationRecord.while_tenanted("foo") do
-            User.count
-            User.connection_db_config
-          end
-
-          # force a schema dump
-          @db_dir, ActiveRecord::Tasks::DatabaseTasks.db_dir = ActiveRecord::Tasks::DatabaseTasks.db_dir, storage_path
-          ActiveRecord::Tasks::DatabaseTasks.with_temporary_connection(config) do
-            ActiveRecord::Tasks::DatabaseTasks.dump_schema(config)
-          end
+      test "database schema file should be created" do
+        schema_path = TenantedApplicationRecord.while_tenanted("foo") do
+          User.first
+          ActiveRecord::Tasks::DatabaseTasks.schema_dump_path(User.connection_db_config)
         end
 
-        teardown do
-          ActiveRecord::Tasks::DatabaseTasks.db_dir = @old_db_dir
+        assert(File.exist?(schema_path))
+      end
+
+      test "database schema cache file should be created" do
+        schema_cache_path = TenantedApplicationRecord.while_tenanted("foo") do
+          User.first
+          ActiveRecord::Tasks::DatabaseTasks.cache_dump_filename(User.connection_db_config)
+        end
+
+        assert(File.exist?(schema_cache_path))
+      end
+
+      describe "when schema dump file exists" do
+        setup do
+          # migrate and dump schema
+          schema_path = TenantedApplicationRecord.while_tenanted("foo") do
+            User.count
+            ActiveRecord::Tasks::DatabaseTasks.schema_dump_path(User.connection_db_config)
+          end
+
+          assert(File.exist?(schema_path)) # assert on setup
         end
 
         test "database should load the schema dump file" do

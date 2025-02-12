@@ -112,10 +112,23 @@ module ActiveRecord
             end
 
             # migrate
+            migrated = false
             if pool.migration_context.pending_migration_versions.present?
               pool.migration_context.migrate(nil)
               pool.schema_cache.clear!
-              ActiveRecord::Tasks::DatabaseTasks.dump_schema(config) if Rails.env.development?
+              migrated = true
+            end
+
+            # dump the schema and schema cache
+            if Rails.env.development? || ENV["AR_TENANT_SCHEMA_DUMP"].present?
+              if migrated
+                ActiveRecord::Tasks::DatabaseTasks.dump_schema(config)
+              end
+
+              cache_dump = ActiveRecord::Tasks::DatabaseTasks.cache_dump_filename(config)
+              if migrated || !File.exist?(cache_dump)
+                ActiveRecord::Tasks::DatabaseTasks.dump_schema_cache(pool, cache_dump)
+              end
             end
           end
         end

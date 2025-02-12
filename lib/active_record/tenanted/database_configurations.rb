@@ -55,6 +55,14 @@ module ActiveRecord
             "#{tenanted_config_name}_#{schema_file_type(format)}"
           end
         end
+
+        def default_schema_cache_path(db_dir = "db")
+          if primary?
+            super
+          else
+            File.join(db_dir, "#{tenanted_config_name}_schema_cache.yml")
+          end
+        end
       end
     end
   end

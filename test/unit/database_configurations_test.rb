@@ -83,5 +83,49 @@ describe ActiveRecord::Tenanted::DatabaseConfigurations do
         end
       end
     end
+
+    describe "schema cache dump" do
+      with_scenario(:primary_db, :primary_record) do
+        test "to the default primary dump file" do
+          config = TenantedApplicationRecord.while_tenanted("foo") { User.connection_db_config }
+          path = ActiveRecord::Tasks::DatabaseTasks.cache_dump_filename(config)
+
+          expected = File.join(ActiveRecord::Tasks::DatabaseTasks.db_dir, "schema_cache.yml")
+          assert_equal(expected, path)
+        end
+
+        test "can be overridden" do
+          config = TenantedApplicationRecord.while_tenanted("foo") { User.connection_db_config }
+
+          config_hash = config.configuration_hash.dup.tap do |h|
+            h[:schema_cache_path] = "db/custom_file_name.rb"
+          end.freeze
+          config.instance_variable_set(:@configuration_hash, config_hash)
+          path = ActiveRecord::Tasks::DatabaseTasks.cache_dump_filename(config)
+
+          assert_equal("db/custom_file_name.rb", path)
+        end
+      end
+
+      with_scenario(:primary_named_db, :primary_record) do
+        test "to the default primary dump file" do
+          config = TenantedApplicationRecord.while_tenanted("foo") { User.connection_db_config }
+          path = ActiveRecord::Tasks::DatabaseTasks.cache_dump_filename(config)
+
+          expected = File.join(ActiveRecord::Tasks::DatabaseTasks.db_dir, "schema_cache.yml")
+          assert_equal(expected, path)
+        end
+      end
+
+      with_scenario(:secondary_db, :primary_record) do
+        test "to a named dump file" do
+          config = TenantedApplicationRecord.while_tenanted("foo") { User.connection_db_config }
+          path = ActiveRecord::Tasks::DatabaseTasks.cache_dump_filename(config)
+
+          expected = File.join(ActiveRecord::Tasks::DatabaseTasks.db_dir, "tenanted_schema_cache.yml")
+          assert_equal(expected, path)
+        end
+      end
+    end
   end
 end
