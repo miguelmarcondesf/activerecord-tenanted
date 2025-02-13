@@ -56,7 +56,7 @@ module ActiveRecord
 
       initializer "active_record-tenanted.monkey_patches" do
         ActiveSupport.on_load(:active_record) do
-          ActiveRecord::Tasks::DatabaseTasks.prepend(ActiveRecord::Tenanted::Patches::DatabaseTasks)
+          ActiveRecord::Tasks::DatabaseTasks.prepend ActiveRecord::Tenanted::Patches::DatabaseTasks
         end
       end
 
@@ -87,13 +87,13 @@ module ActiveRecord
         end
 
         ActiveSupport.on_load(:active_record_fixtures) do
-          include(ActiveRecord::Tenanted::Testing::TestFixtures)
+          include ActiveRecord::Tenanted::Testing::TestFixtures
         end
 
         ActiveSupport.on_load(:action_dispatch_integration_test) do
           include ActiveRecord::Tenanted::Testing::IntegrationTest
 
-          ActionDispatch::Integration::Session.prepend(ActiveRecord::Tenanted::Testing::IntegrationSession)
+          ActionDispatch::Integration::Session.prepend ActiveRecord::Tenanted::Testing::IntegrationSession
         end
       end
     end
