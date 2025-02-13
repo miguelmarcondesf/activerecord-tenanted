@@ -58,16 +58,20 @@ Documentation outline:
   - how to make a class that inherits from ActiveRecord::Base "sublet" from a tenanted database
     - and note how we do it out of the box for Rails records
 
-- how to run database tasks and what's changed
-
-- demonstrate how to configure an app for subdomain tenants
-  - app.config.hosts
-  - example TenantSelector proc
-
 - Rails configuration
   - explain why we set some options
     - `active_record.use_schema_cache_dump = true`
     - `active_record.check_schema_cache_dump_version = false`
+  - explain gem railtie config options
+    - `connection_class`
+    - `tenanted_rails_records`
+  - demonstrate how to configure an app for subdomain tenants
+    - app.config.hosts
+    - example TenantSelector proc
+
+- operations
+  - how to run database tasks and what assumptions have changed
+
 
 TODO:
 
@@ -134,7 +138,6 @@ TODO:
     - [ ] install `TenantSelector` and configure it with a proc
     - [ ] commented line like `self.connection_class = "ApplicationRecord"`
     - [ ] commented line like `self.tenanted_rails_records = true`
-    - [ ] set `config.active_record.check_schema_cache_dump_version = false`
 
 - [ ] think about race conditions
   - maybe use a file lock to figure it out?
