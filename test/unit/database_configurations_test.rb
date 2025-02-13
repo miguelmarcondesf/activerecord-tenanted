@@ -36,6 +36,12 @@ describe ActiveRecord::Tenanted::DatabaseConfigurations do
       test "raises if the tenant name contains a path separator" do
         assert_raises(ActiveRecord::Tenanted::BadTenantNameError) { config.database_path_for("foo/bar") }
       end
+
+      test "raises if the tenant name contains a quote or double-quote or back-quote" do
+        assert_raises(ActiveRecord::Tenanted::BadTenantNameError) { config.database_path_for("foo'bar") }
+        assert_raises(ActiveRecord::Tenanted::BadTenantNameError) { config.database_path_for("foo\"bar") }
+        assert_raises(ActiveRecord::Tenanted::BadTenantNameError) { config.database_path_for("foo`bar") }
+      end
     end
 
     for_each_scenario do

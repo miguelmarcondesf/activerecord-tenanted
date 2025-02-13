@@ -11,7 +11,9 @@ module ActiveRecord
         end
 
         def database_path_for(tenant_name)
-          raise BadTenantNameError, "Tenant name cannot contain path separators: #{tenant_name.inspect}" if tenant_name.include?("/")
+          if tenant_name.match?(%r{[/'"`]})
+            raise BadTenantNameError, "Tenant name contains an invalid character: #{tenant_name.inspect}"
+          end
           sprintf(database, tenant: tenant_name)
         end
 
@@ -41,12 +43,9 @@ module ActiveRecord
 
         def new_connection
           conn = super
-          log_addition = " [tenant=#{tenant}]"
           conn.class_eval <<~CODE, __FILE__, __LINE__ + 1
             private def log(sql, name = "SQL", *args, **kwargs, &block)
-              name ||= ""
-              name += "#{log_addition}"
-              super(sql, name, *args, **kwargs, &block)
+              super(sql, "\#{name} [tenant=#{tenant}]", *args, **kwargs, &block)
             end
           CODE
           conn
