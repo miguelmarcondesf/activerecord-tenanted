@@ -54,7 +54,7 @@ module ActiveRecord
           return unless tenant_exist?(tenant_name)
 
           while_tenanted(tenant_name) do
-            lease_connection.log("/* destroying tenant database */", "DESTROY [tenant=#{tenant_name}]")
+            lease_connection.send(:log, "/* destroying tenant database */", "DESTROY [tenant=#{tenant_name}]")
           ensure
             remove_connection
           end

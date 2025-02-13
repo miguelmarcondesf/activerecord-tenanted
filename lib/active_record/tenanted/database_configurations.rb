@@ -42,11 +42,11 @@ module ActiveRecord
         def new_connection
           conn = super
           log_addition = " [tenant=#{tenant}]"
-          conn.instance_eval <<~CODE, __FILE__, __LINE__ + 1
-            def log(sql, name = "SQL", binds = [], type_casted_binds = [], async: false, &block)
+          conn.class_eval <<~CODE, __FILE__, __LINE__ + 1
+            private def log(sql, name = "SQL", *args, **kwargs, &block)
               name ||= ""
               name += "#{log_addition}"
-              super(sql, name, binds, type_casted_binds, async: async, &block)
+              super(sql, name, *args, **kwargs, &block)
             end
           CODE
           conn
