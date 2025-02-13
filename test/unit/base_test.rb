@@ -91,10 +91,10 @@ describe ActiveRecord::Tenanted::Base do
         test "models can be created" do
           user = User.new
 
-          assert_equal([ "id", "email", "created_at", "updated_at" ].sort,
-                       user.attributes.keys.sort)
-          assert_equal([ "id", "email", "created_at", "updated_at" ].sort,
-                       User.column_names.sort)
+          assert_same_elements([ "id", "email", "created_at", "updated_at" ],
+                               user.attributes.keys)
+          assert_same_elements([ "id", "email", "created_at", "updated_at" ],
+                               User.column_names)
         end
 
         test "schema cache can be loaded" do

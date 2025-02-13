@@ -17,21 +17,20 @@ module ActiveRecord
     class TestCase < ActiveSupport::TestCase
       extend Minitest::Spec::DSL
 
-      # When used with Minitest::Spec's `describe`, ActiveSupport::Testing's `test` creates methods
-      # that may be inherited by subsequent describe blocks and run multiple times. Warn us if this
-      # happens. (Note that Minitest::Spec's `it` doesn't do this.)
-      def self.test(name, &block)
-        if self.children.any?
-          c = caller_locations[0]
-          path = Pathname.new(c.path).relative_path_from(Pathname.new(Dir.pwd))
-          puts "WARNING: #{path}:#{__LINE__}: test #{name.inspect} is being inherited"
+      class << self
+        # When used with Minitest::Spec's `describe`, ActiveSupport::Testing's `test` creates methods
+        # that may be inherited by subsequent describe blocks and run multiple times. Warn us if this
+        # happens. (Note that Minitest::Spec's `it` doesn't do this.)
+        def test(name, &block)
+          if self.children.any?
+            c = caller_locations[0]
+            path = Pathname.new(c.path).relative_path_from(Pathname.new(Dir.pwd))
+            puts "WARNING: #{path}:#{__LINE__}: test #{name.inspect} is being inherited"
+          end
+
+          super
         end
 
-        super
-      end
-
-
-      class << self
         def for_each_scenario(s = all_scenarios, &block)
           s.each do |db_scenario, model_scenarios|
             with_db_scenario(db_scenario) do
@@ -141,6 +140,10 @@ module ActiveRecord
       def with_new_migration_file
         FileUtils.cp "test/scenarios/20250213005959_add_age_to_users.rb",
                      File.join(db_path, "tenanted_migrations")
+      end
+
+      def assert_same_elements(expected, actual)
+        assert_equal(expected.sort, actual.sort, "Elements don't match")
       end
 
       def capture_log

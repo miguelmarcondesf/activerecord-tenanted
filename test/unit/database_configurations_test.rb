@@ -54,7 +54,7 @@ describe ActiveRecord::Tenanted::DatabaseConfigurations do
 
           TenantedApplicationRecord.while_tenanted("bar") { User.count }
 
-          assert_equal([ "foo", "bar" ].sort, tenanted_config.tenants.sort)
+          assert_same_elements([ "foo", "bar" ], tenanted_config.tenants)
 
           TenantedApplicationRecord.destroy_tenant("foo")
 

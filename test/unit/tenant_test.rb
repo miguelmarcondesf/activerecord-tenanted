@@ -208,7 +208,7 @@ describe ActiveRecord::Tenanted::Tenant do
 
         TenantedApplicationRecord.while_tenanted("bar") { User.count }
 
-        assert_equal([ "foo", "bar" ].sort, TenantedApplicationRecord.tenants.sort)
+        assert_same_elements([ "foo", "bar" ], TenantedApplicationRecord.tenants)
 
         TenantedApplicationRecord.destroy_tenant("foo")
 
@@ -292,8 +292,8 @@ describe ActiveRecord::Tenanted::Tenant do
                 User.count
               end
               assert_equal(20250213005959, User.connection_pool.migration_context.current_version)
-              assert_equal([ "id", "email", "created_at", "updated_at", "age" ].sort,
-                           User.new.attributes.keys.sort)
+              assert_same_elements([ "id", "email", "created_at", "updated_at", "age" ],
+                                   User.new.attributes.keys)
             end
           end
         end
@@ -305,8 +305,8 @@ describe ActiveRecord::Tenanted::Tenant do
 
         describe "before a connection is made" do
           test "models can be created but migration is not applied" do
-            assert_equal([ "id", "email", "created_at", "updated_at" ].sort,
-                         User.new.attributes.keys.sort)
+            assert_same_elements([ "id", "email", "created_at", "updated_at" ],
+                                 User.new.attributes.keys)
           end
         end
 
@@ -319,8 +319,8 @@ describe ActiveRecord::Tenanted::Tenant do
                 User.count
               end
               assert_equal(20250213005959, User.connection_pool.migration_context.current_version)
-              assert_equal([ "id", "email", "created_at", "updated_at", "age" ].sort,
-                           User.new.attributes.keys.sort)
+              assert_same_elements([ "id", "email", "created_at", "updated_at", "age" ],
+                                   User.new.attributes.keys)
             end
           end
         end
