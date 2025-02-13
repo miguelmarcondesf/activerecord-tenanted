@@ -54,6 +54,7 @@ Documentation outline:
   - app.config.hosts
   - example TenantSelector proc
 - explain Tenanted options "connection_class" and "tenanted_rails_records"
+- explain why we pin `active_record.use_schema_cache_dump = true` and `active_record.check_schema_cache_dump_version = false`
 
 TODO:
 
@@ -83,8 +84,8 @@ TODO:
   - [x] all the creation and schema migration complications (we have existing tests for this)
     - [x] read and write to the schema dump file
     - [x] write to the schema cache dump file
-    - [ ] make sure we read from the schema cache dump file when untenanted
-    - [ ] test production eager loading of the schema cache from dump files
+    - [x] make sure we read from the schema cache dump file when untenanted
+    - [x] test production eager loading of the schema cache from dump files
   - [ ] feature to turn off automatic creation/migration
     - pay attention to Rails.config.active_record.migration_error when we turn off auto-migrating
   - [ ] UntenantedConnectionPool should peek at its stack and if it happened during schema cache load, output a friendly message to let people know what to do

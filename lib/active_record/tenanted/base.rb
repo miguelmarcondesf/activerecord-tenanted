@@ -36,6 +36,22 @@ module ActiveRecord
         def tenanted?
           false
         end
+
+        # TODO: This monkey patch shouldn't be necessary after 8.1 lands and the need for a
+        # connection is removed. For details see https://github.com/rails/rails/pull/54348
+        def _default_attributes # :nodoc:
+          @default_attributes ||= begin
+            # I've removed the `with_connection` block here.
+            nil_connection = nil
+            attributes_hash = columns_hash.transform_values do |column|
+              ActiveModel::Attribute.from_database(column.name, column.default, type_for_column(nil_connection, column))
+            end
+
+            attribute_set = ActiveModel::AttributeSet.new(attributes_hash)
+            apply_pending_attribute_modifications(attribute_set)
+            attribute_set
+          end
+        end
       end
     end
   end

@@ -39,10 +39,23 @@ module ActiveRecord
         end
       end
 
+      initializer("active_record_tenanted.active_record_schema_cache",
+                  before: "active_record.copy_schema_cache_config") do
+        # Rails must be able to load the schema for a tenanted model without a database connection
+        # (e.g., boot-time eager loading, or calling User.new to build a form). This gem relies on
+        # reading from the schema cache dump to do that.
+        #
+        # Rails defaults use_schema_cache_dump to true, but we explicitly re-set it here because if
+        # this is ever turned off, Rails will not work as expected.
+        Rails.application.config.active_record.use_schema_cache_dump = true
+
+        # The schema cache version check needs to query the database, which isn't always possible
+        # for tenanted models.
+        Rails.application.config.active_record.check_schema_cache_dump_version = false
+      end
+
       initializer "active_record-tenanted.monkey_patches" do
         ActiveSupport.on_load(:active_record) do
-          # require "rails/generators/active_record/migration.rb"
-          # ActiveRecord::Generators::Migration.prepend(ActiveRecord::Tenanted::Patches::Migration)
           ActiveRecord::Tasks::DatabaseTasks.prepend(ActiveRecord::Tenanted::Patches::DatabaseTasks)
         end
 

@@ -78,6 +78,11 @@ describe ActiveRecord::Tenanted::Base do
             User.schema_cache.columns("users")
           end
         end
+
+        test "the active record railtie will fail to eager load the schema" do
+          # the code here should mirror the "active_record.define_attribute_methods" initializer
+          assert_not(User.connection_pool.schema_reflection.cached?(User.table_name))
+        end
       end
 
       describe "when schema cache dump file exists" do
@@ -93,6 +98,15 @@ describe ActiveRecord::Tenanted::Base do
         end
 
         test "schema cache can be loaded" do
+          assert_equal([ "id", "email", "created_at", "updated_at" ],
+                       User.schema_cache.columns("users")&.map(&:name))
+        end
+
+        test "the active record railtie will eager load the schema" do
+          # the code here should mirror the "active_record.define_attribute_methods" initializer
+          assert(User.connection_pool.schema_reflection.cached?(User.table_name))
+          assert(User.define_attribute_methods)
+
           assert_equal([ "id", "email", "created_at", "updated_at" ],
                        User.schema_cache.columns("users")&.map(&:name))
         end

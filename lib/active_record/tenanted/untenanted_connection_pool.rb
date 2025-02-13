@@ -19,9 +19,12 @@ module ActiveRecord
         @model = model
       end
 
-      def schema_cache
+      def schema_reflection
         schema_cache_path = ActiveRecord::Tasks::DatabaseTasks.cache_dump_filename(db_config)
-        schema_reflection = ActiveRecord::ConnectionAdapters::SchemaReflection.new(schema_cache_path)
+        ActiveRecord::ConnectionAdapters::SchemaReflection.new(schema_cache_path)
+      end
+
+      def schema_cache
         ActiveRecord::ConnectionAdapters::BoundSchemaReflection.new(schema_reflection, self)
       end
 
