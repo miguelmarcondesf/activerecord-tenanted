@@ -32,7 +32,12 @@ Documentation outline:
   - global ids are no longer global
   - cache is no longer global
 - and what we do in this gem to help manage "shard" state
-
+- reference existing approaches/projects, maybe talk about differences
+  - discussion at https://www.reddit.com/r/rails/comments/1ik7caq/multitenancy_vs_multi_instances/
+  - [Kolide's 30 Line Rails Multi-Tenant Strategy](https://www.kolide.com/blog/kolide-s-30-line-rails-multi-tenant-strategy)
+  - [citusdata/activerecord-multi-tenant: Rails/ActiveRecord support for distributed multi-tenant databases like Postgres+Citus](https://github.com/citusdata/activerecord-multi-tenant)
+  - [rails-on-services/apartment: Database multi-tenancy for Rack (and Rails) applications](https://github.com/rails-on-services/apartment)
+  - [ErwinM/acts_as_tenant: Easy multi-tenancy for Rails in a shared database setup.](https://github.com/ErwinM/acts_as_tenant)
 
 ## Active Record
 
@@ -81,7 +86,9 @@ TODO:
     - [ ] make sure we read from the schema cache dump file when untenanted
     - [ ] test production eager loading of the schema cache from dump files
   - [ ] feature to turn off automatic creation/migration
-    - make sure we pay attention to Rails.config.active_record.migration_error when we turn off auto-migrating
+    - pay attention to Rails.config.active_record.migration_error when we turn off auto-migrating
+  - [ ] UntenantedConnectionPool should peek at its stack and if it happened during schema cache load, output a friendly message to let people know what to do
+
 
 - [ ] think about race conditions
   - maybe use a file lock to figure it out?

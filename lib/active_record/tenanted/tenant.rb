@@ -68,21 +68,31 @@ module ActiveRecord
         end
 
         def connection_pool # :nodoc:
-          raise NoTenantError unless current_tenant
+          if current_tenant
+            pool = retrieve_connection_pool(strict: false)
 
-          pool = connection_handler.retrieve_connection_pool(connection_specification_name, role: current_role, shard: current_tenant, strict: false)
+            if pool.nil?
+              _create_tenanted_pool
+              pool = retrieve_connection_pool(strict: true)
+            end
 
-          if pool.nil?
-            create_tenanted_pool
-            pool = connection_handler.retrieve_connection_pool(connection_specification_name, role: current_role, shard: current_tenant, strict: true)
+            pool
+          else
+            Tenanted::UntenantedConnectionPool.new(tenanted_root_config)
           end
-
-          pool
         end
 
-        def create_tenanted_pool # :nodoc:
+        def tenanted_root_config # :nodoc:
+          ActiveRecord::Base.configurations.resolve(tenanted_config_name.to_sym)
+        end
+
+        def tenanted_config_name # :nodoc:
+          @tenanted_config_name ||= (superclass.respond_to?(:tenanted_config_name) ? superclass.tenanted_config_name : nil)
+        end
+
+        def _create_tenanted_pool # :nodoc:
           # ensure all classes use the same connection pool
-          return superclass.create_tenanted_pool unless connection_class?
+          return superclass._create_tenanted_pool unless connection_class?
 
           tenant = current_tenant
           root_config = tenanted_root_config
@@ -99,7 +109,7 @@ module ActiveRecord
         end
 
         # this is essentially a simplified implementation of ActiveRecord::Tasks::DatabaseTasks.migrate
-        def ensure_schema_migrations(config) # :nodoc:
+        private def ensure_schema_migrations(config)
           ActiveRecord::Tasks::DatabaseTasks.with_temporary_connection(config) do |conn|
             pool = conn.pool
 
@@ -133,12 +143,11 @@ module ActiveRecord
           end
         end
 
-        def tenanted_root_config # :nodoc:
-          ActiveRecord::Base.configurations.resolve(tenanted_config_name.to_sym)
-        end
-
-        def tenanted_config_name # :nodoc:
-          @tenanted_config_name ||= (superclass.respond_to?(:tenanted_config_name) ? superclass.tenanted_config_name : nil)
+        private def retrieve_connection_pool(strict:)
+          connection_handler.retrieve_connection_pool(connection_specification_name,
+                                                      role: current_role,
+                                                      shard: current_tenant,
+                                                      strict: strict)
         end
       end
     end
