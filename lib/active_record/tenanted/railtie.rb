@@ -58,10 +58,6 @@ module ActiveRecord
         ActiveSupport.on_load(:active_record) do
           ActiveRecord::Tasks::DatabaseTasks.prepend(ActiveRecord::Tenanted::Patches::DatabaseTasks)
         end
-
-        ActiveSupport.on_load(:active_record_fixtures) do
-          include(ActiveRecord::Tenanted::Patches::TestFixtures)
-        end
       end
 
       config.after_initialize do
@@ -88,6 +84,10 @@ module ActiveRecord
 
         ActiveSupport.on_load(:active_support_test_case) do
           include ActiveRecord::Tenanted::Testing::TestCase
+        end
+
+        ActiveSupport.on_load(:active_record_fixtures) do
+          include(ActiveRecord::Tenanted::Testing::TestFixtures)
         end
 
         ActiveSupport.on_load(:action_dispatch_integration_test) do

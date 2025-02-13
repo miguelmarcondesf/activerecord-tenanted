@@ -175,6 +175,10 @@ Documentation outline:
 Documentation outline:
 
 - explain the concept of a default tenant
+  - and that database connection is wrapped in a transaction
+- explain creating a new tenant
+  - and how that database is NOT wrapped in a transaction during the test,
+  - but those non-fixture databases will be cleaned up at the start of the test suite
 - explain `while_untenanted`
 
 
@@ -187,9 +191,7 @@ TODO:
   - [x] set up integration tests to do the right things ...
     - [x] set the domain name in tests
     - [x] wrap the HTTP verbs with `while_untenanted`
-  - [ ] allow the creation of tenants within transactional tests if we can?
-    - either by cleaning up properly (hard)
-    - or by providing a test helper that does `ensure ... Tenant.destroy`
+  - [x] allow the creation of tenants within transactional tests
 
 
 ## Caching

@@ -12,9 +12,16 @@ module ActiveRecord
 
         included do
           if klass = ActiveRecord::Tenanted::Testing.connection_class
-            klass.current_tenant = "#{Rails.env}-tenant" if Rails.env.test?
+            klass.current_tenant = "#{Rails.env}-tenant"
+
             parallelize_setup do |worker|
               klass.current_tenant = "#{Rails.env}-tenant-#{worker}"
+            end
+
+            # clean up any non-default tenants left over from the last test run
+            klass.tenants.each do |tenant|
+              next if tenant.start_with?("#{Rails.env}-tenant")
+              klass.destroy_tenant(tenant)
             end
           end
         end
@@ -52,6 +59,32 @@ module ActiveRecord
               end
             RUBY
           end
+        end
+      end
+
+      module TestFixtures
+        def transactional_tests_for_pool?(pool)
+          config = pool.db_config
+
+          # Prevent the tenanted RootConfig from creating transactional fixtures on an unnecessary
+          # database, which would result in sporadic locking errors.
+          is_root_config = config.instance_of?(Tenanted::DatabaseConfigurations::RootConfig)
+
+          # Any tenanted database that isn't the default test fixture database should not be wrapped
+          # in a transaction, for a couple of reasons:
+          #
+          # 1. we migrate the database using a temporary pool, which will wrap the schema load in a
+          #    transaction that will not be visible to any connection used by the code under test to
+          #    insert data.
+          # 2. having an open transaction will prevent the test from being able to destroy the tenant.
+          is_non_default_tenant = (
+            config.instance_of?(Tenanted::DatabaseConfigurations::TenantConfig) &&
+            !config.tenant.start_with?("#{Rails.env}-tenant")
+          )
+
+          return false if is_root_config || is_non_default_tenant
+
+          super
         end
       end
     end
