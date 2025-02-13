@@ -62,6 +62,10 @@ module ActiveRecord
           FileUtils.rm(tenanted_root_config.database_path_for(tenant_name))
         end
 
+        def tenants
+          tenanted_root_config.tenants
+        end
+
         # This method is really only intended to be used for testing.
         def while_untenanted(&block) # :nodoc:
           while_tenanted(ActiveRecord::Tenanted::Tenant::UNTENANTED_SENTINEL, prohibit_shard_swapping: false, &block)

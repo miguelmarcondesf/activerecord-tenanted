@@ -11,10 +11,22 @@ module ActiveRecord
         end
 
         def database_path_for(tenant_name)
-          format_specifiers = {
-            tenant: tenant_name,
-          }
-          database % format_specifiers
+          raise BadTenantNameError, "Tenant name cannot contain path separators: #{tenant_name.inspect}" if tenant_name.include?("/")
+          sprintf(database, tenant: tenant_name)
+        end
+
+        def tenants
+          glob = sprintf(database, tenant: "*")
+          scanner = Regexp.new(sprintf(database, tenant: "(.+)"))
+
+          Dir.glob(glob).map do |path|
+            result = path.scan(scanner).flatten.first
+            if result.nil?
+              warn "WARN: ActiveRecord::Tenanted: Cannot parse tenant name from filename #{path.inspect}. " \
+                   "This is a bug, please report it to https://github.com/basecamp/active_record-tenanted/issues"
+            end
+            result
+          end
         end
 
         def new_connection

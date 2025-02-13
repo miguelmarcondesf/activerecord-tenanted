@@ -25,10 +25,50 @@ describe ActiveRecord::Tenanted::DatabaseConfigurations do
   end
 
   describe "RootConfig" do
+    describe ".database_path_for" do
+      let(:config_hash) { { adapter: "sqlite3", database: "db/tenanted/%{tenant}/main.sqlite3" } }
+      let(:config) { ActiveRecord::Tenanted::DatabaseConfigurations::RootConfig.new("test", "foo", config_hash) }
+
+      test "returns the path for a tenant" do
+        assert_equal("db/tenanted/foo/main.sqlite3", config.database_path_for("foo"))
+      end
+
+      test "raises if the tenant name contains a path separator" do
+        assert_raises(ActiveRecord::Tenanted::BadTenantNameError) { config.database_path_for("foo/bar") }
+      end
+    end
+
     for_each_scenario do
       test "raises if a connection is attempted" do
         assert(tenanted_config)
         assert_raises(ActiveRecord::Tenanted::NoTenantError) { tenanted_config.new_connection }
+      end
+
+      describe ".tenants" do
+        test "returns an array of existing tenants" do
+          assert_empty(tenanted_config.tenants)
+
+          TenantedApplicationRecord.while_tenanted("foo") { User.count }
+
+          assert_equal([ "foo" ], tenanted_config.tenants)
+
+          TenantedApplicationRecord.while_tenanted("bar") { User.count }
+
+          assert_equal([ "foo", "bar" ].sort, tenanted_config.tenants.sort)
+
+          TenantedApplicationRecord.destroy_tenant("foo")
+
+          assert_equal([ "bar" ], tenanted_config.tenants)
+        end
+
+        test "handles non-alphanumeric characters" do
+          assert_empty(tenanted_config.tenants)
+
+          crazy_name = 'a~!@#$%^&*()_-+=:;[{]}|,.?9' # please don't do this
+          TenantedApplicationRecord.while_tenanted(crazy_name) { User.count }
+
+          assert_equal([ crazy_name ], tenanted_config.tenants)
+        end
       end
     end
   end

@@ -197,6 +197,26 @@ describe ActiveRecord::Tenanted::Tenant do
     end
   end
 
+  describe ".tenants" do
+    with_scenario(:primary_db, :primary_record) do
+      test "it returns an array of existing tenants" do
+        assert_empty(TenantedApplicationRecord.tenants)
+
+        TenantedApplicationRecord.while_tenanted("foo") { User.count }
+
+        assert_equal([ "foo" ], TenantedApplicationRecord.tenants)
+
+        TenantedApplicationRecord.while_tenanted("bar") { User.count }
+
+        assert_equal([ "foo", "bar" ].sort, TenantedApplicationRecord.tenants.sort)
+
+        TenantedApplicationRecord.destroy_tenant("foo")
+
+        assert_equal([ "bar" ], TenantedApplicationRecord.tenants)
+      end
+    end
+  end
+
   describe "connection pools" do
     for_each_scenario do
       test "models should share connection pools" do

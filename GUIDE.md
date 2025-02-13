@@ -64,7 +64,8 @@ TODO:
   - [x] RootConfig raises if a connection is attempted
   - [x] `#database_path_for(tenant_name)`
   - [ ] bucketed database paths
-  - [ ] `#tenants` returns all the tenants on disk (for iteration)
+  - [x] `#tenants` returns all the tenants on disk (for iteration)
+  - [x] raise an exception if tenant name contains a path separator
 
 - implement `AR::Tenanted::DatabaseConfigurations::TenantConfig` (name?)
   - [x] make sure the logs include the tenant name (via `#new_connection`)

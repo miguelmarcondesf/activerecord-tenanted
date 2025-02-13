@@ -16,6 +16,9 @@ module ActiveRecord
 
     # Raised when attempting to create a tenant that already exists.
     class TenantExistsError < Error; end
+
+    # Raised when attempting to create a tenant with illegal characters in it.
+    class BadTenantNameError < Error; end
   end
 end
 
