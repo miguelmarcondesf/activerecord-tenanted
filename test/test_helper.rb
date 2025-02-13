@@ -7,6 +7,14 @@ ENV["AR_TENANT_SCHEMA_DUMP"] = "t" # we don't normally dump schemas outside of d
 require "rails"
 require "rails/test_help" # should be before active_record is loaded to avoid schema/fixture setup
 
+class TestSuiteRailtie < ::Rails::Railtie
+  initializer "turn off the Rails integrations when running this test suite" do
+    ActiveSupport.on_load(:active_record_tenanted) do
+      Rails.application.config.active_record_tenanted.connection_class = nil
+    end
+  end
+end
+
 require_relative "../lib/active_record/tenanted"
 
 require_relative "dummy/config/environment"
