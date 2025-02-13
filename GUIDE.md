@@ -23,15 +23,19 @@ Documentation outline:
   - integrations for Middleware, Action View Caching, Active Job, Action Cable, Active Storage, Action Mailbox, and Action Text
   - support and documentation for Solid Cache, Solid Queue, Solid Cable, and Turbo Rails
 - a Tenant is just a string that is used for:
-  - the sqlite database filename
+  - the sqlite database filename (or perhaps the pg/mysql database name in the future)
   - the subdomain (or path element)
   - fragment cache disambiguation
   - global id disambiguation
+  - invalid characters in a tenant name
+    - and how the application may want to do additional validation (e.g. ICANN subdomain restrictions)
 - talk a bit about busted assumptions about shared state
   - database ids are no longer unique
   - global ids are no longer global
   - cache is no longer global
-- and what we do in this gem to help manage "shard" state
+  - cable channels are no longer global
+  - jobs are no longer global
+- and what we do in this gem to help manage that "current tenant" state
 - reference existing approaches/projects, maybe talk about differences
   - discussion at https://www.reddit.com/r/rails/comments/1ik7caq/multitenancy_vs_multi_instances/
   - [Kolide's 30 Line Rails Multi-Tenant Strategy](https://www.kolide.com/blog/kolide-s-30-line-rails-multi-tenant-strategy)
@@ -45,29 +49,38 @@ Documentation outline:
 
 Documentation outline:
 
-- how to configure database.yml for tenanting a primary database
-- how to configure database.yml for tenanting a non-primary database
-- how to make a class that inherits from ActiveRecord::Base "sublet" from a tenanted database
-  - and note how we do it out of the box for Rails records
+- how to configure database.yml
+  - for tenanting a primary database
+  - for tenanting a non-primary database
+
+- how to configure model classes and records
+  - variations for primary or non-primary records
+  - how to make a class that inherits from ActiveRecord::Base "sublet" from a tenanted database
+    - and note how we do it out of the box for Rails records
+
 - how to run database tasks and what's changed
+
 - demonstrate how to configure an app for subdomain tenants
   - app.config.hosts
   - example TenantSelector proc
-- explain Tenanted options "connection_class" and "tenanted_rails_records"
-- explain why we pin `active_record.use_schema_cache_dump = true` and `active_record.check_schema_cache_dump_version = false`
+
+- Rails configuration
+  - explain why we set some options
+    - `active_record.use_schema_cache_dump = true`
+    - `active_record.check_schema_cache_dump_version = false`
 
 TODO:
 
-- implement `AR::Tenanted::DatabaseConfigurations::RootConfig` (name?)
+- implement `AR::Tenanted::DatabaseConfigurations::RootConfig`
   - [x] create the specialized RootConfig for `tenanted: true` databases
   - [x] RootConfig disables database tasks initially
   - [x] RootConfig raises if a connection is attempted
   - [x] `#database_path_for(tenant_name)`
-  - [ ] bucketed database paths
   - [x] `#tenants` returns all the tenants on disk (for iteration)
   - [x] raise an exception if tenant name contains a path separator
+  - [ ] bucketed database paths
 
-- implement `AR::Tenanted::DatabaseConfigurations::TenantConfig` (name?)
+- implement `AR::Tenanted::DatabaseConfigurations::TenantConfig`
   - [x] make sure the logs include the tenant name (via `#new_connection`)
 
 - Active Record class methods
@@ -88,9 +101,40 @@ TODO:
     - [x] make sure we read from the schema cache dump file when untenanted
     - [x] test production eager loading of the schema cache from dump files
   - [ ] feature to turn off automatic creation/migration
-    - pay attention to Rails.config.active_record.migration_error when we turn off auto-migrating
+    - [ ] pay attention to Rails.config.active_record.migration_error when we turn off auto-migrating
   - [ ] UntenantedConnectionPool should peek at its stack and if it happened during schema cache load, output a friendly message to let people know what to do
 
+- tenant selector
+  - [x] rebuild `AR::Tenanted::TenantSelector` to take a proc
+    - [x] make sure it sets the tenant and prohibits shard swapping
+    - [x] or explicitly untenanted, we allow shard swapping
+    - [x] or else 404s if an unrecognized tenant
+
+- old `Tenant` singleton methods that need to be migrated to the AR model
+  - [x] `.current_tenant`
+  - [x] `.current_tenant=`
+  - [x] `.tenant_exist?`
+  - [x] `.while_tenanted`
+  - [x] `.create_tenant`
+  - [x] `.destroy_tenant`
+
+- autoloading and configuration hooks
+  - [x] create a zeitwerk loader
+  - [x] install a load hook
+
+- database tasks
+  - [ ] RootConfig should conditionally re-enable database tasks ... when AR_TENANT is present?
+  - [ ] make `db:migrate:tenants` iterate over all the tenants on disk
+  - [ ] make `db:migrate AR_TENANT=asdf` run migrations on just that tenant
+  - [ ] do that for all (?) the database tasks like `db:create`, `db:prepare`, `db:seeds`, etc.
+
+- installation
+  - [ ] install a variation on the default database.yml with primary tenanted and non-primary "global" untenanted
+  - initializer
+    - [ ] install `TenantSelector` and configure it with a proc
+    - [ ] commented line like `self.connection_class = "ApplicationRecord"`
+    - [ ] commented line like `self.tenanted_rails_records = true`
+    - [ ] set `config.active_record.check_schema_cache_dump_version = false`
 
 - [ ] think about race conditions
   - maybe use a file lock to figure it out?
@@ -106,45 +150,10 @@ TODO:
       - relevant adapter code https://github.com/rails/rails/blob/91d456366638ac6c3f6dec38670c8ada5e7c69b1/activerecord/lib/active_record/tasks/sqlite_database_tasks.rb#L23-L26
       - relevant issue/pull-request https://github.com/rails/rails/pull/53893
 
-- tenant selector
-  - [x] rebuild `AR::Tenanted::TenantSelector` to take a proc
-    - [x] make sure it sets the tenant and prohibits shard swapping
-    - [x] or explicitly untenanted, we allow shard swapping
-    - [x] or else 404s if an unrecognized tenant
-
-- database tasks
-  - [ ] RootConfig should conditionally re-enable database tasks ... when AR_TENANT is present?
-  - [ ] make `db:migrate:tenants` iterate over all the tenants on disk
-  - [ ] make `db:migrate AR_TENANT=asdf` run migrations on just that tenant
-  - [ ] do that for all (?) the database tasks like `db:create`, `db:prepare`, `db:seeds`, etc.
-
-- old `Tenant` singleton methods that need to be migrated to the AR model
-  - [x] `.current_tenant`
-  - [x] `.current_tenant=`
-  - [x] `.tenant_exist?`
-  - [x] `.while_tenanted`
-  - [x] `.create_tenant`
-  - [x] `.destroy_tenant`
-
-- installation
-  - [ ] install a variation on the default database.yml with primary tenanted and non-primary "global" untenanted
-  - initializer
-    - [ ] install `TenantSelector` and configure it with a proc
-    - [ ] commented line like `self.connection_class = "ApplicationRecord"`
-    - [ ] commented line like `self.tenanted_rails_records = true`
-    - [ ] set `config.active_record.check_schema_cache_dump_version = false`
-
 - pruning connections and connection pools
   - [ ] look into whether the proposed Reaper changes will allow us to set appropriate connection min/max/timeouts
     - and if not, figure out how to prune unused/timed-out connections
   - [ ] we should also look into how to cap the number of connection pools, and prune them
-
-- autoloading and configuration hooks
-  - [x] create a zeitwerk loader
-  - [x] install a load hook
-
-- test coverage
-  - [x] need more complete coverage on `Tenant.ensure_schema_migrations`
 
 
 ### Tenanting in your application
