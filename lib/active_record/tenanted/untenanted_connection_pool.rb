@@ -12,10 +12,11 @@ module ActiveRecord
     class UntenantedConnectionPool < ActiveRecord::ConnectionAdapters::NullPool # :nodoc:
       attr_reader :db_config
 
-      def initialize(db_config)
+      def initialize(db_config, model)
         super()
 
         @db_config = db_config
+        @model = model
       end
 
       def schema_cache
@@ -25,19 +26,19 @@ module ActiveRecord
       end
 
       def lease_connection(...)
-        raise Tenanted::NoTenantError, "Cannot connect to a tenanted database while untenanted."
+        raise Tenanted::NoTenantError, "Cannot connect to a tenanted database while untenanted (#{@model})."
       end
 
       def checkout(...)
-        raise Tenanted::NoTenantError, "Cannot connect to a tenanted database while untenanted."
+        raise Tenanted::NoTenantError, "Cannot connect to a tenanted database while untenanted (#{@model})."
       end
 
       def with_connection(...)
-        raise Tenanted::NoTenantError, "Cannot connect to a tenanted database while untenanted."
+        raise Tenanted::NoTenantError, "Cannot connect to a tenanted database while untenanted (#{@model})."
       end
 
       def new_connection(...)
-        raise Tenanted::NoTenantError, "Cannot connect to a tenanted database while untenanted."
+        raise Tenanted::NoTenantError, "Cannot connect to a tenanted database while untenanted (#{@model})."
       end
     end
   end

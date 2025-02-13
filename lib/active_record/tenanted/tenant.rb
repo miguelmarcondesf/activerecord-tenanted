@@ -78,7 +78,7 @@ module ActiveRecord
 
             pool
           else
-            Tenanted::UntenantedConnectionPool.new(tenanted_root_config)
+            Tenanted::UntenantedConnectionPool.new(tenanted_root_config, self)
           end
         end
 
