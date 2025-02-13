@@ -3,9 +3,6 @@
 require "test_helper"
 
 describe ActiveRecord::Tenanted::Tenant do
-  let(:all_configs) { ActiveRecord::Base.configurations.configs_for(include_hidden: true) }
-  let(:tenanted_config) { all_configs.find { |c| c.configuration_hash[:tenanted] } }
-
   describe ".tenanted_config_name" do
     for_each_scenario({ primary_db: [ :primary_record, :secondary_record ] }) do
       test "it sets database configuration name to 'primary' by default" do
@@ -251,15 +248,7 @@ describe ActiveRecord::Tenanted::Tenant do
       end
 
       describe "when schema dump file exists" do
-        setup do
-          # migrate and dump schema
-          schema_path = TenantedApplicationRecord.while_tenanted("foo") do
-            User.count
-            ActiveRecord::Tasks::DatabaseTasks.schema_dump_path(User.connection_db_config)
-          end
-
-          assert(File.exist?(schema_path)) # assert on setup
-        end
+        setup { with_schema_dump_file }
 
         test "database should load the schema dump file" do
           ActiveRecord::Migration.verbose = true
@@ -273,36 +262,45 @@ describe ActiveRecord::Tenanted::Tenant do
         end
 
         describe "and there are pending migrations" do
-          setup do
-            migrations_path = tenanted_config.configuration_hash[:migrations_paths]
-            @new_migration_path = File.join(migrations_path, "20250203191116_create_posts.rb")
-
-            File.open(@new_migration_path, "w") do |f|
-              f.write(<<~RUBY)
-                class CreatePosts < ActiveRecord::Migration[8.1]
-                  def change
-                    create_table :posts do |t|
-                      t.string :title
-                      t.timestamps
-                    end
-                  end
-                end
-              RUBY
-            end
-          end
-
-          teardown do
-            FileUtils.rm(@new_migration_path)
-          end
+          setup { with_new_migration_file }
 
           test "it runs the migrations after loading the schema" do
             ActiveRecord::Migration.verbose = true
 
-            TenantedApplicationRecord.while_tenanted("bar") do
-              assert_output(/migrating.*create_table/m, nil) do
-                Post.first
+            TenantedApplicationRecord.while_tenanted("foo") do
+              assert_output(/migrating.*add_column/m, nil) do
+                User.count
               end
-              assert_equal(20250203191116, User.connection_pool.migration_context.current_version)
+              assert_equal(20250213005959, User.connection_pool.migration_context.current_version)
+              assert_equal([ "id", "email", "created_at", "updated_at", "age" ].sort,
+                           User.new.attributes.keys.sort)
+            end
+          end
+        end
+      end
+
+      describe "when an outdated schema cache dump file exists" do
+        setup { with_schema_cache_dump_file }
+        setup { with_new_migration_file }
+
+        describe "before a connection is made" do
+          test "models can be created but migration is not applied" do
+            assert_equal([ "id", "email", "created_at", "updated_at" ].sort,
+                         User.new.attributes.keys.sort)
+          end
+        end
+
+        describe "after a connection is made" do
+          test "remaining migrations are applied" do
+            ActiveRecord::Migration.verbose = true
+
+            TenantedApplicationRecord.while_tenanted("foo") do
+              assert_output(/migrating.*add_column/m, nil) do
+                User.count
+              end
+              assert_equal(20250213005959, User.connection_pool.migration_context.current_version)
+              assert_equal([ "id", "email", "created_at", "updated_at", "age" ].sort,
+                           User.new.attributes.keys.sort)
             end
           end
         end

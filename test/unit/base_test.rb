@@ -63,4 +63,40 @@ describe ActiveRecord::Tenanted::Base do
       end
     end
   end
+
+  describe "schema operations before database connections are made" do
+    for_each_scenario do
+      describe "without a schema cache dump file" do
+        test "models can not be created" do
+          assert_raises(ActiveRecord::Tenanted::NoTenantError) do
+            User.new
+          end
+        end
+
+        test "schema cache can not be loaded" do
+          assert_raises(ActiveRecord::Tenanted::NoTenantError) do
+            User.schema_cache.columns("users")
+          end
+        end
+      end
+
+      describe "when schema cache dump file exists" do
+        setup { with_schema_cache_dump_file }
+
+        test "models can be created" do
+          user = User.new
+
+          assert_equal([ "id", "email", "created_at", "updated_at" ].sort,
+                       user.attributes.keys.sort)
+          assert_equal([ "id", "email", "created_at", "updated_at" ].sort,
+                       User.column_names.sort)
+        end
+
+        test "schema cache can be loaded" do
+          assert_equal([ "id", "email", "created_at", "updated_at" ],
+                       User.schema_cache.columns("users")&.map(&:name))
+        end
+      end
+    end
+  end
 end

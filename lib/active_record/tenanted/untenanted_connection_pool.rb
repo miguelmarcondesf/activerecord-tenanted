@@ -18,6 +18,12 @@ module ActiveRecord
         @db_config = db_config
       end
 
+      def schema_cache
+        schema_cache_path = ActiveRecord::Tasks::DatabaseTasks.cache_dump_filename(db_config)
+        schema_reflection = ActiveRecord::ConnectionAdapters::SchemaReflection.new(schema_cache_path)
+        ActiveRecord::ConnectionAdapters::BoundSchemaReflection.new(schema_reflection, self)
+      end
+
       def lease_connection(...)
         raise Tenanted::NoTenantError, "Cannot connect to a tenanted database while untenanted."
       end

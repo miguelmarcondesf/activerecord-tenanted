@@ -67,7 +67,7 @@ module ActiveRecord
             setup do
               db_config_yml = sprintf(File.read(db_config_path),
                                       storage: storage_path,
-                                      scenario: db_config_dir)
+                                      db_path: db_path)
               db_config = YAML.load(db_config_yml)
 
               @old_db_dir = ActiveRecord::Tasks::DatabaseTasks.db_dir
@@ -75,6 +75,9 @@ module ActiveRecord
 
               @old_configurations = ActiveRecord::Base.configurations
               ActiveRecord::Base.configurations = db_config
+
+              FileUtils.mkdir(db_path)
+              FileUtils.cp_r Dir.glob(File.join(db_config_dir, "*migrations")), db_path
             end
 
             teardown do
@@ -115,6 +118,29 @@ module ActiveRecord
             with_model_scenario(model_scenario, &block)
           end
         end
+      end
+
+      def all_configs
+        ActiveRecord::Base.configurations.configs_for(include_hidden: true)
+      end
+
+      def tenanted_config
+        all_configs.find { |c| c.configuration_hash[:tenanted] }
+      end
+
+      def with_schema_dump_file
+        FileUtils.cp "test/scenarios/schema.rb",
+                     ActiveRecord::Tasks::DatabaseTasks.schema_dump_path(tenanted_config)
+      end
+
+      def with_schema_cache_dump_file
+        FileUtils.cp "test/scenarios/schema_cache.yml",
+                     ActiveRecord::Tasks::DatabaseTasks.cache_dump_filename(tenanted_config)
+      end
+
+      def with_new_migration_file
+        FileUtils.cp "test/scenarios/20250213005959_add_age_to_users.rb",
+                     File.join(db_path, "tenanted_migrations")
       end
 
       def capture_log

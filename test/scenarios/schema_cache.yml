@@ -1,0 +1,119 @@
+--- !ruby/object:ActiveRecord::ConnectionAdapters::SchemaCache
+columns:
+  ar_internal_metadata:
+  - !ruby/object:ActiveRecord::ConnectionAdapters::SQLite3::Column
+    auto_increment:
+    name: key
+    cast_type: &1 !ruby/object:ActiveModel::Type::String
+      true: t
+      false: f
+      precision:
+      scale:
+      limit:
+    sql_type_metadata: &2 !ruby/object:ActiveRecord::ConnectionAdapters::SqlTypeMetadata
+      sql_type: varchar
+      type: :string
+      limit:
+      precision:
+      scale:
+    'null': false
+    default:
+    default_function:
+    collation:
+    comment:
+  - !ruby/object:ActiveRecord::ConnectionAdapters::SQLite3::Column
+    auto_increment:
+    name: value
+    cast_type: *1
+    sql_type_metadata: *2
+    'null': true
+    default:
+    default_function:
+    collation:
+    comment:
+  - &5 !ruby/object:ActiveRecord::ConnectionAdapters::SQLite3::Column
+    auto_increment:
+    name: created_at
+    cast_type: &3 !ruby/object:ActiveRecord::Type::DateTime
+      precision: 6
+      scale:
+      limit:
+      timezone:
+    sql_type_metadata: &4 !ruby/object:ActiveRecord::ConnectionAdapters::SqlTypeMetadata
+      sql_type: datetime(6)
+      type: :datetime
+      limit:
+      precision: 6
+      scale:
+    'null': false
+    default:
+    default_function:
+    collation:
+    comment:
+  - &6 !ruby/object:ActiveRecord::ConnectionAdapters::SQLite3::Column
+    auto_increment:
+    name: updated_at
+    cast_type: *3
+    sql_type_metadata: *4
+    'null': false
+    default:
+    default_function:
+    collation:
+    comment:
+  schema_migrations:
+  - !ruby/object:ActiveRecord::ConnectionAdapters::SQLite3::Column
+    auto_increment:
+    name: version
+    cast_type: *1
+    sql_type_metadata: *2
+    'null': false
+    default:
+    default_function:
+    collation:
+    comment:
+  users:
+  - !ruby/object:ActiveRecord::ConnectionAdapters::SQLite3::Column
+    auto_increment: true
+    name: id
+    cast_type: !ruby/object:ActiveRecord::ConnectionAdapters::SQLite3Adapter::SQLite3Integer
+      precision:
+      scale:
+      limit:
+      max: 9223372036854775808
+      min: -9223372036854775808
+    sql_type_metadata: !ruby/object:ActiveRecord::ConnectionAdapters::SqlTypeMetadata
+      sql_type: INTEGER
+      type: :integer
+      limit:
+      precision:
+      scale:
+    'null': false
+    default:
+    default_function:
+    collation:
+    comment:
+  - !ruby/object:ActiveRecord::ConnectionAdapters::SQLite3::Column
+    auto_increment:
+    name: email
+    cast_type: *1
+    sql_type_metadata: *2
+    'null': true
+    default:
+    default_function:
+    collation:
+    comment:
+  - *5
+  - *6
+primary_keys:
+  ar_internal_metadata: key
+  schema_migrations: version
+  users: id
+data_sources:
+  ar_internal_metadata: true
+  schema_migrations: true
+  users: true
+indexes:
+  ar_internal_metadata: []
+  schema_migrations: []
+  users: []
+version: 20250203191115
