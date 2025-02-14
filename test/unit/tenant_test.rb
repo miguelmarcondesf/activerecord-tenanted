@@ -42,6 +42,15 @@ describe ActiveRecord::Tenanted::Tenant do
         assert_equal("foo", TenantedApplicationRecord.current_tenant)
         assert_nothing_raised { User.first }
       end
+
+      test ".current_tenant= sets tenant context for a symbol" do
+        assert_nil(TenantedApplicationRecord.current_tenant)
+
+        TenantedApplicationRecord.current_tenant = :foo
+
+        assert_equal("foo", TenantedApplicationRecord.current_tenant)
+        assert_nothing_raised { User.first }
+      end
     end
   end
 
@@ -49,10 +58,12 @@ describe ActiveRecord::Tenanted::Tenant do
     for_each_scenario do
       test "returns the string name of the tenant if in a tenant context " do
         TenantedApplicationRecord.while_tenanted(:foo) do
+          User.first
           assert_equal("foo", TenantedApplicationRecord.current_tenant)
         end
 
         TenantedApplicationRecord.while_tenanted("foo") do
+          User.first
           assert_equal("foo", TenantedApplicationRecord.current_tenant)
         end
       end

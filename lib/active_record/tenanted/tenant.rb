@@ -27,6 +27,8 @@ module ActiveRecord
         end
 
         def current_tenant=(tenant_name)
+          tenant_name = tenant_name.to_s unless tenant_name == UNTENANTED_SENTINEL
+
           connecting_to(shard: tenant_name, role: ActiveRecord.writing_role)
         end
 
@@ -36,6 +38,8 @@ module ActiveRecord
         end
 
         def while_tenanted(tenant_name, prohibit_shard_swapping: true, &block)
+          tenant_name = tenant_name.to_s unless tenant_name == UNTENANTED_SENTINEL
+
           connected_to(shard: tenant_name, role: ActiveRecord.writing_role) do
             prohibit_shard_swapping(prohibit_shard_swapping, &block)
           end
