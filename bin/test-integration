@@ -1,0 +1,90 @@
+#!/usr/bin/env ruby
+
+require "bundler/setup"
+
+require "fileutils"
+require "tmpdir"
+require "yaml"
+require "open3"
+require "active_support/core_ext/object"
+
+#
+#  config
+#
+gem_path = File.expand_path(File.join(__dir__, "../"))
+gemfile = File.join(gem_path, "Gemfile")
+template_path = File.join(gem_path, "test/dummy")
+overlay_path = File.join(gem_path, "test/integration")
+
+scenarios = Dir.glob("test/scenarios/*db/*record.rb").map do |path|
+  database, models = path.scan(%r{test/scenarios/(.+db)/(.+record).rb}).flatten
+  { database: database, models: models }
+end
+
+def run_cmd(cmd, verbose: false)
+  puts "> #{cmd}"
+  output, status = Open3.capture2e(cmd)
+
+  puts output if verbose || !status.success? || ENV["CI"]
+
+  abort("ERROR: Command failed") unless status.success?
+end
+
+scenarios.each do |scenario|
+  #
+  #  setup
+  #
+  app_path = Dir.mktmpdir("active_record-tenanted-integration-test-")
+  at_exit { FileUtils.remove_entry app_path }
+  puts "Creating integration app for #{scenario} at #{app_path}"
+
+  FileUtils.copy_entry(template_path, app_path)
+  FileUtils.cp_r(Dir.glob(File.join(overlay_path, "*")), app_path)
+
+  # generate database file
+  database_file = File.join(gem_path, "test/scenarios/#{scenario[:database]}/database.yml")
+  database_file_contents = sprintf(File.read(database_file), storage: "storage", db_path: "db")
+  database_file_hash = YAML.load(database_file_contents)
+  database_file_hash["development"] = database_file_hash["test"].deep_dup
+  database_file_hash["development"].each_value do |hash|
+    hash["database"] = hash["database"].sub("/test/", "/development/")
+  end
+  File.write(File.join(app_path, "config/database.yml"), database_file_hash.to_yaml)
+
+  # generate models using ApplicationRecord
+  models_file = File.join(gem_path, "test/scenarios/#{scenario[:database]}/#{scenario[:models]}.rb")
+  models_file_contents = File.read(models_file)
+                           .gsub("TenantedApplicationRecord", "ApplicationRecord")
+  File.write(File.join(app_path, "app/models/application_record.rb"), models_file_contents)
+
+  # copy migrations
+  FileUtils.mkdir_p(File.join(app_path, "db"))
+  FileUtils.cp_r(Dir.glob(File.join(gem_path, "test/scenarios/#{scenario[:database]}/*migrations")),
+                 File.join(app_path, "db"))
+
+  Dir.chdir(app_path) do
+    ENV["BUNDLE_GEMFILE"] = gemfile
+
+    # generate a scaffold
+    run_cmd("bin/rails generate scaffold Note title:string body:text --parent=ApplicationRecord")
+    FileUtils.mv(Dir.glob("db/migrate/*_create_notes.rb").first, "db/tenanted_migrations")
+
+    # set up the database and schema files
+    run_cmd("bin/rails db:prepare")
+
+    # validate-ish the setup
+    prefix = scenario[:database].match?(/\Asecondary/) ? "tenanted_" : ""
+    File.exist?("db/#{prefix}schema.rb") || abort("Schema dump not generated")
+    File.exist?("db/#{prefix}schema_cache.yml") || abort("Schema cache dump not generated")
+
+    # create a fake tenant database to validate that it is deleted in the test suite
+    dev_db = Dir.glob("storage/development/*/development-tenant/main.sqlite3").first
+    test_db = dev_db.gsub("/development/", "/test/").gsub("development-tenant", "delete-me")
+    FileUtils.mkdir_p(File.dirname(test_db))
+    FileUtils.touch(test_db)
+
+    run_cmd("bin/rails test", verbose: true)
+  ensure
+    ENV["BUNDLE_GEMFILE"] = nil
+  end
+end

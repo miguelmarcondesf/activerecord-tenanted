@@ -165,6 +165,16 @@ TODO:
     - and if not, figure out how to prune unused/timed-out connections
   - [ ] we should also look into how to cap the number of connection pools, and prune them
 
+- integration test coverage
+  - [x] connection_class
+    - [x] fixture tenant
+    - [x] fixture tenant in parallel suite
+    - [x] clean up non-default tenants
+    - [x] integration test session host
+    - [x] integration test session verbs
+  - [x] fixtures are loaded
+  - [x] tenanted_rails_records
+
 
 ### Tenanting in your application
 

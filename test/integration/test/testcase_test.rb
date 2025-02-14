@@ -1,0 +1,55 @@
+require "test_helper"
+
+class TestActiveSupportTestCase < ActiveSupport::TestCase
+  test "connection_class" do
+    assert_equal(ApplicationRecord, ActiveRecord::Tenanted::Testing.connection_class)
+  end
+
+  test "current tenant" do
+    assert_match(/#{Rails.env}-tenant/, ApplicationRecord.current_tenant)
+  end
+
+  test "non-default tenants are cleaned up at the start of the test suite" do
+    # this file is created by bin/test-integration before running the suite
+    assert_not_includes(ApplicationRecord.tenants, "delete-me")
+  end
+
+  test "fixtures are loaded" do
+    assert_operator(Note.count, :>=, 1)
+  end
+end
+
+class TestActionDispatchIntegrationTest < ActionDispatch::IntegrationTest
+  test "session host name" do
+    current_tenant = ApplicationRecord.current_tenant
+    assert_equal("#{current_tenant}.example.com", integration_session.host)
+  end
+
+  test "middleware: setup and request are in the same tenant context" do
+    note = Note.create!(title: "asdf", body: "Lorem ipsum.")
+
+    get note_url(note)
+
+    assert_includes(@response.body, "Lorem ipsum.")
+  end
+
+  test "middleware: to untenanted domain is untenanted" do
+    integration_session.host = "example.com" # no subdomain
+
+    assert_raises(ActiveRecord::Tenanted::NoTenantError) do
+      get note_url(1)
+    end
+  end
+
+  test "middleware: creating a new tenant and requesting that domain" do
+    note = ApplicationRecord.while_tenanted("non-default-tenant") do
+      Note.create!(title: "asdf", body: "Lorem ipsum.")
+    end
+
+    integration_session.host = "non-default-tenant.example.com"
+
+    get note_url(note)
+
+    assert_includes(@response.body, "Lorem ipsum.")
+  end
+end

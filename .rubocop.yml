@@ -155,6 +155,7 @@ Style/FrozenStringLiteralComment:
   Exclude:
     - '**/*.md'
     - 'test/scenarios/**/*'
+    - 'test/integration/**/*'
 
 Style/MapToHash:
   Enabled: true
