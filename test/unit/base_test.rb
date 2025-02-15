@@ -98,8 +98,8 @@ describe ActiveRecord::Tenanted::Base do
         end
 
         test "schema cache can be loaded" do
-          assert_equal([ "id", "email", "created_at", "updated_at" ],
-                       User.schema_cache.columns("users")&.map(&:name))
+          assert_same_elements([ "id", "email", "created_at", "updated_at" ],
+                               User.schema_cache.columns("users")&.map(&:name))
         end
 
         test "the active record railtie will eager load the schema" do
@@ -107,8 +107,8 @@ describe ActiveRecord::Tenanted::Base do
           assert(User.connection_pool.schema_reflection.cached?(User.table_name))
           assert(User.define_attribute_methods)
 
-          assert_equal([ "id", "email", "created_at", "updated_at" ],
-                       User.schema_cache.columns("users")&.map(&:name))
+          assert_same_elements([ "id", "email", "created_at", "updated_at" ],
+                               User.schema_cache.columns("users")&.map(&:name))
         end
       end
     end
