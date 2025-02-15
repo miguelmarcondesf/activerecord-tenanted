@@ -14,6 +14,7 @@ module ActiveRecord
           if tenant_name.match?(%r{[/'"`]})
             raise BadTenantNameError, "Tenant name contains an invalid character: #{tenant_name.inspect}"
           end
+
           sprintf(database, tenant: tenant_name)
         end
 
@@ -32,7 +33,10 @@ module ActiveRecord
         end
 
         def new_connection
-          raise NoTenantError, "Cannot use an untenanted ActiveRecord::Base connection. If you have a model that inherits directly from ActiveRecord::Base, make sure to use 'subtenant_of'. In development, you may see this error if constant reloading is not being done properly."
+          raise NoTenantError, "Cannot use an untenanted ActiveRecord::Base connection. " \
+                               "If you have a model that inherits directly from ActiveRecord::Base, " \
+                               "make sure to use 'subtenant_of'. In development, you may see this error " \
+                               "if constant reloading is not being done properly."
         end
       end
 

@@ -20,8 +20,7 @@ module ActiveRecord
 
             # clean up any non-default tenants left over from the last test run
             klass.tenants.each do |tenant|
-              next if tenant.start_with?("#{Rails.env}-tenant")
-              klass.destroy_tenant(tenant)
+              klass.destroy_tenant(tenant) unless tenant.start_with?("#{Rails.env}-tenant")
             end
           end
         end
@@ -63,28 +62,32 @@ module ActiveRecord
       end
 
       module TestFixtures
-        def transactional_tests_for_pool?(pool)
-          config = pool.db_config
+        extend ActiveSupport::Concern
 
-          # Prevent the tenanted RootConfig from creating transactional fixtures on an unnecessary
-          # database, which would result in sporadic locking errors.
-          is_root_config = config.instance_of?(Tenanted::DatabaseConfigurations::RootConfig)
+        included do
+          def transactional_tests_for_pool?(pool)
+            config = pool.db_config
 
-          # Any tenanted database that isn't the default test fixture database should not be wrapped
-          # in a transaction, for a couple of reasons:
-          #
-          # 1. we migrate the database using a temporary pool, which will wrap the schema load in a
-          #    transaction that will not be visible to any connection used by the code under test to
-          #    insert data.
-          # 2. having an open transaction will prevent the test from being able to destroy the tenant.
-          is_non_default_tenant = (
-            config.instance_of?(Tenanted::DatabaseConfigurations::TenantConfig) &&
-            !config.tenant.start_with?("#{Rails.env}-tenant")
-          )
+            # Prevent the tenanted RootConfig from creating transactional fixtures on an unnecessary
+            # database, which would result in sporadic locking errors.
+            is_root_config = config.instance_of?(Tenanted::DatabaseConfigurations::RootConfig)
 
-          return false if is_root_config || is_non_default_tenant
+            # Any tenanted database that isn't the default test fixture database should not be wrapped
+            # in a transaction, for a couple of reasons:
+            #
+            # 1. we migrate the database using a temporary pool, which will wrap the schema load in a
+            #    transaction that will not be visible to any connection used by the code under test to
+            #    insert data.
+            # 2. having an open transaction will prevent the test from being able to destroy the tenant.
+            is_non_default_tenant = (
+              config.instance_of?(Tenanted::DatabaseConfigurations::TenantConfig) &&
+              !config.tenant.start_with?("#{Rails.env}-tenant")
+            )
 
-          super
+            return false if is_root_config || is_non_default_tenant
+
+            super
+          end
         end
       end
     end

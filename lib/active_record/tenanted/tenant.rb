@@ -23,7 +23,7 @@ module ActiveRecord
 
         def current_tenant
           shard = current_shard
-          shard != UNTENANTED_SENTINEL ? shard.to_s : nil
+          shard != UNTENANTED_SENTINEL ? shard : nil
         end
 
         def current_tenant=(tenant_name)
@@ -63,6 +63,7 @@ module ActiveRecord
             remove_connection
           end
 
+          # this will have to be an adapter-specific implementation if we support other than sqlite
           FileUtils.rm(tenanted_root_config.database_path_for(tenant_name))
         end
 

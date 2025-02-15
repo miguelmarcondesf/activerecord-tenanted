@@ -35,7 +35,7 @@ module ActiveRecord
 
       initializer "active_record_tenanted.active_record_base" do
         ActiveSupport.on_load(:active_record) do
-          prepend ActiveRecord::Tenanted::Base
+          include ActiveRecord::Tenanted::Base
         end
       end
 
@@ -56,7 +56,8 @@ module ActiveRecord
 
       initializer "active_record-tenanted.monkey_patches" do
         ActiveSupport.on_load(:active_record) do
-          ActiveRecord::Tasks::DatabaseTasks.prepend ActiveRecord::Tenanted::Patches::DatabaseTasks
+          ActiveRecord::Tasks::DatabaseTasks.include ActiveRecord::Tenanted::Patches::DatabaseTasks
+          ActiveRecord::Base.include ActiveRecord::Tenanted::Patches::Attributes
         end
       end
 
