@@ -70,8 +70,13 @@ Documentation outline:
     - example TenantSelector proc
 
 - operations
-  - how to run database tasks and what assumptions have changed
-
+  - how to run database tasks
+    - db:migrate:tenant AR_TENANT, default value of AR_TENANT
+    - db:migrate:tenant:all
+  - and what assumptions have changed
+    - tenants will be migrated by `db:migrate` in dev/test but not production
+    - tenants will be migrated by `db:prepare` in dev/test but not production
+    - other database tasks do not work yet (db:create, db:seed, db:drop)
 
 TODO:
 
@@ -127,10 +132,12 @@ TODO:
   - [x] install a load hook
 
 - database tasks
-  - [ ] RootConfig should conditionally re-enable database tasks ... when AR_TENANT is present?
-  - [ ] make `db:migrate:tenants` iterate over all the tenants on disk
-  - [ ] make `db:migrate AR_TENANT=asdf` run migrations on just that tenant
-  - [ ] do that for all (?) the database tasks like `db:create`, `db:prepare`, `db:seeds`, etc.
+  - [x] make `db:migrate:tenant:all` iterate over all the tenants on disk
+  - [x] make `db:migrate:tenant AR_TENANT=asdf` run migrations on just that tenant
+  - [x] make `db:migrate:tenant` run migrations on `development-tenant` in dev
+  - [x] make `db:migrate` run `db:migrate:tenant` in dev
+  - [x] make `db:prepare` run `db:migrate:tenant` in dev
+  - [ ] implement other database tasks like `db:create`, `db:seed`, etc.
 
 - installation
   - [ ] install a variation on the default database.yml with primary tenanted and non-primary "global" untenanted

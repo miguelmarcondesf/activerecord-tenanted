@@ -5,6 +5,31 @@ module ActiveRecord
     module DatabaseTasks # :nodoc:
       extend self
 
+      def migrate_all
+        raise ArgumentError, "Could not find a tenanted database" unless root_config = root_database_config
+
+        root_config.tenants.each do |tenant|
+          tenant_config = root_config.new_tenant_config(tenant)
+          migrate(tenant_config)
+        end
+      end
+
+      def migrate_tenant(tenant_name)
+        raise ArgumentError, "Could not find a tenanted database" unless root_config = root_database_config
+
+        tenant_config = root_config.new_tenant_config(tenant_name)
+
+        migrate(tenant_config)
+      end
+
+      def root_database_config
+        db_configs = ActiveRecord::Base.configurations.configs_for(
+          env_name: ActiveRecord::Tasks::DatabaseTasks.env,
+          include_hidden: true
+        )
+        db_configs.detect { |c| c.configuration_hash[:tenanted] }
+      end
+
       # This is essentially a simplified implementation of ActiveRecord::Tasks::DatabaseTasks.migrate
       def migrate(config)
         ActiveRecord::Tasks::DatabaseTasks.with_temporary_connection(config) do |conn|
@@ -38,6 +63,10 @@ module ActiveRecord
             end
           end
         end
+      end
+
+      def verbose?
+        ENV["VERBOSE"] ? ENV["VERBOSE"] != "false" : true
       end
     end
   end

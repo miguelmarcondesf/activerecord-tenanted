@@ -94,6 +94,10 @@ module ActiveRecord
           ActionDispatch::Integration::Session.prepend ActiveRecord::Tenanted::Testing::IntegrationSession
         end
       end
+
+      rake_tasks do
+        load File.expand_path(File.join(__dir__, "../../tasks/active_record/tenanted_tasks.rake"))
+      end
     end
   end
 end
