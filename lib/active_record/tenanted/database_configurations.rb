@@ -32,6 +32,16 @@ module ActiveRecord
           end
         end
 
+        def new_tenant_config(tenant)
+          tenant_name = "#{name}_#{tenant}"
+          config_hash = configuration_hash.dup.tap do |hash|
+            hash[:tenant] = tenant
+            hash[:database] = database_path_for(tenant)
+            hash[:tenanted_config_name] = name
+          end
+          Tenanted::DatabaseConfigurations::TenantConfig.new(env_name, tenant_name, config_hash)
+        end
+
         def new_connection
           raise NoTenantError, "Cannot use an untenanted ActiveRecord::Base connection. " \
                                "If you have a model that inherits directly from ActiveRecord::Base, " \

@@ -103,15 +103,7 @@ module ActiveRecord
           # ensure all classes use the same connection pool
           return superclass._create_tenanted_pool unless connection_class?
 
-          tenant = current_tenant
-          root_config = tenanted_root_config
-          tenant_name = "#{tenanted_config_name}_#{tenant}"
-          config_hash = root_config.configuration_hash.dup.tap do |hash|
-            hash[:tenant] = tenant
-            hash[:database] = root_config.database_path_for(tenant)
-            hash[:tenanted_config_name] = tenanted_config_name
-          end
-          config = Tenanted::DatabaseConfigurations::TenantConfig.new(root_config.env_name, tenant_name, config_hash)
+          config = tenanted_root_config.new_tenant_config(current_tenant)
 
           establish_connection(config)
           ensure_schema_migrations(config)
