@@ -4,7 +4,7 @@ require "test_helper"
 
 describe ActiveRecord::Tenanted::Tenant do
   describe ".tenanted_config_name" do
-    for_each_scenario({ primary_db: [ :primary_record, :secondary_record ] }) do
+    for_each_scenario({ primary_db: [ :primary_record, :secondary_record, :subtenant_record ] }) do
       test "it sets database configuration name to 'primary' by default" do
         assert_equal("primary", TenantedApplicationRecord.tenanted_config_name)
       end

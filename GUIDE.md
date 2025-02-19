@@ -219,20 +219,27 @@ TODO:
 Documentation outline:
 
 - explain why we need to be careful
+- explain how active record objects' cache keys have tenanting built in
+- explain why we're not worried about collection caching and partial caching (?)
+- explain why we're not worried about russian doll caching
+- explain why calling Rails.cache directly requires care that it's either explicitly tenanted or global
+- explain why we're not worried about sql query caching (it belongs to the connection pool)
+
 
 TODO:
 
 - [x] make basic fragment caching work
-- [ ] need to do some exploration on how to make sure all caching is tenanted
-  - and then we can have belt-and-suspenders like we do with ActiveJob
-
+- [x] investigate: is collection caching going to be tenanted properly
+- [x] investigate: make sure the QueryCache executor is clearing query caches for tenanted pool
+- [ ] do we need to do some exploration on how to make sure all caching is tenanted?
+  - maybe not. Rails.cache is a primitive. Just document it.
 
 ## Action View Fragment Caching
 
 TODO:
 
-- [ ] extend `#cache_key` on Base
-- [ ] extend `#cache_key` on Sublet
+- [x] extend `#cache_key` on Base
+- [x] extend `#cache_key` on Sublet
 
 
 ### Solid Cache
@@ -240,6 +247,9 @@ TODO:
 Documentation outline:
 
 - describe one-big-cache and cache-in-the-tenanted-database strategies
+  - note that cache-in-the-tenanted-database means there is no global cache
+  - note that cache-in-the-tenanted-database is not easily purgeable (today)
+  - and so we recommend (?) one big cache in a dedicated database
 - how to configure Solid Cache for one-big-cache
 - how to configure Solid Cache for tenanted-cache
 
