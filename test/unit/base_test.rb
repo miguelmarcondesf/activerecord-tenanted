@@ -43,7 +43,11 @@ describe ActiveRecord::Tenanted::Base do
     for_each_scenario do
       test "it includes the Tenant module" do
         assert_includes(TenantedApplicationRecord.ancestors, ActiveRecord::Tenanted::Tenant)
-        assert_includes(User.ancestors, ActiveRecord::Tenanted::Tenant)
+        if models_scenario == :subtenant_record
+          assert_includes(User.ancestors, ActiveRecord::Tenanted::Subtenant)
+        else
+          assert_includes(User.ancestors, ActiveRecord::Tenanted::Tenant)
+        end
 
         assert_not_includes(SharedApplicationRecord.ancestors, ActiveRecord::Tenanted::Tenant)
         assert_not_includes(Announcement.ancestors, ActiveRecord::Tenanted::Tenant)

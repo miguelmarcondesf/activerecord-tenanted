@@ -2,19 +2,11 @@
 
 module ActiveRecord
   module Tenanted
-    module Tenant
+    # instance methods common to both Tenant and Subtenant
+    module TenantCommon # :nodoc:
       extend ActiveSupport::Concern
 
-      # This is a sentinel value used to indicate that the class is not currently tenanted.
-      #
-      # It's the default value returned by `current_shard` when the class is not tenanted. The
-      # `current_tenant` method's job is to recognizes that sentinel value and return `nil`, because
-      # Active Record itself does not recognize `nil` as a valid shard value.
-      UNTENANTED_SENTINEL = Object.new.freeze # :nodoc:
-
       included do
-        connecting_to(shard: UNTENANTED_SENTINEL, role: ActiveRecord.writing_role)
-
         attr_reader :tenant
 
         def init_internals # :nodoc:
@@ -29,6 +21,23 @@ module ActiveRecord
             super
           end
         end
+      end
+    end
+
+    module Tenant
+      extend ActiveSupport::Concern
+
+      # This is a sentinel value used to indicate that the class is not currently tenanted.
+      #
+      # It's the default value returned by `current_shard` when the class is not tenanted. The
+      # `current_tenant` method's job is to recognizes that sentinel value and return `nil`, because
+      # Active Record itself does not recognize `nil` as a valid shard value.
+      UNTENANTED_SENTINEL = Object.new.freeze # :nodoc:
+
+      included do
+        connecting_to(shard: UNTENANTED_SENTINEL, role: ActiveRecord.writing_role)
+
+        include TenantCommon
       end
 
       class_methods do

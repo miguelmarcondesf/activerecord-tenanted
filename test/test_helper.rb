@@ -70,6 +70,7 @@ module ActiveRecord
             let(:ephemeral_path) { Dir.mktmpdir("test-active_record-tenanted-") }
             let(:storage_path) { File.join(ephemeral_path, "storage") }
             let(:db_path) { File.join(ephemeral_path, "db") }
+            let(:db_scenario) { db_scenario.to_sym }
 
             setup do
               db_config_yml = sprintf(File.read(db_config_path),
@@ -103,6 +104,8 @@ module ActiveRecord
           raise "Could not find model scenario: #{models_scenario_file}" unless File.exist?(models_scenario_file)
 
           describe models_scenario do
+            let(:models_scenario) { models_scenario.to_sym }
+
             setup do
               clear_dummy_models
               create_fake_record

@@ -18,6 +18,14 @@ describe ActiveRecord::Tenanted::Tenant do
     end
   end
 
+  describe ".tenanted?" do
+    for_each_scenario do
+      test "returns true" do
+        assert_predicate(User, :tenanted?)
+      end
+    end
+  end
+
   describe "no current tenant" do
     for_each_scenario do
       test "raise NoTenantError on database access if there is no current tenant" do
@@ -32,6 +40,7 @@ describe ActiveRecord::Tenanted::Tenant do
     for_each_scenario do
       test "returns nil by default" do
         assert_nil(TenantedApplicationRecord.current_tenant)
+        assert_nil(User.current_tenant)
       end
 
       test ".current_tenant= sets tenant context" do
@@ -209,7 +218,7 @@ describe ActiveRecord::Tenanted::Tenant do
   end
 
   describe ".tenants" do
-    with_scenario(:primary_db, :primary_record) do
+    for_each_scenario do
       test "it returns an array of existing tenants" do
         assert_empty(TenantedApplicationRecord.tenants)
 
@@ -233,6 +242,7 @@ describe ActiveRecord::Tenanted::Tenant do
       test "models should share connection pools" do
         TenantedApplicationRecord.while_tenanted("foo") do
           assert_same(User.connection_pool, Post.connection_pool)
+          assert_same(TenantedApplicationRecord.connection_pool, User.connection_pool)
         end
       end
     end
@@ -353,7 +363,7 @@ describe ActiveRecord::Tenanted::Tenant do
   end
 
   describe "#tenant" do
-    with_scenario(:primary_db, :primary_record) do
+    for_each_scenario do
       describe "created in untenanted context" do
         setup { with_schema_cache_dump_file }
 
@@ -395,7 +405,7 @@ describe ActiveRecord::Tenanted::Tenant do
   end
 
   describe "#cache_key" do
-    with_scenario(:primary_db, :primary_record) do
+    for_each_scenario do
       describe "created in untenanted context" do
         setup { with_schema_cache_dump_file }
 

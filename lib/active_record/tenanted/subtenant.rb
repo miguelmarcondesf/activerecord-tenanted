@@ -5,6 +5,10 @@ module ActiveRecord
     module Subtenant
       extend ActiveSupport::Concern
 
+      included do
+        include TenantCommon
+      end
+
       class_methods do
         def tenanted?
           true
@@ -17,6 +21,10 @@ module ActiveRecord
           raise Error, "Class #{klass} is not a connection class" unless klass.abstract_class?
 
           klass
+        end
+
+        def current_tenant
+          tenanted_with_class.current_tenant
         end
 
         def connection_pool

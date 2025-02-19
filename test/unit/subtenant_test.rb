@@ -4,14 +4,6 @@ require "test_helper"
 
 describe ActiveRecord::Tenanted::Subtenant do
   for_each_scenario do
-    test "connection pool is shared between subtenant and tenant classes" do
-      FakeRecord.subtenant_of "TenantedApplicationRecord"
-
-      TenantedApplicationRecord.while_tenanted("foo") do
-        assert_same(TenantedApplicationRecord.connection_pool, FakeRecord.connection_pool)
-      end
-    end
-
     test "raises NameError if the class does not exist" do
       assert_raises(NameError) do
         FakeRecord.subtenant_of "NotARecord"
@@ -33,16 +25,6 @@ describe ActiveRecord::Tenanted::Subtenant do
         FakeRecord.connection_pool
       end
       assert_includes(e.message, "not a connection class")
-    end
-
-    describe ".tenanted?" do
-      test "returns true for subtenants" do
-        assert_not(FakeRecord.tenanted?)
-
-        FakeRecord.subtenant_of "TenantedApplicationRecord"
-
-        assert_predicate(FakeRecord, :tenanted?)
-      end
     end
   end
 end
