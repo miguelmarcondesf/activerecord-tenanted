@@ -29,6 +29,8 @@ Documentation outline:
   - global id disambiguation
   - invalid characters in a tenant name
     - and how the application may want to do additional validation (e.g. ICANN subdomain restrictions)
+  - `#tenant` is a readonly attribute on all tenanted model instances
+  - `.current_tenant` returns the execution context for the model connection class
 - talk a bit about busted assumptions about shared state
   - database ids are no longer unique
   - global ids are no longer global
@@ -97,6 +99,7 @@ TODO:
     - [x] mixin `Tenant`
     - [x] should error if self is not an abstract base class
     - [x] `Tenant.with_tenant` and `.current_tenant`
+    - [x] `Tenant#tenant`
     - [x] use a sentinel value to avoid needing a protoshard
     - [x] `tenant_config_name` and `.tenanted?`
   - [x] `.tenanted_with`
@@ -219,6 +222,7 @@ Documentation outline:
 
 TODO:
 
+- [x] make basic fragment caching work
 - [ ] need to do some exploration on how to make sure all caching is tenanted
   - and then we can have belt-and-suspenders like we do with ActiveJob
 

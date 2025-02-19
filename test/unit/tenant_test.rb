@@ -351,4 +351,74 @@ describe ActiveRecord::Tenanted::Tenant do
       end
     end
   end
+
+  describe "#tenant" do
+    with_scenario(:primary_db, :primary_record) do
+      describe "created in untenanted context" do
+        setup { with_schema_cache_dump_file }
+
+        test "returns nil" do
+          user = User.new(email: "user1@example.org")
+          assert_nil(user.tenant)
+        end
+      end
+
+      describe "created in tenanted context" do
+        test "returns the tenant name even outside of tenant context" do
+          ids = []
+
+          user = TenantedApplicationRecord.while_tenanted("foo") do
+            User.new(email: "user1@example.org")
+          end
+          assert_equal("foo", user.tenant)
+
+          user = TenantedApplicationRecord.while_tenanted("foo") do
+            User.create(email: "user1@example.org")
+          end
+          assert_equal("foo", user.tenant)
+          ids << user.id
+
+          user = TenantedApplicationRecord.while_tenanted("foo") do
+            User.create!(email: "user1@example.org")
+          end
+          assert_equal("foo", user.tenant)
+          ids << user.id
+
+          TenantedApplicationRecord.while_tenanted("foo") do
+            ids.each do |id|
+              assert_equal("foo", User.find(user.id).tenant)
+            end
+          end
+        end
+      end
+    end
+  end
+
+  describe "#cache_key" do
+    with_scenario(:primary_db, :primary_record) do
+      describe "created in untenanted context" do
+        setup { with_schema_cache_dump_file }
+
+        test "includes the tenant name" do
+          user = User.new(email: "user1@example.org")
+
+          assert_equal("users/new", user.cache_key)
+        end
+      end
+
+      describe "created in tenanted context" do
+        test "includes the tenant name" do
+          user = TenantedApplicationRecord.while_tenanted("foo") do
+            User.create!(email: "user1@example.org")
+          end
+
+          assert_equal("users/1?tenant=foo", user.cache_key)
+
+          TenantedApplicationRecord.while_tenanted("foo") do
+            assert_equal("users/1?tenant=foo", User.find(user.id).cache_key)
+          end
+        end
+      end
+    end
+  end
 end

@@ -14,6 +14,21 @@ module ActiveRecord
 
       included do
         connecting_to(shard: UNTENANTED_SENTINEL, role: ActiveRecord.writing_role)
+
+        attr_reader :tenant
+
+        def init_internals # :nodoc:
+          super
+          @tenant = self.class.current_tenant
+        end
+
+        def cache_key
+          if tenant
+            "#{super}?tenant=#{tenant}"
+          else
+            super
+          end
+        end
       end
 
       class_methods do

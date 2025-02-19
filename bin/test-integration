@@ -39,7 +39,6 @@ scenarios.each do |scenario|
   puts "Creating integration app for #{scenario} at #{app_path}"
 
   FileUtils.copy_entry(template_path, app_path)
-  FileUtils.cp_r(Dir.glob(File.join(overlay_path, "*")), app_path)
 
   # generate database file
   database_file = File.join(gem_path, "test/scenarios/#{scenario[:database]}/database.yml")
@@ -57,17 +56,20 @@ scenarios.each do |scenario|
                            .gsub("TenantedApplicationRecord", "ApplicationRecord")
   File.write(File.join(app_path, "app/models/application_record.rb"), models_file_contents)
 
-  # copy migrations
-  FileUtils.mkdir_p(File.join(app_path, "db"))
-  FileUtils.cp_r(Dir.glob(File.join(gem_path, "test/scenarios/#{scenario[:database]}/*migrations")),
-                 File.join(app_path, "db"))
-
   Dir.chdir(app_path) do
     ENV["BUNDLE_GEMFILE"] = gemfile
+
+    # copy migrations
+    FileUtils.mkdir_p(File.join(app_path, "db"))
+    FileUtils.cp_r(Dir.glob(File.join(gem_path, "test/scenarios/#{scenario[:database]}/*migrations")),
+                   File.join(app_path, "db"))
 
     # generate a scaffold
     run_cmd("bin/rails generate scaffold Note title:string body:text --parent=ApplicationRecord")
     FileUtils.mv(Dir.glob("db/migrate/*_create_notes.rb").first, "db/tenanted_migrations")
+
+    # copy overlay files
+    FileUtils.cp_r(Dir.glob(File.join(overlay_path, "*")), app_path)
 
     # set up the database and schema files
     run_cmd("bin/rails db:prepare")
