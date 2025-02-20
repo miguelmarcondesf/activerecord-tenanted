@@ -21,6 +21,10 @@ class TestCaching < ActionDispatch::IntegrationTest
     assert_response :ok
     page1a = @response.body
 
+    # assert on setup: make sure the random number is injected, because we're about to rely on it
+    # for testing the cache.
+    assert_includes(page1a, "Random:")
+
     # get the tenant 2 note 1, which should NOT clobber the tenant 1 note 1 cache
     integration_session.host = "#{tenant2}.example.com"
     get note_path(id: 1)
