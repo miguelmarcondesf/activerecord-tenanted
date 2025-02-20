@@ -6,14 +6,15 @@ require "fileutils"
 require "tmpdir"
 require "yaml"
 require "open3"
-require "active_support/core_ext/object"
+require "active_support"
+require "active_support/core_ext/object" # deep_dup
 
 #
 #  config
 #
 gem_path = File.expand_path(File.join(__dir__, "../"))
-gemfile = File.join(gem_path, "Gemfile")
-template_path = File.join(gem_path, "test/dummy")
+smarty_path = File.join(gem_path, "test/smarty")
+gemfile = File.join(smarty_path, "Gemfile")
 overlay_path = File.join(gem_path, "test/integration")
 
 scenarios = Dir.glob("test/scenarios/*db/*record.rb").map do |path|
@@ -22,8 +23,14 @@ scenarios = Dir.glob("test/scenarios/*db/*record.rb").map do |path|
 end
 
 def run_cmd(cmd, verbose: false)
-  puts "> #{cmd}"
-  output, status = Open3.capture2e(cmd)
+  print "> #{cmd} "
+
+  output = status = nil
+  elapsed = ActiveSupport::Benchmark.realtime do
+    output, status = Open3.capture2e(cmd)
+  end
+
+  puts "(#{elapsed.round(2)}s)"
 
   puts output if verbose || !status.success? || ENV["CI"]
 
@@ -38,7 +45,8 @@ scenarios.each do |scenario|
   at_exit { FileUtils.remove_entry app_path }
   puts "Creating integration app for #{scenario} at #{app_path}"
 
-  FileUtils.copy_entry(template_path, app_path)
+  # make a copy the smarty app
+  FileUtils.copy_entry(smarty_path, app_path)
 
   # generate database file
   database_file = File.join(gem_path, "test/scenarios/#{scenario[:database]}/database.yml")
@@ -56,37 +64,37 @@ scenarios.each do |scenario|
                            .gsub("TenantedApplicationRecord", "ApplicationRecord")
   File.write(File.join(app_path, "app/models/application_record.rb"), models_file_contents)
 
+  # copy migrations from scenario and smarty app
+  FileUtils.mkdir_p(File.join(app_path, "db"))
+  FileUtils.cp_r(Dir.glob(File.join(gem_path, "test/scenarios/#{scenario[:database]}/*migrations")),
+                 File.join(app_path, "db"))
+  FileUtils.cp_r(Dir.glob(File.join(app_path, "db/migrate/*rb")),
+                 File.join(app_path, "db/tenanted_migrations"))
+
+  # copy overlay tests and tenanting config
+  FileUtils.cp_r(Dir.glob(File.join(overlay_path, "*")), app_path)
+
   Dir.chdir(app_path) do
-    ENV["BUNDLE_GEMFILE"] = gemfile
+    Bundler.with_original_env do
+      ENV["BUNDLE_GEMFILE"] = gemfile
 
-    # copy migrations
-    FileUtils.mkdir_p(File.join(app_path, "db"))
-    FileUtils.cp_r(Dir.glob(File.join(gem_path, "test/scenarios/#{scenario[:database]}/*migrations")),
-                   File.join(app_path, "db"))
+      # set up the database and schema files
+      run_cmd("bin/rails db:prepare")
 
-    # generate a scaffold
-    run_cmd("bin/rails generate scaffold Note title:string body:text --parent=ApplicationRecord")
-    FileUtils.mv(Dir.glob("db/migrate/*_create_notes.rb").first, "db/tenanted_migrations")
+      # validate-ish the setup
+      prefix = scenario[:database].match?(/\Asecondary/) ? "tenanted_" : ""
+      File.exist?("db/#{prefix}schema.rb") || abort("Schema dump not generated")
+      File.exist?("db/#{prefix}schema_cache.yml") || abort("Schema cache dump not generated")
 
-    # copy overlay files
-    FileUtils.cp_r(Dir.glob(File.join(overlay_path, "*")), app_path)
+      # create a fake tenant database to validate that it is deleted in the test suite
+      dev_db = Dir.glob("storage/development/*/development-tenant/main.sqlite3").first
+      test_db = dev_db.gsub("/development/", "/test/").gsub("development-tenant", "delete-me")
+      FileUtils.mkdir_p(File.dirname(test_db))
+      FileUtils.touch(test_db)
 
-    # set up the database and schema files
-    run_cmd("bin/rails db:prepare")
-
-    # validate-ish the setup
-    prefix = scenario[:database].match?(/\Asecondary/) ? "tenanted_" : ""
-    File.exist?("db/#{prefix}schema.rb") || abort("Schema dump not generated")
-    File.exist?("db/#{prefix}schema_cache.yml") || abort("Schema cache dump not generated")
-
-    # create a fake tenant database to validate that it is deleted in the test suite
-    dev_db = Dir.glob("storage/development/*/development-tenant/main.sqlite3").first
-    test_db = dev_db.gsub("/development/", "/test/").gsub("development-tenant", "delete-me")
-    FileUtils.mkdir_p(File.dirname(test_db))
-    FileUtils.touch(test_db)
-
-    run_cmd("bin/rails test", verbose: true)
-  ensure
-    ENV["BUNDLE_GEMFILE"] = nil
+      run_cmd("bin/rails test", verbose: true)
+    ensure
+      ENV["BUNDLE_GEMFILE"] = nil
+    end
   end
 end

@@ -97,6 +97,15 @@ GIT
       thor (~> 1.0, >= 1.2.2)
       zeitwerk (~> 2.6)
 
+PATH
+  remote: ../..
+  specs:
+    active_record-tenanted (0.1.0)
+      activerecord (>= 8.1.alpha)
+      rack-contrib (>= 2.5.0)
+      railties (>= 8.1.alpha)
+      zeitwerk
+
 GEM
   remote: https://rubygems.org/
   specs:
@@ -201,6 +210,8 @@ GEM
     raabro (1.4.0)
     racc (1.8.1)
     rack (3.1.10)
+    rack-contrib (2.5.0)
+      rack (< 4)
     rack-session (2.1.0)
       base64 (>= 0.1.0)
       rack (>= 3.0.0)
@@ -297,6 +308,7 @@ PLATFORMS
   x86_64-linux-musl
 
 DEPENDENCIES
+  active_record-tenanted!
   capybara
   debug
   importmap-rails

@@ -23,8 +23,8 @@ Unit tests are run with `bin/test`. The test files are all under `test/unit/`.
 The integration testing suite is run via the command `bin/test-integration`, which:
 
 - for each scenario
-  - run `rails new` to create a fresh application
-  - copy in the scenario files: database.yml, models and migrations
-  - generate a scaffold
+  - makes a copy of the `test/smarty/` app
+  - write the scenario files: database.yml, models, and migrations
+  - copy the config and test files from `test/integration/`
   - setup the databases
-  - copy the config and test files in `test/integration/`, and run those tests
+  - run the integration tests
