@@ -8,3 +8,8 @@
 /test/dummy/log/*.log
 /test/dummy/storage/
 /test/dummy/tmp/
+/test/smarty/db/*.sqlite3
+/test/smarty/db/*.sqlite3-*
+/test/smarty/log/*.log
+/test/smarty/storage/
+/test/smarty/tmp/
