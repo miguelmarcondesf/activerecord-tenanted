@@ -20,10 +20,7 @@ Rails.application.configure do
 
   # Show full error reports.
   config.consider_all_requests_local = true
-
-  # Turn on fragment caching in view templates.
-  config.action_controller.perform_caching = true
-  config.cache_store = :memory_store
+  config.cache_store = :null_store
 
   # Render exception templates for rescuable exceptions and raise for other exceptions.
   config.action_dispatch.show_exceptions = :rescuable
