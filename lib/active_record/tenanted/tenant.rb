@@ -9,12 +9,8 @@ module ActiveRecord
       included do
         attr_reader :tenant
 
+        after_initialize :initialize_tenant_attribute
         before_save :ensure_tenant_context_safety
-
-        def init_internals # :nodoc:
-          super
-          @tenant = self.class.current_tenant
-        end
 
         def cache_key
           if tenant
@@ -30,6 +26,10 @@ module ActiveRecord
 
         def to_signed_global_id(options = {})
           super(options.merge(tenant: tenant))
+        end
+
+        private def initialize_tenant_attribute
+          @tenant = self.class.current_tenant
         end
 
         private def ensure_tenant_context_safety
