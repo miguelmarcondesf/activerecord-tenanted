@@ -1,5 +1,11 @@
 #!/usr/bin/env ruby
 
+gem_path     = File.expand_path(File.join(__dir__, "../"))
+smarty_path  = File.join(gem_path, "test/smarty")
+gemfile      = File.join(smarty_path, "Gemfile")
+overlay_path = File.join(gem_path, "test/integration")
+
+ENV["BUNDLE_GEMFILE"] = gemfile
 require "bundler/setup"
 
 require "fileutils"
@@ -8,14 +14,6 @@ require "yaml"
 require "open3"
 require "active_support"
 require "active_support/core_ext/object" # deep_dup
-
-#
-#  config
-#
-gem_path = File.expand_path(File.join(__dir__, "../"))
-smarty_path = File.join(gem_path, "test/smarty")
-gemfile = File.join(smarty_path, "Gemfile")
-overlay_path = File.join(gem_path, "test/integration")
 
 scenarios = Dir.glob("test/scenarios/*db/*record.rb").map do |path|
   database, models = path.scan(%r{test/scenarios/(.+db)/(.+record).rb}).flatten
@@ -38,14 +36,12 @@ def run_cmd(cmd, verbose: false)
 end
 
 scenarios.each do |scenario|
-  #
-  #  setup
-  #
+  # setup the test directory and cleanup
   app_path = Dir.mktmpdir("active_record-tenanted-integration-test-")
   at_exit { FileUtils.remove_entry app_path }
   puts "Creating integration app for #{scenario} at #{app_path}"
 
-  # make a copy the smarty app
+  # make a copy of the smarty app
   FileUtils.copy_entry(smarty_path, app_path)
 
   # generate database file
@@ -77,6 +73,7 @@ scenarios.each do |scenario|
   Dir.chdir(app_path) do
     Bundler.with_original_env do
       ENV["BUNDLE_GEMFILE"] = gemfile
+      run_cmd("bundle check || bundle install")
 
       # set up the database and schema files
       run_cmd("bin/rails db:prepare")
