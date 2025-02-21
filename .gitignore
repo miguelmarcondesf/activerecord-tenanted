@@ -10,6 +10,8 @@
 /test/dummy/tmp/
 /test/smarty/db/*.sqlite3
 /test/smarty/db/*.sqlite3-*
+/test/smarty/db/schema.rb
+/test/smarty/db/schema_cache.yml
 /test/smarty/log/*.log
 /test/smarty/storage/
 /test/smarty/tmp/
