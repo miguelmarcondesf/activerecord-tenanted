@@ -58,6 +58,12 @@ module ActiveRecord
         end
       end
 
+      initializer "active_record-tenanted.active_job" do
+        ActiveSupport.on_load(:active_job) do
+          include ActiveRecord::Tenanted::Job
+        end
+      end
+
       config.after_initialize do
         ActiveSupport.on_load(:action_mailbox_record) do
           if Rails.application.config.active_record_tenanted.connection_class.present? &&

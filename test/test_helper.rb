@@ -19,6 +19,7 @@ require_relative "../lib/active_record/tenanted"
 
 require_relative "dummy/config/environment"
 require "minitest/spec"
+require "minitest/mock"
 
 if ENV["NCPU"].to_i > 1
   require "minitest/parallel_fork"

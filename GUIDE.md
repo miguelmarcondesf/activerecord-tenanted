@@ -237,10 +237,14 @@ TODO:
 - [x] make basic fragment caching work
 - [x] investigate: is collection caching going to be tenanted properly
 - [x] investigate: make sure the QueryCache executor is clearing query caches for tenanted pool
-- [ ] do we need to do some exploration on how to make sure all caching is tenanted?
-  - maybe not. Rails.cache is a primitive. Just document it.
+- [x] do we need to do some exploration on how to make sure all caching is tenanted?
+  - I'm making the call not to pursue this. Rails.cache is a primitive. Just document it.
 
 ## Action View Fragment Caching
+
+Documentation outline:
+
+- explain how it works (cache keys)
 
 TODO:
 
@@ -297,6 +301,8 @@ Documentation outline:
 
 TODO:
 
+- [x] extend `to_global_id` and friends for Base
+- [x] extend `to_global_id` and friends for Sublet
 - [x] some testing around global id would be good here
 - [x] system test of a broadcast update
 
@@ -313,9 +319,9 @@ Documentation outline:
 
 TODO:
 
+- [x] extend `ActiveJob` to set the tenant in `perform_now`
 - [ ] extend `to_global_id` and friends for Base
 - [ ] extend `to_global_id` and friends for Sublet
-- [ ] extend `ActiveJob` to set the tenant in `perform_now`
 
 
 ## Active Storage
