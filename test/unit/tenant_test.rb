@@ -60,6 +60,32 @@ describe ActiveRecord::Tenanted::Tenant do
         assert_equal("foo", TenantedApplicationRecord.current_tenant)
         assert_nothing_raised { User.first }
       end
+
+      describe "inner while_tenanted" do
+        test "overrides the current tenant" do
+          TenantedApplicationRecord.while_tenanted("bar") do
+            assert_equal 0, User.count
+
+            assert_nothing_raised do
+              User.create!(email: "user1@example.org")
+            end
+
+            assert_equal 1, User.count
+          end
+        end
+
+        test "using the record outside of the block raises WrongTenantError" do
+          TenantedApplicationRecord.current_tenant = "foo"
+
+          user = TenantedApplicationRecord.while_tenanted("bar") do
+            User.create!(email: "user1@example.org")
+          end
+
+          assert_raises(ActiveRecord::Tenanted::WrongTenantError) do
+            user.update!(email: "user1+bar@example.org")
+          end
+        end
+      end
     end
   end
 
@@ -99,6 +125,28 @@ describe ActiveRecord::Tenanted::Tenant do
         TenantedApplicationRecord.while_tenanted("foo", prohibit_shard_swapping: false) do
           assert_nothing_raised do
             TenantedApplicationRecord.while_tenanted("bar") { }
+          end
+        end
+      end
+
+      test "using the record outside of the block raises NoTenantError" do
+        user = TenantedApplicationRecord.while_tenanted("foo") do
+          User.create!(email: "user1@example.org")
+        end
+
+        assert_raises(ActiveRecord::Tenanted::NoTenantError) do
+          user.update!(email: "user1+foo@example.org")
+        end
+      end
+
+      test "using the record in another block raises WrongTenantError" do
+        user = TenantedApplicationRecord.while_tenanted("foo") do
+          User.create!(email: "user1@example.org")
+        end
+
+        assert_raises(ActiveRecord::Tenanted::WrongTenantError) do
+          TenantedApplicationRecord.while_tenanted("bar") do
+            user.update!(email: "user1+foo@example.org")
           end
         end
       end

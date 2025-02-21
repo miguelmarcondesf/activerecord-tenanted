@@ -9,6 +9,8 @@ module ActiveRecord
       included do
         attr_reader :tenant
 
+        before_save :ensure_tenant_context_safety
+
         def init_internals # :nodoc:
           super
           @tenant = self.class.current_tenant
@@ -28,6 +30,17 @@ module ActiveRecord
 
         def to_signed_global_id(options = {})
           super(options.merge(tenant: tenant))
+        end
+
+        private def ensure_tenant_context_safety
+          self_tenant = self.tenant
+          current_tenant = self.class.current_tenant
+
+          if self_tenant != current_tenant
+            raise WrongTenantError,
+                  "#{self.class} model belongs to tenant #{self_tenant.inspect}, " \
+                  "but current tenant is #{current_tenant.inspect}"
+          end
         end
       end
     end
