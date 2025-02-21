@@ -115,6 +115,8 @@ TODO:
   - [ ] feature to turn off automatic creation/migration
     - [ ] pay attention to Rails.config.active_record.migration_error when we turn off auto-migrating
   - [ ] UntenantedConnectionPool should peek at its stack and if it happened during schema cache load, output a friendly message to let people know what to do
+  - [ ] be explicit about what happens when a non-abstract class sets current_tenant, e.g. `User.current_tenant=`
+    - right now it seems like it silently fails
 
 - tenant selector
   - [x] rebuild `AR::Tenanted::TenantSelector` to take a proc
@@ -200,7 +202,10 @@ Documentation outline:
   - and how that database is NOT wrapped in a transaction during the test,
   - but those non-fixture databases will be cleaned up at the start of the test suite
 - explain `while_untenanted`
-
+- example of:
+  - unit test with fixtures
+  - integration test
+  - sytem test
 
 TODO:
 
@@ -209,8 +214,9 @@ TODO:
   - [x] set up test helper to default to a tenanted named "test-tenant"
   - [x] set up test helpers to deal with parallelized tests, too (e.g. "test-tenant-19")
   - [x] set up integration tests to do the right things ...
-    - [x] set the domain name in tests
+    - [x] set the domain name in integration tests
     - [x] wrap the HTTP verbs with `while_untenanted`
+    - [x] set the domain name in system tests
   - [x] allow the creation of tenants within transactional tests
 
 
@@ -260,6 +266,41 @@ TODO:
     - which would work around Solid Cache config wonkiness caused by https://github.com/rails/solid_cache/pull/219
 
 
+## Action Cable
+
+Documentation outline:
+
+- explain why we need to be careful
+- how to make a channel "tenant safe"
+ - identified_by
+- how the global id contains tenant also
+- do we need to document each adapter?
+  - async
+  - test
+  - solid_cable
+  - redis?
+
+TODO:
+
+- [ ] explore if there's something we can/should do in Channel base case to automatically tenant
+  - and then we can have belt-and-suspenders like we do with ActiveJob
+- [ ] understand action_cable_meta_tag
+- [ ] config.action_cable.log_tags set up with tenant?
+
+
+### Turbo Rails
+
+Documentation outline:
+
+- explain why we need to be careful
+- explain how it works (global IDs)
+
+TODO:
+
+- [x] some testing around global id would be good here
+- [x] system test of a broadcast update
+
+
 ## Active Job
 
 Documentation outline:
@@ -291,41 +332,24 @@ TODO:
   - and then we can have belt-and-suspenders like we do with ActiveJob (hopefully)
 
 
-## Action Cable
-
-Documentation outline:
-
-- explain why we need to be careful
-- how to make a channel "tenant safe"
- - identified_by
-- how the global id contains tenant also
-- do we need to document each adapter?
-  - async
-  - test
-  - solid_cable
-  - redis?
-
-TODO:
-
-- [ ] explore if there's something we can/should do in Channel base case to automatically tenant
-  - and then we can have belt-and-suspenders like we do with ActiveJob
-- [ ] understand action_cable_meta_tag
-- [ ] config.action_cable.log_tags set up with tenant?
-
-
-### Turbo Rails
-
-Documentation outline:
-
-- explain why we need to be careful
-
-TODO:
-
-- [ ] some testing around global id would be good here
-
-
 ## ActionMailbox
 
 TODO:
 
 - [ ] I need a use case here around mail routing before I tackle it
+
+
+## Known issues
+
+### LOW
+
+- [ ] When running code outside of a `while_tenanted` block (e.g., the console), it's probably
+      possible to read associations from an object belonging to tenant A while in tenant B context
+      and getting back records from the wrong tenant. His is low priority because normally
+      application code will be sandboxed by the framework with a `while_tenanted` block that
+      prevents shard switching; but we should fix it to prevent errors in tests and while executing
+      code from the console.
+- [ ] The `db:purge` rake task, which is run before the test suite, will emit a harmless but
+      annoying `NoTenantError` because the task doesn't run with a temporary pool. See some
+      information at https://github.com/rails/rails/pull/46270 and my first (wrong) attempt to fix
+      it at https://github.com/rails/rails/pull/54536
