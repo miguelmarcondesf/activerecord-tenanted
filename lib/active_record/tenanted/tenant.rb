@@ -21,6 +21,14 @@ module ActiveRecord
             super
           end
         end
+
+        def to_global_id(options = {})
+          super(options.merge(tenant: tenant))
+        end
+
+        def to_signed_global_id(options = {})
+          super(options.merge(tenant: tenant))
+        end
       end
     end
 
