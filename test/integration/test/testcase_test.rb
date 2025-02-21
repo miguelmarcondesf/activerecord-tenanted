@@ -2,7 +2,7 @@ require "application_system_test_case"
 
 class TestActiveSupportTestCase < ActiveSupport::TestCase
   test "connection_class" do
-    assert_equal(ApplicationRecord, ActiveRecord::Tenanted::Testing.connection_class)
+    assert_equal(ApplicationRecord, ActiveRecord::Tenanted.connection_class)
   end
 
   test "current tenant" do

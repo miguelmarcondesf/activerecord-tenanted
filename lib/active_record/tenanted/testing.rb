@@ -3,15 +3,11 @@
 module ActiveRecord
   module Tenanted
     module Testing
-      def self.connection_class
-        Rails.application.config.active_record_tenanted.connection_class&.constantize
-      end
-
       module TestCase
         extend ActiveSupport::Concern
 
         included do
-          if klass = ActiveRecord::Tenanted::Testing.connection_class
+          if klass = ActiveRecord::Tenanted.connection_class
             klass.current_tenant = "#{Rails.env}-tenant"
 
             parallelize_setup do |worker|
@@ -31,7 +27,7 @@ module ActiveRecord
 
         included do
           setup do
-            if klass = ActiveRecord::Tenanted::Testing.connection_class
+            if klass = ActiveRecord::Tenanted.connection_class
               integration_session.host = "#{klass.current_tenant}.example.com"
             end
           end
@@ -50,7 +46,7 @@ module ActiveRecord
           [ :delete, :follow_redirect!, :get, :head, :options, :patch, :post, :put ].each do |method|
             class_eval(<<~RUBY, __FILE__, __LINE__ + 1)
               def #{method}(...)
-                if klass = ActiveRecord::Tenanted::Testing.connection_class
+                if klass = ActiveRecord::Tenanted.connection_class
                   klass.while_untenanted { super }
                 else
                   super
@@ -66,7 +62,7 @@ module ActiveRecord
 
         included do
           setup do
-            if klass = ActiveRecord::Tenanted::Testing.connection_class
+            if klass = ActiveRecord::Tenanted.connection_class
               self.default_url_options = { host: "#{klass.current_tenant}.example.localhost" }
             end
           end

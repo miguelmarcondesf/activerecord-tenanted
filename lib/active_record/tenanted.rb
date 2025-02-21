@@ -22,6 +22,11 @@ module ActiveRecord
 
     # Raised when attempting to create a tenant with illegal characters in it.
     class BadTenantNameError < Error; end
+
+    def self.connection_class
+      # TODO: cache this / speed this up
+      Rails.application.config.active_record_tenanted.connection_class&.constantize
+    end
   end
 end
 
