@@ -8,6 +8,7 @@ group :development do
   gem "rails", github: "rails/rails", branch: "main"
   gem "sqlite3", "2.6.0"
   gem "debug", "1.10.0"
+  gem "minitest-parallel_fork", "2.0.0"
 end
 
 group :rubocop do

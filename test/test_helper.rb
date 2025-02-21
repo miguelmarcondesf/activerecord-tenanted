@@ -20,6 +20,11 @@ require_relative "../lib/active_record/tenanted"
 require_relative "dummy/config/environment"
 require "minitest/spec"
 
+if ENV["NCPU"].to_i > 1
+  require "minitest/parallel_fork"
+  warn "Running parallel tests with NCPU=#{ENV["NCPU"].inspect}"
+end
+
 module ActiveRecord
   module Tenanted
     class TestCase < ActiveSupport::TestCase

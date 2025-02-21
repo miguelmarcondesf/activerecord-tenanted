@@ -147,6 +147,8 @@ GEM
     marcel (1.0.4)
     mini_mime (1.1.5)
     minitest (5.25.4)
+    minitest-parallel_fork (2.0.0)
+      minitest (>= 5.15.0)
     net-imap (0.5.6)
       date
       net-protocol
@@ -279,6 +281,7 @@ PLATFORMS
 DEPENDENCIES
   active_record-tenanted!
   debug (= 1.10.0)
+  minitest-parallel_fork (= 2.0.0)
   rails!
   rubocop-minitest (= 0.37.1)
   rubocop-packaging (= 0.5.2)
