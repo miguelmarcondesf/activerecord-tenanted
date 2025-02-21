@@ -61,6 +61,18 @@ module ActiveRecord
         end
       end
 
+      module SystemTestCase
+        extend ActiveSupport::Concern
+
+        included do
+          setup do
+            if klass = ActiveRecord::Tenanted::Testing.connection_class
+              self.default_url_options = { host: "#{klass.current_tenant}.example.localhost" }
+            end
+          end
+        end
+      end
+
       module TestFixtures
         extend ActiveSupport::Concern
 

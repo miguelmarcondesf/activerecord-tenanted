@@ -93,6 +93,10 @@ module ActiveRecord
 
           ActionDispatch::Integration::Session.prepend ActiveRecord::Tenanted::Testing::IntegrationSession
         end
+
+        ActiveSupport.on_load(:action_dispatch_system_test_case) do
+          include ActiveRecord::Tenanted::Testing::SystemTestCase
+        end
       end
 
       rake_tasks do

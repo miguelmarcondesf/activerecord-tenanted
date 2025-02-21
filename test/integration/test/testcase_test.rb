@@ -1,4 +1,4 @@
-require "test_helper"
+require "application_system_test_case"
 
 class TestActiveSupportTestCase < ActiveSupport::TestCase
   test "connection_class" do
@@ -51,5 +51,22 @@ class TestActionDispatchIntegrationTest < ActionDispatch::IntegrationTest
     get note_url(note)
 
     assert_includes(@response.body, "Lorem ipsum.")
+  end
+end
+
+class TestApplicationSystemTestCase < ApplicationSystemTestCase
+  test "session host name" do
+    current_tenant = ApplicationRecord.current_tenant
+    uri = URI.parse(notes_url)
+
+    assert_equal("#{current_tenant}.example.localhost", uri.host)
+  end
+
+  test "middleware: setup and request are in the same tenant context" do
+    note = Note.create!(title: "asdf", body: "Lorem ipsum.")
+
+    visit note_url(note)
+
+    assert_text("Lorem ipsum.")
   end
 end
