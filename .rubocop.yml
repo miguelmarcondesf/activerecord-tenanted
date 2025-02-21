@@ -1,6 +1,8 @@
 require:
-  - rubocop-minitest
   - rubocop-packaging
+
+plugins:
+  - rubocop-minitest
   - rubocop-performance
   - rubocop-rails
   - rubocop-rake
@@ -12,6 +14,7 @@ AllCops:
   Exclude:
     # Don't rubocop generated files
     - test/dummy/**/*
+    - test/smarty/**/*
     - bin/*
     - db/**/*
     - gemfiles/*
