@@ -5,6 +5,8 @@ SMARTY_PATH  = File.join(GEM_PATH, "test/smarty")
 GEMFILE      = File.join(SMARTY_PATH, "Gemfile")
 OVERLAY_PATH = File.join(GEM_PATH, "test/integration")
 
+TEST_ARGS = ARGV.dup
+
 ENV["BUNDLE_GEMFILE"] = GEMFILE
 require "bundler/setup"
 
@@ -97,7 +99,7 @@ def run_scenario(scenario)
       FileUtils.mkdir_p(File.dirname(test_db))
       FileUtils.touch(test_db)
 
-      run_cmd(scenario, "bin/rails test", verbose: true)
+      run_cmd(scenario, ["bin/rails test", *TEST_ARGS].join(" "), verbose: true)
     ensure
       ENV["BUNDLE_GEMFILE"] = nil
     end
