@@ -61,28 +61,38 @@ describe ActiveRecord::Tenanted::Tenant do
         assert_nothing_raised { User.first }
       end
 
-      describe "inner while_tenanted" do
-        test "overrides the current tenant" do
-          TenantedApplicationRecord.while_tenanted("bar") do
-            assert_equal 0, User.count
+      test ".current_tenant= can be called repeatedly" do
+        assert_nil(TenantedApplicationRecord.current_tenant)
 
-            assert_nothing_raised do
-              User.create!(email: "user1@example.org")
-            end
+        TenantedApplicationRecord.current_tenant = "foo"
 
-            assert_equal 1, User.count
-          end
+        assert_equal("foo", TenantedApplicationRecord.current_tenant)
+
+        TenantedApplicationRecord.current_tenant = "bar"
+
+        assert_equal("bar", TenantedApplicationRecord.current_tenant)
+      end
+
+      test "using a record after changing tenant raises WrongTenantError" do
+        TenantedApplicationRecord.current_tenant = "foo"
+
+        user = User.create!(email: "user1@example.org")
+
+        TenantedApplicationRecord.current_tenant = "bar"
+
+        assert_raises(ActiveRecord::Tenanted::WrongTenantError) do
+          user.update!(email: "user1+bar@example.org")
         end
+      end
 
-        test "using the record outside of the block raises WrongTenantError" do
-          TenantedApplicationRecord.current_tenant = "foo"
-
-          user = TenantedApplicationRecord.while_tenanted("bar") do
-            User.create!(email: "user1@example.org")
+      test ".current_tenant inside while_tenanted raises exception" do
+        TenantedApplicationRecord.while_tenanted("foo") do
+          assert_raises(ArgumentError) do
+            TenantedApplicationRecord.current_tenant = "bar"
           end
 
-          assert_raises(ActiveRecord::Tenanted::WrongTenantError) do
-            user.update!(email: "user1+bar@example.org")
+          assert_raises(ArgumentError) do # not even the same tenant is OK
+            TenantedApplicationRecord.current_tenant = "foo"
           end
         end
       end
@@ -91,7 +101,7 @@ describe ActiveRecord::Tenanted::Tenant do
 
   describe ".while_tenanted" do
     for_each_scenario do
-      test "returns the string name of the tenant if in a tenant context " do
+      test "current tenant is set in the block context " do
         TenantedApplicationRecord.while_tenanted(:foo) do
           User.first
           assert_equal("foo", TenantedApplicationRecord.current_tenant)
@@ -118,6 +128,38 @@ describe ActiveRecord::Tenanted::Tenant do
             TenantedApplicationRecord.while_tenanted("bar") { }
           end
           assert_includes(e.message, "shard swapping is prohibited")
+        end
+      end
+
+      test "overrides the current tenant if set with current_tenant=" do
+        TenantedApplicationRecord.current_tenant = "foo"
+
+        TenantedApplicationRecord.while_tenanted("bar") do
+          assert_equal("bar", TenantedApplicationRecord.current_tenant)
+        end
+
+        assert_equal("foo", TenantedApplicationRecord.current_tenant)
+      end
+
+      test "using a record outside of the block raises NoTenantError" do
+        user = TenantedApplicationRecord.while_tenanted("bar") do
+          User.create!(email: "user1@example.org")
+        end
+
+        assert_raises(ActiveRecord::Tenanted::NoTenantError) do
+          user.update!(email: "user1+bar@example.org")
+        end
+      end
+
+      test "using a record in another block raises WrongTenantError" do
+        user = TenantedApplicationRecord.while_tenanted("foo") do
+          User.create!(email: "user1@example.org")
+        end
+
+        TenantedApplicationRecord.while_tenanted("bar") do
+          assert_raises(ActiveRecord::Tenanted::WrongTenantError) do
+            user.update!(email: "user1+bar@example.org")
+          end
         end
       end
 
