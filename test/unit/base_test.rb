@@ -7,6 +7,10 @@ describe ActiveRecord::Tenanted::Base do
     assert_includes(ActiveRecord::Base.ancestors, ActiveRecord::Tenanted::Base)
   end
 
+  test "normally has a default shard of :default" do
+    assert_equal(:default, ActiveRecord::Base.default_shard)
+  end
+
   describe ".tenanted" do
     with_scenario(:primary_db, :primary_record) do
       test "it can only be called once" do
@@ -64,6 +68,11 @@ describe ActiveRecord::Tenanted::Base do
 
         assert_not(SharedApplicationRecord.tenanted?)
         assert_not(Announcement.tenanted?)
+      end
+
+      test "sets the default shard to UNTENANTED_SENTINEL" do
+        assert_equal(:default, ActiveRecord::Base.default_shard)
+        assert_equal(ActiveRecord::Tenanted::Tenant::UNTENANTED_SENTINEL, TenantedApplicationRecord.default_shard)
       end
     end
   end

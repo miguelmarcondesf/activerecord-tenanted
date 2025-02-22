@@ -56,7 +56,7 @@ module ActiveRecord
       UNTENANTED_SENTINEL = Object.new.freeze # :nodoc:
 
       included do
-        connecting_to(shard: UNTENANTED_SENTINEL, role: ActiveRecord.writing_role)
+        self.default_shard = ActiveRecord::Tenanted::Tenant::UNTENANTED_SENTINEL
 
         include TenantCommon
       end
