@@ -35,18 +35,18 @@ describe ActiveRecord::Tenanted::Job do
 
       describe "integration disabled" do
         test "in untenanted context" do
-          ActiveRecord::Tenanted.stub(:connection_class, nil) do
-            TenantedApplicationRecord.while_untenanted do
-              assert_nil(job_class.new.tenant)
-            end
+          assert_nil(ActiveRecord::Tenanted.connection_class)
+
+          TenantedApplicationRecord.while_untenanted do
+            assert_nil(job_class.new.tenant)
           end
         end
 
         test "in tenanted context" do
-          ActiveRecord::Tenanted.stub(:connection_class, nil) do
-            TenantedApplicationRecord.while_tenanted("foo") do
-              assert_nil(job_class.new.tenant)
-            end
+          assert_nil(ActiveRecord::Tenanted.connection_class)
+
+          TenantedApplicationRecord.while_tenanted("foo") do
+            assert_nil(job_class.new.tenant)
           end
         end
       end
@@ -79,25 +79,25 @@ describe ActiveRecord::Tenanted::Job do
 
       describe "integration disabled" do
         test "in untenanted context" do
-          ActiveRecord::Tenanted.stub(:connection_class, nil) do
-            job_data = TenantedApplicationRecord.while_untenanted do
-              job_class.new.serialize
-            end
-            job_later = job_class.new.tap { |j| j.deserialize(job_data) }
+          assert_nil(ActiveRecord::Tenanted.connection_class)
 
-            assert_nil(job_later.tenant)
+          job_data = TenantedApplicationRecord.while_untenanted do
+            job_class.new.serialize
           end
+          job_later = job_class.new.tap { |j| j.deserialize(job_data) }
+
+          assert_nil(job_later.tenant)
         end
 
         test "in tenanted context" do
-          ActiveRecord::Tenanted.stub(:connection_class, nil) do
-            job_data = TenantedApplicationRecord.while_tenanted("foo") do
-              job_class.new.serialize
-            end
-            job_later = job_class.new.tap { |j| j.deserialize(job_data) }
+          assert_nil(ActiveRecord::Tenanted.connection_class)
 
-            assert_nil(job_later.tenant)
+          job_data = TenantedApplicationRecord.while_tenanted("foo") do
+            job_class.new.serialize
           end
+          job_later = job_class.new.tap { |j| j.deserialize(job_data) }
+
+          assert_nil(job_later.tenant)
         end
       end
     end
@@ -131,27 +131,27 @@ describe ActiveRecord::Tenanted::Job do
 
       describe "integration disabled" do
         test "in untenanted context" do
-          ActiveRecord::Tenanted.stub(:connection_class, nil) do
-            job = TenantedApplicationRecord.while_untenanted do
-              job_class.new
-            end
+          assert_nil(ActiveRecord::Tenanted.connection_class)
 
-            job.perform_now
-
-            assert_nil(job.recorded_perform_now_tenant)
+          job = TenantedApplicationRecord.while_untenanted do
+            job_class.new
           end
+
+          job.perform_now
+
+          assert_nil(job.recorded_perform_now_tenant)
         end
 
         test "in tenanted context" do
-          ActiveRecord::Tenanted.stub(:connection_class, nil) do
-            job = TenantedApplicationRecord.while_tenanted("foo") do
-              job_class.new
-            end
+          assert_nil(ActiveRecord::Tenanted.connection_class)
 
-            job.perform_now
-
-            assert_nil(job.recorded_perform_now_tenant)
+          job = TenantedApplicationRecord.while_tenanted("foo") do
+            job_class.new
           end
+
+          job.perform_now
+
+          assert_nil(job.recorded_perform_now_tenant)
         end
       end
     end
