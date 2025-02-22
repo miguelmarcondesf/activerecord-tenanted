@@ -64,6 +64,10 @@ module ActiveRecord
         end
       end
 
+      initializer "active_record-tenanted.global_id", after: "global_id" do
+        ::GlobalID.include ActiveRecord::Tenanted::GlobalId
+      end
+
       config.after_initialize do
         ActiveSupport.on_load(:action_mailbox_record) do
           if Rails.application.config.active_record_tenanted.connection_class.present? &&
