@@ -43,3 +43,58 @@ describe GlobalID do
     end
   end
 end
+
+describe ActiveRecord::Tenanted::GlobalId::Locator do
+  for_each_scenario do
+    describe "given an untenanted GID" do
+      test "raises MissingTenantError" do
+        gid = GlobalID.parse("gid://dummy/User/1")
+
+        TenantedApplicationRecord.while_tenanted("foo") do
+          assert_raises(ActiveRecord::Tenanted::MissingTenantError) do
+            ActiveRecord::Tenanted::GlobalId::Locator.new.locate(gid)
+          end
+        end
+      end
+    end
+
+    describe "in correct tenanted context" do
+      test "loads correctly" do
+        TenantedApplicationRecord.while_tenanted("foo") do
+          original_user = User.create!(email: "user1@example.org")
+          user = ActiveRecord::Tenanted::GlobalId::Locator.new.locate(original_user.to_global_id)
+
+          assert_equal(original_user, user)
+        end
+      end
+    end
+
+    describe "in wrong tenanted context" do
+      test "raises WrongTenantError" do
+        original_user = TenantedApplicationRecord.while_tenanted("foo") do
+          User.create!(email: "user1@example.org")
+        end
+
+        TenantedApplicationRecord.while_tenanted("bar") do
+          assert_raises(ActiveRecord::Tenanted::WrongTenantError) do
+            ActiveRecord::Tenanted::GlobalId::Locator.new.locate(original_user.to_global_id)
+          end
+        end
+      end
+    end
+
+    describe "in untenanted context" do
+      test "raises NoTenantError" do
+        original_user = TenantedApplicationRecord.while_tenanted("foo") do
+          User.create!(email: "user1@example.org")
+        end
+
+        TenantedApplicationRecord.while_untenanted do
+          assert_raises(ActiveRecord::Tenanted::NoTenantError) do
+            ActiveRecord::Tenanted::GlobalId::Locator.new.locate(original_user.to_global_id)
+          end
+        end
+      end
+    end
+  end
+end

@@ -17,6 +17,9 @@ module ActiveRecord
     # Raised when database access is attempted on a record whose tenant does not match the current tenant.
     class WrongTenantError < Error; end
 
+    # Raised when attempting to locate a GlobalID without a tenant.
+    class MissingTenantError < Error; end
+
     # Raised when attempting to create a tenant that already exists.
     class TenantExistsError < Error; end
 
