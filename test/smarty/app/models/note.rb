@@ -1,6 +1,12 @@
 class Note < ApplicationRecord
 
+  after_update_commit :broadcast_replace
+
   after_update_commit do
-    broadcast_replace
+    NoteCheerioJob.perform_later(self) if needs_cheerio?
+  end
+
+  def needs_cheerio?
+    !body.include?("Cheerio!")
   end
 end
