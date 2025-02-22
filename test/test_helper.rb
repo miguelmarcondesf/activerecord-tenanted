@@ -3,6 +3,7 @@
 # Configure Rails Environment
 ENV["RAILS_ENV"] = "test"
 ENV["AR_TENANT_SCHEMA_DUMP"] = "t" # we don't normally dump schemas outside of development
+ENV["VERBOSE"] = "false" # suppress database task output
 
 require "rails"
 require "rails/test_help" # should be before active_record is loaded to avoid schema/fixture setup
@@ -92,9 +93,13 @@ module ActiveRecord
 
               FileUtils.mkdir(db_path)
               FileUtils.cp_r Dir.glob(File.join(db_config_dir, "*migrations")), db_path
+
+              @migration_verbose_was, ActiveRecord::Migration.verbose = ActiveRecord::Migration.verbose, false
+              ActiveRecord::Tasks::DatabaseTasks.prepare_all
             end
 
             teardown do
+              ActiveRecord::Migration.verbose = @migration_verbose_was
               ActiveRecord::Base.configurations = @old_configurations
               ActiveRecord::Tasks::DatabaseTasks.db_dir = @old_db_dir
               ActiveRecord::Base.connection_handler = ActiveRecord::ConnectionAdapters::ConnectionHandler.new
@@ -116,11 +121,9 @@ module ActiveRecord
               clear_dummy_models
               create_fake_record
               load models_scenario_file
-              @migration_verbose_was, ActiveRecord::Migration.verbose = ActiveRecord::Migration.verbose, false
             end
 
             teardown do
-              ActiveRecord::Migration.verbose = @migration_verbose_was
               clear_dummy_models
               clear_connected_to_stack
             end
