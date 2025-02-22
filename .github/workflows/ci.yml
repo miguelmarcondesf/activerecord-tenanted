@@ -32,7 +32,7 @@ jobs:
         with:
           ruby-version: "3.4"
           bundler-cache: true
-      - run: bin/test
+      - run: bin/test-unit
 
   integration:
     runs-on: ubuntu-latest
