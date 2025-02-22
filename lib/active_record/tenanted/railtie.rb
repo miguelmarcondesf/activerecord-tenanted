@@ -66,6 +66,7 @@ module ActiveRecord
 
       initializer "active_record-tenanted.global_id", after: "global_id" do
         ::GlobalID.include ActiveRecord::Tenanted::GlobalId
+        ::GlobalID::Locator.use GlobalID.app, ActiveRecord::Tenanted::GlobalId::Locator.new
       end
 
       config.after_initialize do
