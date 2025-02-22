@@ -3,7 +3,7 @@
 module ActiveRecord
   module Tenanted
     module Testing
-      module TestCase
+      module ActiveSupportTestCase
         extend ActiveSupport::Concern
 
         included do
@@ -22,7 +22,7 @@ module ActiveRecord
         end
       end
 
-      module IntegrationTest
+      module ActionDispatchIntegrationTest
         extend ActiveSupport::Concern
 
         included do
@@ -34,7 +34,7 @@ module ActiveRecord
         end
       end
 
-      module IntegrationSession
+      module ActionDispatchIntegrationSession
         extend ActiveSupport::Concern
 
         prepended do
@@ -57,7 +57,7 @@ module ActiveRecord
         end
       end
 
-      module SystemTestCase
+      module ActionDispatchSystemTestCase
         extend ActiveSupport::Concern
 
         included do
@@ -69,7 +69,7 @@ module ActiveRecord
         end
       end
 
-      module TestFixtures
+      module ActiveRecordFixtures
         extend ActiveSupport::Concern
 
         included do
@@ -95,6 +95,20 @@ module ActiveRecord
             return false if is_root_config || is_non_default_tenant
 
             super
+          end
+        end
+      end
+
+      module ActiveJobTestCase
+        extend ActiveSupport::Concern
+
+        included do
+          def perform_enqueued_jobs(...)
+            if klass = ActiveRecord::Tenanted.connection_class
+              klass.while_untenanted { super }
+            else
+              super
+            end
           end
         end
       end

@@ -91,21 +91,25 @@ module ActiveRecord
         end
 
         ActiveSupport.on_load(:active_support_test_case) do
-          include ActiveRecord::Tenanted::Testing::TestCase
-        end
-
-        ActiveSupport.on_load(:active_record_fixtures) do
-          include ActiveRecord::Tenanted::Testing::TestFixtures
+          include ActiveRecord::Tenanted::Testing::ActiveSupportTestCase
         end
 
         ActiveSupport.on_load(:action_dispatch_integration_test) do
-          include ActiveRecord::Tenanted::Testing::IntegrationTest
+          include ActiveRecord::Tenanted::Testing::ActionDispatchIntegrationTest
 
-          ActionDispatch::Integration::Session.prepend ActiveRecord::Tenanted::Testing::IntegrationSession
+          ActionDispatch::Integration::Session.prepend ActiveRecord::Tenanted::Testing::ActionDispatchIntegrationSession
         end
 
         ActiveSupport.on_load(:action_dispatch_system_test_case) do
-          include ActiveRecord::Tenanted::Testing::SystemTestCase
+          include ActiveRecord::Tenanted::Testing::ActionDispatchSystemTestCase
+        end
+
+        ActiveSupport.on_load(:active_record_fixtures) do
+          include ActiveRecord::Tenanted::Testing::ActiveRecordFixtures
+        end
+
+        ActiveSupport.on_load(:active_job_test_case) do
+          include ActiveRecord::Tenanted::Testing::ActiveJobTestCase
         end
       end
 
