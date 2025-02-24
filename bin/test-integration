@@ -6,6 +6,7 @@ GEMFILE      = File.join(SMARTY_PATH, "Gemfile")
 OVERLAY_PATH = File.join(GEM_PATH, "test/integration")
 
 TEST_ARGS = ARGV.dup
+OPT_KEEP_DIR = TEST_ARGS.delete("--keep") # keep the test tempdirs around for examination
 
 ENV["BUNDLE_GEMFILE"] = GEMFILE
 require "bundler/setup"
@@ -49,7 +50,7 @@ end
 def run_scenario(scenario)
   # setup the test directory and cleanup
   app_path = Dir.mktmpdir("active_record-tenanted-integration-test-")
-  at_exit { FileUtils.remove_entry app_path }
+  at_exit { FileUtils.remove_entry app_path } unless OPT_KEEP_DIR
   puts "Creating integration app for #{COLOR_FG_BLUE}#{scenario}#{COLOR_RESET} at #{app_path}"
 
   # make a copy of the smarty app
