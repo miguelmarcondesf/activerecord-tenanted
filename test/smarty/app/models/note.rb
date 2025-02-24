@@ -1,4 +1,5 @@
 class Note < ApplicationRecord
+  has_one_attached :image
 
   after_update_commit :broadcast_replace
 
