@@ -22,6 +22,11 @@ require_relative "dummy/config/environment"
 require "minitest/spec"
 require "minitest/mock"
 
+# Needed to test Active Storage Disk Service in the absence of a full active_storage:install in the dummy app
+require "active_storage"
+require "active_storage/service/disk_service"
+ActiveStorage::Service::DiskService.include ActiveRecord::Tenanted::StorageService
+
 if ENV["NCPU"].to_i > 1
   require "minitest/parallel_fork"
   warn "Running parallel tests with NCPU=#{ENV["NCPU"].inspect}"
