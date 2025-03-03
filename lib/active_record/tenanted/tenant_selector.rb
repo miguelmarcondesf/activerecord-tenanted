@@ -31,7 +31,9 @@ module ActiveRecord
       end
 
       def tenanted_class
-        @tenanted_class ||= @tenanted_class_name.constantize
+        # Note: we'll probably want to cache this when we look at performance, but don't cache it
+        # when class reloading is enabled.
+        @tenanted_class_name.constantize
       end
     end
   end
