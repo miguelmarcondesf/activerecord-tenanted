@@ -36,6 +36,12 @@ module ActiveRecord
         end
       end
 
+      initializer "active_record_tenanted.action_cable_connection" do
+        ActiveSupport.on_load(:action_cable_connection) do
+          include ActiveRecord::Tenanted::CableConnection::Base
+        end
+      end
+
       initializer("active_record_tenanted.active_record_schema_cache",
                   before: "active_record.copy_schema_cache_config") do
         # Rails must be able to load the schema for a tenanted model without a database connection

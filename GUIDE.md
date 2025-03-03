@@ -276,8 +276,8 @@ TODO:
 Documentation outline:
 
 - explain why we need to be careful
-- how to make a channel "tenant safe"
- - identified_by
+- how to tenant a channel
+ - `tenanted_connection`
 - how the global id contains tenant also
 - do we need to document each adapter?
   - async
@@ -287,10 +287,12 @@ Documentation outline:
 
 TODO:
 
-- [ ] explore if there's something we can/should do in Channel base case to automatically tenant
-  - and then we can have belt-and-suspenders like we do with ActiveJob
-- [ ] understand action_cable_meta_tag
-- [ ] config.action_cable.log_tags set up with tenant?
+- [x] extend the base connection to support tenanting with a `tenanted_connection` method
+- [ ] test disconnection
+  - `ActionCable.server.remote_connections.where(current_tenant: "foo", current_user: User.find(1)).disconnect`
+  - can we make this easier to use by implying the current tenant?
+- [ ] add tenant to the action_cable logger tags
+- [ ] add integration testing
 
 
 ### Turbo Rails
@@ -367,3 +369,6 @@ TODO:
       annoying `NoTenantError` because the task doesn't run with a temporary pool. See some
       information at https://github.com/rails/rails/pull/46270 and my first (wrong) attempt to fix
       it at https://github.com/rails/rails/pull/54536
+- [ ] The way we're injecting the tenant name into the logger is invasive and brittle. Can we more
+      simply add a tag to the logger for the connection pool, similar to how Action Cable
+      connections do?
