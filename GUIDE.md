@@ -334,12 +334,16 @@ Documentation outline:
 
 - explain why we need to be careful
 - how to configure Disk Service so that each client is in a tenanted subdirectory
+  - similar to database config,
+    - `tenanted: true` config param
+    - disk path parameterized with `%{tenant}`
 - how to configure S3 so that each client is in a tenanted bucket
 
 TODO:
 
-- [ ] still have to do some exploration here to figure out how best to tackle it
-  - and then we can have belt-and-suspenders like we do with ActiveJob (hopefully)
+- [x] extend Disk Service
+- [ ] extend S3 Service
+  - waiting until we have a concrete need and some opinions
 
 
 ## ActionMailbox

@@ -14,5 +14,8 @@ class TestActiveStorage < ActionDispatch::IntegrationTest
 
     note = Note.order(:created_at).last
     assert_predicate(note.image, :attached?)
+
+    attachment_path = ActiveStorage::Blob.service.path_for(note.image.key)
+    assert_includes(attachment_path, "tmp/storage/#{ApplicationRecord.current_tenant}/")
   end
 end

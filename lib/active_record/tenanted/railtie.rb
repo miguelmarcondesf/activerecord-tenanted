@@ -69,6 +69,14 @@ module ActiveRecord
         ::GlobalID::Locator.use GlobalID.app, ActiveRecord::Tenanted::GlobalId::Locator.new
       end
 
+      initializer "active_record-tenanted.active_storage", after: "active_storage.services" do
+        # TODO: Add a hook for Disk Service. Without that, there's no good way to include this
+        # module into the class before the service is initialized.
+        # As a workaround, explicitly require this file.
+        require "active_storage/service/disk_service"
+        ActiveStorage::Service::DiskService.include ActiveRecord::Tenanted::StorageService
+      end
+
       config.after_initialize do
         ActiveSupport.on_load(:action_mailbox_record) do
           if Rails.application.config.active_record_tenanted.connection_class.present? &&
