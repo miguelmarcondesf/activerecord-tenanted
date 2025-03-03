@@ -10,7 +10,7 @@ describe ActiveRecord::Tenanted::UntenantedConnectionPool do
     [ :lease_connection,
       :checkout,
       :with_connection,
-      :new_connection
+      :new_connection,
     ].each do |method|
       test "#{method} raises NoTenantError" do
         e = assert_raises(ActiveRecord::Tenanted::NoTenantError) do

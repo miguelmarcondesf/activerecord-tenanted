@@ -303,6 +303,14 @@ Style/RedundantCondition:
 Style/RedundantDoubleSplatHashBraces:
   Enabled: true
 
+Style/TrailingCommaInArrayLiteral:
+  Enabled: true
+  EnforcedStyleForMultiline: diff_comma
+
+Style/TrailingCommaInHashLiteral:
+  Enabled: true
+  EnforcedStyleForMultiline: diff_comma
+
 Performance/BindCall:
   Enabled: true
 
