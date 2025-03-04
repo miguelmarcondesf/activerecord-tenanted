@@ -2,6 +2,12 @@
 
 module ActiveRecord
   module Tenanted
+    # I'm not happy with this class's design. When I circle back, I want to:
+    #
+    # - Extract code that's in TenantSelector and this class (request.subdomain)
+    # - I don't love the `tenanted_connection` method, which only exists as a compromise so I can
+    #   reliably wrap a method that may be defined after `tenanted` is called
+    #
     module CableConnection # :nodoc:
       # this module is included into ActionCable::Connection::Base
       module Base

@@ -292,7 +292,7 @@ TODO:
   - `ActionCable.server.remote_connections.where(current_tenant: "foo", current_user: User.find(1)).disconnect`
   - can we make this easier to use by implying the current tenant?
 - [ ] add tenant to the action_cable logger tags
-- [ ] add integration testing
+- [ ] add integration testing around executing a command (similar to Job testing)
 
 
 ### Turbo Rails

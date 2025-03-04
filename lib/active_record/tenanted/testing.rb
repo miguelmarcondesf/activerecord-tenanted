@@ -112,6 +112,22 @@ module ActiveRecord
           end
         end
       end
+
+      module ActionCableTestCase
+        extend ActiveSupport::Concern
+
+        included do
+          def connect(path = ActionCable.server.config.mount_path, **request_params)
+            if (klass = ActiveRecord::Tenanted.connection_class) && klass.current_tenant
+              env = request_params.fetch(:env, {})
+              env["HTTP_HOST"] ||= "#{klass.current_tenant}.example.com"
+              request_params[:env] = env
+            end
+
+            super
+          end
+        end
+      end
     end
   end
 end

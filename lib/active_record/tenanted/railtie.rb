@@ -126,6 +126,10 @@ module ActiveRecord
         ActiveSupport.on_load(:active_job_test_case) do
           include ActiveRecord::Tenanted::Testing::ActiveJobTestCase
         end
+
+        ActiveSupport.on_load(:action_cable_connection_test_case) do
+          include ActiveRecord::Tenanted::Testing::ActionCableTestCase
+        end
       end
 
       rake_tasks do
