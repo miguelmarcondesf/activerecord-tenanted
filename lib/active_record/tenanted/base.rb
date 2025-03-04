@@ -36,6 +36,23 @@ module ActiveRecord
         def tenanted?
           false
         end
+
+        def table_exists?
+          super
+        rescue ActiveRecord::Tenanted::NoTenantError
+          # If this exception was raised, then Rails is trying to determine if a non-tenanted
+          # table exists by accessing the tenanted primary database config, probably during eager
+          # loading.
+          #
+          # This happens for Record classes that late-bind to their database, like
+          # SolidCable::Record, SolidQueue::Record, and SolidCache::Record (all of which inherit
+          # directly from ActiveRecord::Base but call `connects_to` to set their database later,
+          # during initialization).
+          #
+          # In non-tenanted apps, this method just returns false during eager loading. So let's
+          # follow suit. Rails will figure it out later.
+          false
+        end
       end
     end
   end
