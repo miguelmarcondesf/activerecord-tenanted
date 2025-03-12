@@ -116,6 +116,10 @@ module ActiveRecord
           tenanted_root_config.tenants
         end
 
+        def with_each_tenant(&block)
+          tenants.each { |tenant| with_tenant(tenant) { yield tenant } }
+        end
+
         # This method is really only intended to be used for testing.
         def without_tenant(&block) # :nodoc:
           with_tenant(ActiveRecord::Tenanted::Tenant::UNTENANTED_SENTINEL, prohibit_shard_swapping: false, &block)

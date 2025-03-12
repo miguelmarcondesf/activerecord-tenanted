@@ -119,7 +119,7 @@ TODO:
     - right now it seems like it silently fails
   - [ ] make it OK to call `while_tenanted("foo") { while_tenanted("foo") { ... } }`
   - [x] rename `while_tenanted` to `with_tenant`
-  - [ ] introduce `.with_each_tenant` which is sugar for `ApplicationRecord.tenants.each { ApplicationRecord.while_tenanted(_1) { } }`
+  - [x] introduce `.with_each_tenant` which is sugar for `ApplicationRecord.tenants.each { ApplicationRecord.while_tenanted(_1) { } }`
 
 - tenant selector
   - [x] rebuild `AR::Tenanted::TenantSelector` to take a proc

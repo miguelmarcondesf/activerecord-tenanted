@@ -327,6 +327,27 @@ describe ActiveRecord::Tenanted::Tenant do
     end
   end
 
+  describe ".with_each_tenant" do
+    for_each_scenario do
+      test "calls the block in a tenanted context once for each existing tenant" do
+        result = []
+        TenantedApplicationRecord.with_each_tenant do |tenant|
+          result << [ tenant, TenantedApplicationRecord.current_tenant ]
+        end
+        assert_empty(result)
+
+        TenantedApplicationRecord.with_tenant("foo") { User.count }
+        TenantedApplicationRecord.with_tenant("bar") { User.count }
+
+        result = []
+        TenantedApplicationRecord.with_each_tenant do |tenant|
+          result << [ tenant, TenantedApplicationRecord.current_tenant ]
+        end
+        assert_same_elements([ [ "foo", "foo" ], [ "bar", "bar" ] ], result)
+      end
+    end
+  end
+
   describe "connection pools" do
     for_each_scenario do
       test "models should share connection pools" do
