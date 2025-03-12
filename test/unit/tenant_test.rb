@@ -164,11 +164,27 @@ describe ActiveRecord::Tenanted::Tenant do
       end
 
       test "may allow shard swapping if explicitly asked" do
+        invoked = nil
+
         TenantedApplicationRecord.with_tenant("foo", prohibit_shard_swapping: false) do
           assert_nothing_raised do
-            TenantedApplicationRecord.with_tenant("bar") { }
+            TenantedApplicationRecord.with_tenant("bar") { invoked = true }
           end
         end
+
+        assert(invoked)
+      end
+
+      test "allow nesting with_tenant calls when the tenant is the same" do
+        invoked = nil
+
+        assert_nothing_raised do
+          TenantedApplicationRecord.with_tenant("foo") do
+            TenantedApplicationRecord.with_tenant("foo") { invoked = true }
+          end
+        end
+
+        assert(invoked)
       end
 
       test "using the record outside of the block raises NoTenantError" do

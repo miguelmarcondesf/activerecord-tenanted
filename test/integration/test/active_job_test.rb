@@ -13,6 +13,18 @@ class NoteCheerioJobTest < ActiveJob::TestCase
     assert_includes(note.body, "Cheerio!")
   end
 
+  test "perform_now called from tenanted code behaves as expected" do
+    note = notes(:one)
+    assert_not_includes(note.body, "Cheerio!")
+
+    ApplicationRecord.with_tenant(note.tenant) do
+      NoteCheerioJob.perform_now(note)
+    end
+    note.reload
+
+    assert_includes(note.body, "Cheerio!")
+  end
+
   test "global id locator catches wrong tenant context" do
     tenant = __method__
     note = ApplicationRecord.with_tenant(tenant) do

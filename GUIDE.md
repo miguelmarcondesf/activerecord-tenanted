@@ -117,7 +117,7 @@ TODO:
   - [ ] UntenantedConnectionPool should peek at its stack and if it happened during schema cache load, output a friendly message to let people know what to do
   - [ ] be explicit about what happens when a non-abstract class sets current_tenant, e.g. `User.current_tenant=`
     - right now it seems like it silently fails
-  - [ ] make it OK to call `while_tenanted("foo") { while_tenanted("foo") { ... } }`
+  - [x] make it OK to call `while_tenanted("foo") { while_tenanted("foo") { ... } }`
   - [x] rename `while_tenanted` to `with_tenant`
   - [x] introduce `.with_each_tenant` which is sugar for `ApplicationRecord.tenants.each { ApplicationRecord.while_tenanted(_1) { } }`
 
