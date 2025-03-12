@@ -85,8 +85,12 @@ module ActiveRecord
         def with_tenant(tenant_name, prohibit_shard_swapping: true, &block)
           tenant_name = tenant_name.to_s unless tenant_name == UNTENANTED_SENTINEL
 
-          connected_to(shard: tenant_name, role: ActiveRecord.writing_role) do
-            prohibit_shard_swapping(prohibit_shard_swapping, &block)
+          if tenant_name == current_tenant
+            yield
+          else
+            connected_to(shard: tenant_name, role: ActiveRecord.writing_role) do
+              prohibit_shard_swapping(prohibit_shard_swapping, &block)
+            end
           end
         end
 

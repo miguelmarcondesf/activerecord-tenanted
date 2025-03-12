@@ -171,6 +171,20 @@ describe ActiveRecord::Tenanted::Tenant do
         end
       end
 
+      test "allow nesting with_tenant calls when the tenant is the same" do
+        invoked = nil
+
+        assert_nothing_raised do
+          TenantedApplicationRecord.with_tenant("foo") do
+            TenantedApplicationRecord.with_tenant("foo") do
+              invoked = true
+            end
+          end
+        end
+
+        assert(invoked)
+      end
+
       test "using the record outside of the block raises NoTenantError" do
         user = TenantedApplicationRecord.with_tenant("foo") do
           User.create!(email: "user1@example.org")
