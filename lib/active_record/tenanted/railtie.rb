@@ -105,30 +105,32 @@ module ActiveRecord
           end
         end
 
-        ActiveSupport.on_load(:active_support_test_case) do
-          include ActiveRecord::Tenanted::Testing::ActiveSupportTestCase
-        end
+        if Rails.env.test?
+          ActiveSupport.on_load(:active_support_test_case) do
+            include ActiveRecord::Tenanted::Testing::ActiveSupportTestCase
+          end
 
-        ActiveSupport.on_load(:action_dispatch_integration_test) do
-          include ActiveRecord::Tenanted::Testing::ActionDispatchIntegrationTest
+          ActiveSupport.on_load(:action_dispatch_integration_test) do
+            include ActiveRecord::Tenanted::Testing::ActionDispatchIntegrationTest
 
-          ActionDispatch::Integration::Session.prepend ActiveRecord::Tenanted::Testing::ActionDispatchIntegrationSession
-        end
+            ActionDispatch::Integration::Session.prepend ActiveRecord::Tenanted::Testing::ActionDispatchIntegrationSession
+          end
 
-        ActiveSupport.on_load(:action_dispatch_system_test_case) do
-          include ActiveRecord::Tenanted::Testing::ActionDispatchSystemTestCase
-        end
+          ActiveSupport.on_load(:action_dispatch_system_test_case) do
+            include ActiveRecord::Tenanted::Testing::ActionDispatchSystemTestCase
+          end
 
-        ActiveSupport.on_load(:active_record_fixtures) do
-          include ActiveRecord::Tenanted::Testing::ActiveRecordFixtures
-        end
+          ActiveSupport.on_load(:active_record_fixtures) do
+            include ActiveRecord::Tenanted::Testing::ActiveRecordFixtures
+          end
 
-        ActiveSupport.on_load(:active_job_test_case) do
-          include ActiveRecord::Tenanted::Testing::ActiveJobTestCase
-        end
+          ActiveSupport.on_load(:active_job_test_case) do
+            include ActiveRecord::Tenanted::Testing::ActiveJobTestCase
+          end
 
-        ActiveSupport.on_load(:action_cable_connection_test_case) do
-          include ActiveRecord::Tenanted::Testing::ActionCableTestCase
+          ActiveSupport.on_load(:action_cable_connection_test_case) do
+            include ActiveRecord::Tenanted::Testing::ActionCableTestCase
+          end
         end
       end
 
