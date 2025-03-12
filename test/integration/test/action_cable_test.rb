@@ -8,8 +8,8 @@ class ApplicationCable::ConnectionTest < ActionCable::Connection::TestCase
     assert_equal(ApplicationRecord.current_tenant, connection.current_tenant)
   end
 
-  test "while_tenanted host and tenant" do
-    ApplicationRecord.while_tenanted("action-cable-test-case-host") do
+  test "with_tenant host and tenant" do
+    ApplicationRecord.with_tenant("action-cable-test-case-host") do
       assert_reject_connection { connect }
 
       Note.first # create the tenant
@@ -21,15 +21,15 @@ class ApplicationCable::ConnectionTest < ActionCable::Connection::TestCase
     assert_equal("action-cable-test-case-host", connection.current_tenant)
   end
 
-  test "while_untenanted is an error" do
+  test "without_tenant is an error" do
     assert_reject_connection do
-      ApplicationRecord.while_untenanted { connect }
+      ApplicationRecord.without_tenant { connect }
     end
   end
 
   test "overridden host and tenant" do
     tenant = ApplicationRecord.current_tenant
-    ApplicationRecord.while_untenanted do
+    ApplicationRecord.without_tenant do
       connect env: { "HTTP_HOST" => "#{tenant}.example.com" }
     end
 

@@ -26,7 +26,7 @@ module ActiveRecord
 
         def perform_now
           if tenant.present? && (klass = ActiveRecord::Tenanted.connection_class)
-            klass.while_tenanted(tenant) { super }
+            klass.with_tenant(tenant) { super }
           else
             super
           end

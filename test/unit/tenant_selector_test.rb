@@ -50,7 +50,7 @@ describe ActiveRecord::Tenanted::TenantSelector do
       let(:resolver) { ->(request) { "foo" } }
 
       setup do
-        TenantedApplicationRecord.while_tenanted("foo") { User.count } # create the tenant
+        TenantedApplicationRecord.with_tenant("foo") { User.count } # create the tenant
       end
 
       test "execute while tenanted" do
@@ -66,7 +66,7 @@ describe ActiveRecord::Tenanted::TenantSelector do
       test "disallow tenant swapping" do
         fake_app = Class.new do
           def call(env)
-            TenantedApplicationRecord.while_tenanted("bar") { }
+            TenantedApplicationRecord.with_tenant("bar") { }
           end
         end.new
 
