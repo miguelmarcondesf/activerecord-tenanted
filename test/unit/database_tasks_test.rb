@@ -118,7 +118,7 @@ describe ActiveRecord::Tenanted::DatabaseTasks do
 
       setup do
         tenants.each do |tenant|
-          TenantedApplicationRecord.while_tenanted(tenant) { User.count }
+          TenantedApplicationRecord.with_tenant(tenant) { User.count }
         end
 
         with_new_migration_file

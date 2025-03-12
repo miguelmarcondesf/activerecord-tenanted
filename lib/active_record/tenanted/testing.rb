@@ -47,7 +47,7 @@ module ActiveRecord
             class_eval(<<~RUBY, __FILE__, __LINE__ + 1)
               def #{method}(...)
                 if klass = ActiveRecord::Tenanted.connection_class
-                  klass.while_untenanted { super }
+                  klass.without_tenant { super }
                 else
                   super
                 end
@@ -105,7 +105,7 @@ module ActiveRecord
         included do
           def perform_enqueued_jobs(...)
             if klass = ActiveRecord::Tenanted.connection_class
-              klass.while_untenanted { super }
+              klass.without_tenant { super }
             else
               super
             end

@@ -82,7 +82,7 @@ module ActiveRecord
           File.exist?(tenanted_root_config.database_path_for(tenant_name))
         end
 
-        def while_tenanted(tenant_name, prohibit_shard_swapping: true, &block)
+        def with_tenant(tenant_name, prohibit_shard_swapping: true, &block)
           tenant_name = tenant_name.to_s unless tenant_name == UNTENANTED_SENTINEL
 
           connected_to(shard: tenant_name, role: ActiveRecord.writing_role) do
@@ -93,7 +93,7 @@ module ActiveRecord
         def create_tenant(tenant_name, &block)
           raise TenantExistsError if tenant_exist?(tenant_name)
 
-          while_tenanted(tenant_name) do
+          with_tenant(tenant_name) do
             connection_pool
             yield if block_given?
           end
@@ -102,7 +102,7 @@ module ActiveRecord
         def destroy_tenant(tenant_name)
           return unless tenant_exist?(tenant_name)
 
-          while_tenanted(tenant_name) do
+          with_tenant(tenant_name) do
             lease_connection.send(:log, "/* destroying tenant database */", "DESTROY [tenant=#{tenant_name}]")
           ensure
             remove_connection
@@ -116,9 +116,13 @@ module ActiveRecord
           tenanted_root_config.tenants
         end
 
+        def with_each_tenant(&block)
+          tenants.each { |tenant| with_tenant(tenant) { yield tenant } }
+        end
+
         # This method is really only intended to be used for testing.
-        def while_untenanted(&block) # :nodoc:
-          while_tenanted(ActiveRecord::Tenanted::Tenant::UNTENANTED_SENTINEL, prohibit_shard_swapping: false, &block)
+        def without_tenant(&block) # :nodoc:
+          with_tenant(ActiveRecord::Tenanted::Tenant::UNTENANTED_SENTINEL, prohibit_shard_swapping: false, &block)
         end
 
         def connection_pool # :nodoc:

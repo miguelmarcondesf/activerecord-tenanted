@@ -22,7 +22,7 @@ module ActiveRecord
           @app.call(env)
         else
           if tenanted_class.tenant_exist?(tenant_name)
-            tenanted_class.while_tenanted(tenant_name) { @app.call(env) }
+            tenanted_class.with_tenant(tenant_name) { @app.call(env) }
           else
             Rails.logger.info("ActiveRecord::Tenanted::TenantSelector: Tenant not found: #{tenant_name.inspect}")
             Rack::NotFound.new(Rails.root.join("public/404.html")).call(env)

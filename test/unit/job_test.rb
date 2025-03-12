@@ -18,7 +18,7 @@ describe ActiveRecord::Tenanted::Job do
       describe "integration enabled" do
         test "in untenanted context" do
           ActiveRecord::Tenanted.stub(:connection_class, TenantedApplicationRecord) do
-            TenantedApplicationRecord.while_untenanted do
+            TenantedApplicationRecord.without_tenant do
               assert_nil(job_class.new.tenant)
             end
           end
@@ -26,7 +26,7 @@ describe ActiveRecord::Tenanted::Job do
 
         test "in tenanted context" do
           ActiveRecord::Tenanted.stub(:connection_class, TenantedApplicationRecord) do
-            TenantedApplicationRecord.while_tenanted("foo") do
+            TenantedApplicationRecord.with_tenant("foo") do
               assert_equal("foo", job_class.new.tenant)
             end
           end
@@ -37,7 +37,7 @@ describe ActiveRecord::Tenanted::Job do
         test "in untenanted context" do
           assert_nil(ActiveRecord::Tenanted.connection_class)
 
-          TenantedApplicationRecord.while_untenanted do
+          TenantedApplicationRecord.without_tenant do
             assert_nil(job_class.new.tenant)
           end
         end
@@ -45,7 +45,7 @@ describe ActiveRecord::Tenanted::Job do
         test "in tenanted context" do
           assert_nil(ActiveRecord::Tenanted.connection_class)
 
-          TenantedApplicationRecord.while_tenanted("foo") do
+          TenantedApplicationRecord.with_tenant("foo") do
             assert_nil(job_class.new.tenant)
           end
         end
@@ -56,7 +56,7 @@ describe ActiveRecord::Tenanted::Job do
       describe "integration enabled" do
         test "in untenanted context" do
           ActiveRecord::Tenanted.stub(:connection_class, TenantedApplicationRecord) do
-            job_data = TenantedApplicationRecord.while_untenanted do
+            job_data = TenantedApplicationRecord.without_tenant do
               job_class.new.serialize
             end
             job_later = job_class.new.tap { |j| j.deserialize(job_data) }
@@ -67,7 +67,7 @@ describe ActiveRecord::Tenanted::Job do
 
         test "in tenanted context" do
           ActiveRecord::Tenanted.stub(:connection_class, TenantedApplicationRecord) do
-            job_data = TenantedApplicationRecord.while_tenanted("foo") do
+            job_data = TenantedApplicationRecord.with_tenant("foo") do
               job_class.new.serialize
             end
             job_later = job_class.new.tap { |j| j.deserialize(job_data) }
@@ -81,7 +81,7 @@ describe ActiveRecord::Tenanted::Job do
         test "in untenanted context" do
           assert_nil(ActiveRecord::Tenanted.connection_class)
 
-          job_data = TenantedApplicationRecord.while_untenanted do
+          job_data = TenantedApplicationRecord.without_tenant do
             job_class.new.serialize
           end
           job_later = job_class.new.tap { |j| j.deserialize(job_data) }
@@ -92,7 +92,7 @@ describe ActiveRecord::Tenanted::Job do
         test "in tenanted context" do
           assert_nil(ActiveRecord::Tenanted.connection_class)
 
-          job_data = TenantedApplicationRecord.while_tenanted("foo") do
+          job_data = TenantedApplicationRecord.with_tenant("foo") do
             job_class.new.serialize
           end
           job_later = job_class.new.tap { |j| j.deserialize(job_data) }
@@ -106,7 +106,7 @@ describe ActiveRecord::Tenanted::Job do
       describe "integration enabled" do
         test "in untenanted context" do
           ActiveRecord::Tenanted.stub(:connection_class, TenantedApplicationRecord) do
-            job = TenantedApplicationRecord.while_untenanted do
+            job = TenantedApplicationRecord.without_tenant do
               job_class.new
             end
 
@@ -118,7 +118,7 @@ describe ActiveRecord::Tenanted::Job do
 
         test "in tenanted context" do
           ActiveRecord::Tenanted.stub(:connection_class, TenantedApplicationRecord) do
-            job = TenantedApplicationRecord.while_tenanted("foo") do
+            job = TenantedApplicationRecord.with_tenant("foo") do
               job_class.new
             end
 
@@ -133,7 +133,7 @@ describe ActiveRecord::Tenanted::Job do
         test "in untenanted context" do
           assert_nil(ActiveRecord::Tenanted.connection_class)
 
-          job = TenantedApplicationRecord.while_untenanted do
+          job = TenantedApplicationRecord.without_tenant do
             job_class.new
           end
 
@@ -145,7 +145,7 @@ describe ActiveRecord::Tenanted::Job do
         test "in tenanted context" do
           assert_nil(ActiveRecord::Tenanted.connection_class)
 
-          job = TenantedApplicationRecord.while_tenanted("foo") do
+          job = TenantedApplicationRecord.with_tenant("foo") do
             job_class.new
           end
 

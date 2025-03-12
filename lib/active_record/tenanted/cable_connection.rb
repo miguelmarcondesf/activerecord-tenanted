@@ -58,7 +58,7 @@ module ActiveRecord
           def set_current_tenant(&block)
             self.current_tenant ||= request.subdomain
 
-            tenanted_with_class.while_tenanted(current_tenant, &block)
+            tenanted_with_class.with_tenant(current_tenant, &block)
           end
 
           def tenanted_with_class

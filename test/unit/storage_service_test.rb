@@ -52,7 +52,7 @@ describe ActiveRecord::Tenanted::StorageService do
 
           test "returns current tenant while tenanted" do
             ActiveRecord::Tenanted.stub(:connection_class, TenantedApplicationRecord) do
-              TenantedApplicationRecord.while_tenanted("foo") do
+              TenantedApplicationRecord.with_tenant("foo") do
                 assert_equal("/path/to/foo/storage", service.root)
               end
             end
