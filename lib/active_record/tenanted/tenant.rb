@@ -83,7 +83,9 @@ module ActiveRecord
             yield
           else
             connected_to(shard: tenant_name, role: ActiveRecord.writing_role) do
-              prohibit_shard_swapping(prohibit_shard_swapping, &block)
+              prohibit_shard_swapping(prohibit_shard_swapping) do
+                log_tenant_tag(tenant_name, &block)
+              end
             end
           end
         end
@@ -161,6 +163,14 @@ module ActiveRecord
                                                       role: current_role,
                                                       shard: current_tenant,
                                                       strict: strict)
+        end
+
+        private def log_tenant_tag(tenant_name, &block)
+          if Rails.application.config.active_record_tenanted.log_tenant_tag
+            Rails.logger.tagged("tenant=#{tenant_name}", &block)
+          else
+            yield
+          end
         end
       end
 
