@@ -3,33 +3,29 @@
 module ActiveRecord
   module Tenanted
     module StorageService # :nodoc:
-      extend ActiveSupport::Concern
+      def initialize(root:, public: false, tenanted: false, **options)
+        @root = root
+        @public = public
+        @tenanted = tenanted
+      end
 
-      included do
-        def initialize(root:, public: false, tenanted: false, **options)
-          @root = root
-          @public = public
-          @tenanted = tenanted
-        end
+      def tenanted?
+        @tenanted
+      end
 
-        def tenanted?
-          @tenanted
-        end
-
-        def root
-          if tenanted?
-            unless klass = ActiveRecord::Tenanted.connection_class
-              raise TenantConfigurationError, "Active Storage is tenanted, but no connection_class is configured"
-            end
-
-            unless tenant = klass.current_tenant
-              raise NoTenantError, "Cannot access ActiveStorage Disk service without a tenant"
-            end
-
-            @root % { tenant: tenant }
-          else
-            @root
+      def root
+        if tenanted?
+          unless klass = ActiveRecord::Tenanted.connection_class
+            raise TenantConfigurationError, "Active Storage is tenanted, but no connection_class is configured"
           end
+
+          unless tenant = klass.current_tenant
+            raise NoTenantError, "Cannot access ActiveStorage Disk service without a tenant"
+          end
+
+          @root % { tenant: tenant }
+        else
+          @root
         end
       end
     end

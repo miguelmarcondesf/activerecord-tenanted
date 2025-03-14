@@ -39,33 +39,6 @@ module ActiveRecord
       module Tenant
         extend ActiveSupport::Concern
 
-        prepended do
-          identified_by :current_tenant
-          around_command :set_current_tenant
-
-          def connect
-            unless (self.current_tenant = request.subdomain) &&
-                   (klass = self.class.tenanted_with_class) &&
-                   klass.tenant_exist?(current_tenant)
-              reject_unauthorized_connection
-            end
-
-            if block = self.class.tenanted_connection_block
-              set_current_tenant { instance_eval(&block) }
-            end
-          end
-
-          def set_current_tenant(&block)
-            self.current_tenant ||= request.subdomain
-
-            tenanted_with_class.with_tenant(current_tenant, &block)
-          end
-
-          def tenanted_with_class
-            self.class.tenanted_with_class
-          end
-        end
-
         class_methods do
           attr_accessor :tenanted_connection_block
 
@@ -81,6 +54,33 @@ module ActiveRecord
 
             klass
           end
+        end
+
+        prepended do
+          identified_by :current_tenant
+          around_command :set_current_tenant
+        end
+
+        def connect
+          unless (self.current_tenant = request.subdomain) &&
+                 (klass = self.class.tenanted_with_class) &&
+                 klass.tenant_exist?(current_tenant)
+            reject_unauthorized_connection
+          end
+
+          if block = self.class.tenanted_connection_block
+            set_current_tenant { instance_eval(&block) }
+          end
+        end
+
+        def set_current_tenant(&block)
+          self.current_tenant ||= request.subdomain
+
+          tenanted_with_class.with_tenant(current_tenant, &block)
+        end
+
+        def tenanted_with_class
+          self.class.tenanted_with_class
         end
       end
     end

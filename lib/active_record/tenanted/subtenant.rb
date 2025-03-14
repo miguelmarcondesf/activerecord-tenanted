@@ -5,10 +5,6 @@ module ActiveRecord
     module Subtenant
       extend ActiveSupport::Concern
 
-      included do
-        include TenantCommon
-      end
-
       class_methods do
         def tenanted?
           true
@@ -30,6 +26,10 @@ module ActiveRecord
         def connection_pool
           tenanted_with_class.connection_pool
         end
+      end
+
+      prepended do
+        prepend TenantCommon
       end
     end
   end

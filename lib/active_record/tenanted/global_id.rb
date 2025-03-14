@@ -5,12 +5,8 @@ require "globalid"
 module ActiveRecord
   module Tenanted
     module GlobalId
-      extend ActiveSupport::Concern
-
-      included do
-        def tenant
-          params && params[:tenant]
-        end
+      def tenant
+        params && params[:tenant]
       end
 
       class Locator
