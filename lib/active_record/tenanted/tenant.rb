@@ -6,41 +6,41 @@ module ActiveRecord
     module TenantCommon # :nodoc:
       extend ActiveSupport::Concern
 
-      included do
+      prepended do
         attr_reader :tenant
 
         after_initialize :initialize_tenant_attribute
         before_save :ensure_tenant_context_safety
+      end
 
-        def cache_key
-          if tenant
-            "#{super}?tenant=#{tenant}"
-          else
-            super
-          end
+      def cache_key
+        if tenant
+          "#{super}?tenant=#{tenant}"
+        else
+          super
         end
+      end
 
-        def to_global_id(options = {})
-          super(options.merge(tenant: tenant))
-        end
+      def to_global_id(options = {})
+        super(options.merge(tenant: tenant))
+      end
 
-        def to_signed_global_id(options = {})
-          super(options.merge(tenant: tenant))
-        end
+      def to_signed_global_id(options = {})
+        super(options.merge(tenant: tenant))
+      end
 
-        private def initialize_tenant_attribute
-          @tenant = self.class.current_tenant
-        end
+      private def initialize_tenant_attribute
+        @tenant = self.class.current_tenant
+      end
 
-        private def ensure_tenant_context_safety
-          self_tenant = self.tenant
-          current_tenant = self.class.current_tenant
+      private def ensure_tenant_context_safety
+        self_tenant = self.tenant
+        current_tenant = self.class.current_tenant
 
-          if self_tenant != current_tenant
-            raise WrongTenantError,
-                  "#{self.class} model belongs to tenant #{self_tenant.inspect}, " \
-                  "but current tenant is #{current_tenant.inspect}"
-          end
+        if self_tenant != current_tenant
+          raise WrongTenantError,
+                "#{self.class} model belongs to tenant #{self_tenant.inspect}, " \
+                "but current tenant is #{current_tenant.inspect}"
         end
       end
     end
@@ -54,12 +54,6 @@ module ActiveRecord
       # `current_tenant` method's job is to recognizes that sentinel value and return `nil`, because
       # Active Record itself does not recognize `nil` as a valid shard value.
       UNTENANTED_SENTINEL = Object.new.freeze # :nodoc:
-
-      included do
-        self.default_shard = ActiveRecord::Tenanted::Tenant::UNTENANTED_SENTINEL
-
-        include TenantCommon
-      end
 
       class_methods do
         def tenanted?
@@ -168,6 +162,12 @@ module ActiveRecord
                                                       shard: current_tenant,
                                                       strict: strict)
         end
+      end
+
+      prepended do
+        self.default_shard = ActiveRecord::Tenanted::Tenant::UNTENANTED_SENTINEL
+
+        prepend TenantCommon
       end
     end
   end

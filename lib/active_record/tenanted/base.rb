@@ -17,7 +17,7 @@ module ActiveRecord
           raise Error, "Class #{self} is already tenanted" if tenanted?
           raise Error, "Class #{self} is not an abstract connection class" unless abstract_class?
 
-          include Tenant
+          prepend Tenant
 
           self.connection_class = true
           @tenanted_config_name = config_name
@@ -28,7 +28,7 @@ module ActiveRecord
         end
 
         def subtenant_of(class_name)
-          include Subtenant
+          prepend Subtenant
 
           @tenanted_subtenant_of = class_name
         end

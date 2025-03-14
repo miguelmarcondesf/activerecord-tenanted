@@ -32,13 +32,7 @@ module ActiveRecord
 
       initializer "active_record_tenanted.active_record_base" do
         ActiveSupport.on_load(:active_record) do
-          include ActiveRecord::Tenanted::Base
-        end
-      end
-
-      initializer "active_record_tenanted.action_cable_connection" do
-        ActiveSupport.on_load(:action_cable_connection) do
-          include ActiveRecord::Tenanted::CableConnection::Base
+          prepend ActiveRecord::Tenanted::Base
         end
       end
 
@@ -59,19 +53,25 @@ module ActiveRecord
 
       initializer "active_record-tenanted.monkey_patches" do
         ActiveSupport.on_load(:active_record) do
-          ActiveRecord::Tasks::DatabaseTasks.include ActiveRecord::Tenanted::Patches::DatabaseTasks
-          ActiveRecord::Base.include ActiveRecord::Tenanted::Patches::Attributes
+          prepend ActiveRecord::Tenanted::Patches::Attributes
+          ActiveRecord::Tasks::DatabaseTasks.prepend ActiveRecord::Tenanted::Patches::DatabaseTasks
         end
       end
 
       initializer "active_record-tenanted.active_job" do
         ActiveSupport.on_load(:active_job) do
-          include ActiveRecord::Tenanted::Job
+          prepend ActiveRecord::Tenanted::Job
+        end
+      end
+
+      initializer "active_record_tenanted.action_cable_connection" do
+        ActiveSupport.on_load(:action_cable_connection) do
+          prepend ActiveRecord::Tenanted::CableConnection::Base
         end
       end
 
       initializer "active_record-tenanted.global_id", after: "global_id" do
-        ::GlobalID.include ActiveRecord::Tenanted::GlobalId
+        ::GlobalID.prepend ActiveRecord::Tenanted::GlobalId
         ::GlobalID::Locator.use GlobalID.app, ActiveRecord::Tenanted::GlobalId::Locator.new
       end
 
@@ -80,7 +80,7 @@ module ActiveRecord
         # module into the class before the service is initialized.
         # As a workaround, explicitly require this file.
         require "active_storage/service/disk_service"
-        ActiveStorage::Service::DiskService.include ActiveRecord::Tenanted::StorageService
+        ActiveStorage::Service::DiskService.prepend ActiveRecord::Tenanted::StorageService
       end
 
       config.after_initialize do
@@ -107,29 +107,28 @@ module ActiveRecord
 
         if Rails.env.test?
           ActiveSupport.on_load(:active_support_test_case) do
-            include ActiveRecord::Tenanted::Testing::ActiveSupportTestCase
+            prepend ActiveRecord::Tenanted::Testing::ActiveSupportTestCase
           end
 
           ActiveSupport.on_load(:action_dispatch_integration_test) do
-            include ActiveRecord::Tenanted::Testing::ActionDispatchIntegrationTest
-
+            prepend ActiveRecord::Tenanted::Testing::ActionDispatchIntegrationTest
             ActionDispatch::Integration::Session.prepend ActiveRecord::Tenanted::Testing::ActionDispatchIntegrationSession
           end
 
           ActiveSupport.on_load(:action_dispatch_system_test_case) do
-            include ActiveRecord::Tenanted::Testing::ActionDispatchSystemTestCase
+            prepend ActiveRecord::Tenanted::Testing::ActionDispatchSystemTestCase
           end
 
           ActiveSupport.on_load(:active_record_fixtures) do
-            include ActiveRecord::Tenanted::Testing::ActiveRecordFixtures
+            prepend ActiveRecord::Tenanted::Testing::ActiveRecordFixtures
           end
 
           ActiveSupport.on_load(:active_job_test_case) do
-            include ActiveRecord::Tenanted::Testing::ActiveJobTestCase
+            prepend ActiveRecord::Tenanted::Testing::ActiveJobTestCase
           end
 
           ActiveSupport.on_load(:action_cable_connection_test_case) do
-            include ActiveRecord::Tenanted::Testing::ActionCableTestCase
+            prepend ActiveRecord::Tenanted::Testing::ActionCableTestCase
           end
         end
       end
