@@ -487,6 +487,53 @@ describe ActiveRecord::Tenanted::Tenant do
         assert_includes(log.string, "[tenant=foo]")
       end
     end
+
+    with_scenario(:primary_named_db, :primary_record) do
+      describe "config log_tenant_tag" do
+        setup { @was_log = Rails.application.config.active_record_tenanted.log_tenant_tag }
+        teardown { Rails.application.config.active_record_tenanted.log_tenant_tag = @was_log }
+
+        describe "true" do
+          setup { Rails.application.config.active_record_tenanted.log_tenant_tag = true }
+
+          describe "untenanted" do
+            test "logs still work" do
+              log = capture_rails_log do
+                Rails.logger.info("hello")
+              end
+
+              assert_equal("hello", log.string.strip)
+            end
+          end
+
+          describe "tenanted" do
+            test "database logs should emit the tenant name" do
+              log = capture_rails_log do
+                TenantedApplicationRecord.with_tenant("foo") do
+                  Rails.logger.info("hello")
+                end
+              end
+
+              assert_equal("[tenant=foo] hello", log.string.strip)
+            end
+          end
+        end
+
+        describe "false" do
+          setup { Rails.application.config.active_record_tenanted.log_tenant_tag = false }
+
+          test "database logs should not emit the tenant name" do
+            log = capture_rails_log do
+              TenantedApplicationRecord.with_tenant("foo") do
+                Rails.logger.info("hello")
+              end
+            end
+
+            assert_equal("hello", log.string.strip)
+          end
+        end
+      end
+    end
   end
 
   describe "#tenant" do

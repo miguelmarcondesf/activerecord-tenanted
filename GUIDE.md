@@ -44,6 +44,10 @@ Documentation outline:
   - [citusdata/activerecord-multi-tenant: Rails/ActiveRecord support for distributed multi-tenant databases like Postgres+Citus](https://github.com/citusdata/activerecord-multi-tenant)
   - [rails-on-services/apartment: Database multi-tenancy for Rack (and Rails) applications](https://github.com/rails-on-services/apartment)
   - [ErwinM/acts_as_tenant: Easy multi-tenancy for Rails in a shared database setup.](https://github.com/ErwinM/acts_as_tenant)
+- logging
+  - SQL query logs
+  - TaggedLogging and config.log_tenant_tag
+  - suggest how to add to structured logs if people are doing that
 
 ## Active Record
 
@@ -145,7 +149,7 @@ TODO:
   - [x] make `db:migrate:tenant` run migrations on `development-tenant` in dev
   - [x] make `db:migrate` run `db:migrate:tenant` in dev
   - [x] make `db:prepare` run `db:migrate:tenant` in dev
-  - [ ] implement other database tasks like `db:create`, `db:seed`, etc.
+  - [ ] implement other database tasks like `db:create`, `db:seed`, `db:fixtures:load`, etc.
 
 - installation
   - [ ] install a variation on the default database.yml with primary tenanted and non-primary "global" untenanted
@@ -363,7 +367,7 @@ TODO:
 
 - [ ] When running code outside of a `while_tenanted` block (e.g., the console), it's probably
       possible to read associations from an object belonging to tenant A while in tenant B context
-      and getting back records from the wrong tenant. His is low priority because normally
+      and getting back records from the wrong tenant. This is low priority because normally
       application code will be sandboxed by the framework with a `while_tenanted` block that
       prevents shard switching; but we should fix it to prevent errors in tests and while executing
       code from the console.
@@ -371,6 +375,3 @@ TODO:
       annoying `NoTenantError` because the task doesn't run with a temporary pool. See some
       information at https://github.com/rails/rails/pull/46270 and my first (wrong) attempt to fix
       it at https://github.com/rails/rails/pull/54536
-- [ ] The way we're injecting the tenant name into the logger is invasive and brittle. Can we more
-      simply add a tag to the logger for the connection pool, similar to how Action Cable
-      connections do?

@@ -24,6 +24,12 @@ module ActiveRecord
       # that is where you want Rails to create the tables for these records.
       config.active_record_tenanted.tenanted_rails_records = true
 
+      # Set this to control whether the Rails logger will include the tenant name in a tag in each
+      # log line.
+      #
+      # Defaults to false in development and test, and true in all other environments.
+      config.active_record_tenanted.log_tenant_tag = !Rails.env.local?
+
       config.before_configuration do
         ActiveSupport.on_load(:active_record) do
           ActiveRecord::Tenanted::DatabaseConfigurations.register_db_config_handler
