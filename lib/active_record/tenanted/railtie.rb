@@ -19,6 +19,14 @@ module ActiveRecord
       # entirely.
       config.active_record_tenanted.connection_class = "ApplicationRecord"
 
+      # Set this to a lambda that takes a request object and returns the tenant name. It's used by:
+      #
+      # - Action Dispatch middleware (Tenant Selector)
+      # - Action Cable connections
+      #
+      # Defaults to the request subdomain.
+      config.active_record_tenanted.tenant_resolver = ->(request) { request.subdomain }
+
       # Set this to false in an initializer if you don't want Rails records to share a connection
       # pool with the tenanted connection class.
       #
@@ -41,6 +49,14 @@ module ActiveRecord
       config.before_configuration do
         ActiveSupport.on_load(:active_record) do
           ActiveRecord::Tenanted::DatabaseConfigurations.register_db_config_handler
+        end
+      end
+
+      config.before_initialize do
+        Rails.application.configure do
+          if config.active_record_tenanted.connection_class.present?
+            config.middleware.use ActiveRecord::Tenanted::TenantSelector
+          end
         end
       end
 

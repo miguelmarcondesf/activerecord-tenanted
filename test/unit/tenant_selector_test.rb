@@ -18,12 +18,17 @@ describe ActiveRecord::Tenanted::TenantSelector do
     end.new
   end
 
+  setup do
+    Rails.application.config.active_record_tenanted.connection_class = "TenantedApplicationRecord"
+    Rails.application.config.active_record_tenanted.tenant_resolver = resolver
+  end
+
   with_scenario(:primary_db, :primary_record) do
     describe "when no tenant is resolved" do
       let(:resolver) { ->(request) { nil } }
 
       test "execute as untenanted" do
-        selector = ActiveRecord::Tenanted::TenantSelector.new(fake_app, "TenantedApplicationRecord", resolver)
+        selector = ActiveRecord::Tenanted::TenantSelector.new(fake_app)
 
         response = selector.call(fake_env)
 
@@ -37,7 +42,7 @@ describe ActiveRecord::Tenanted::TenantSelector do
       let(:resolver) { ->(request) { "does-not-exist" } }
 
       test "returns 404" do
-        selector = ActiveRecord::Tenanted::TenantSelector.new(fake_app, "TenantedApplicationRecord", resolver)
+        selector = ActiveRecord::Tenanted::TenantSelector.new(fake_app)
 
         response = selector.call(fake_env)
 
@@ -49,12 +54,10 @@ describe ActiveRecord::Tenanted::TenantSelector do
     describe "when an existing tenant is resolved" do
       let(:resolver) { ->(request) { "foo" } }
 
-      setup do
-        TenantedApplicationRecord.create_tenant("foo")
-      end
+      setup { TenantedApplicationRecord.create_tenant("foo") }
 
       test "execute while tenanted" do
-        selector = ActiveRecord::Tenanted::TenantSelector.new(fake_app, "TenantedApplicationRecord", resolver)
+        selector = ActiveRecord::Tenanted::TenantSelector.new(fake_app)
 
         response = selector.call(fake_env)
 
@@ -70,7 +73,7 @@ describe ActiveRecord::Tenanted::TenantSelector do
           end
         end.new
 
-        selector = ActiveRecord::Tenanted::TenantSelector.new(fake_app, "TenantedApplicationRecord", resolver)
+        selector = ActiveRecord::Tenanted::TenantSelector.new(fake_app)
 
         # an odd exception to raise here IMHO, but that's the current behavior of Rails
         assert_raises(ArgumentError) do
