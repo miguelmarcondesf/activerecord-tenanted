@@ -96,6 +96,23 @@ describe ActiveRecord::Tenanted::DatabaseConfigurations do
       end
     end
 
+    describe "implicit file creation" do
+      with_scenario(:primary_db, :primary_record) do
+        # This is probably not behavior we want, long-term. See notes about the sqlite3 adapter in
+        # tenant.rb. This test is descriptive, not prescriptive.
+        test "creates a file if one does not exist" do
+          config = tenanted_config.new_tenant_config("foo")
+          conn = config.new_connection
+
+          assert_not(File.exist?(config.database))
+
+          conn.execute("SELECT 1")
+
+          assert(File.exist?(config.database))
+        end
+      end
+    end
+
     describe "schema dump" do
       with_scenario(:primary_db, :primary_record) do
         test "to the default primary dump file" do
