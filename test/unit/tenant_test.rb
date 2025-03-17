@@ -222,6 +222,18 @@ describe ActiveRecord::Tenanted::Tenant do
           end
         end
       end
+
+      test "attempting to access a tenant that does not exist raises TenantDoesNotExistError" do
+        assert_not(TenantedApplicationRecord.tenant_exist?("baz"))
+
+        assert_nothing_raised do
+          TenantedApplicationRecord.with_tenant("baz") { } # this is OK because it doesn't hit the database
+        end
+
+        assert_raises(ActiveRecord::Tenanted::TenantDoesNotExistError) do
+          TenantedApplicationRecord.with_tenant("baz") { User.count }
+        end
+      end
     end
   end
 

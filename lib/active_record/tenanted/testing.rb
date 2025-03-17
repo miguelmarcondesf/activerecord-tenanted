@@ -9,9 +9,11 @@ module ActiveRecord
         prepended do
           if klass = ActiveRecord::Tenanted.connection_class
             klass.current_tenant = "#{Rails.env}-tenant"
+            klass.create_tenant(klass.current_tenant)
 
             parallelize_setup do |worker|
               klass.current_tenant = "#{Rails.env}-tenant-#{worker}"
+              klass.create_tenant(klass.current_tenant)
             end
 
             # clean up any non-default tenants left over from the last test run

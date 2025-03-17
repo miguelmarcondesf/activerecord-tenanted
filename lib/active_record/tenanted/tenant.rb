@@ -93,6 +93,13 @@ module ActiveRecord
         def create_tenant(tenant_name, &block)
           raise TenantExistsError if tenant_exist?(tenant_name)
 
+          # NOTE: This is obviously a sqlite-specific implementation.
+          # TODO: Add a `create_database` method upstream in the sqlite3 adapter, and call it.
+          #       Then this would delegate to the adapter and become adapter-agnostic.
+          database_path = tenanted_root_config.database_path_for(tenant_name)
+          FileUtils.mkdir_p(File.dirname(database_path))
+          FileUtils.touch(database_path)
+
           with_tenant(tenant_name) do
             connection_pool
             yield if block_given?
@@ -108,7 +115,9 @@ module ActiveRecord
             remove_connection
           end
 
-          # this will have to be an adapter-specific implementation if we support other than sqlite
+          # NOTE: This is obviously a sqlite-specific implementation.
+          # TODO: Create a `drop_database` method upstream in the sqlite3 adapter, and call it.
+          #       Then this would delegate to the adapter and become adapter-agnostic.
           FileUtils.rm(tenanted_root_config.database_path_for(tenant_name))
         end
 
@@ -152,7 +161,12 @@ module ActiveRecord
           # ensure all classes use the same connection pool
           return superclass._create_tenanted_pool unless connection_class?
 
-          config = tenanted_root_config.new_tenant_config(current_tenant)
+          tenant = current_tenant
+          unless tenant_exist?(tenant)
+            raise TenantDoesNotExistError, "The referenced tenant #{tenant.inspect} does not exist."
+          end
+
+          config = tenanted_root_config.new_tenant_config(tenant)
 
           establish_connection(config)
           ActiveRecord::Tenanted::DatabaseTasks.migrate(config)
