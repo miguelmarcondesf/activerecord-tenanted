@@ -6,11 +6,17 @@ module ActiveRecord
       config.active_record_tenanted = ActiveSupport::OrderedOptions.new
 
       # Set this in an initializer if you're tenanting a connection class other than
-      # ApplicationRecord. This value controls how Rails integrates with your tenanted application.
+      # ApplicationRecord. This value indicates the connection class that this gem uses to integrate
+      # with a broad set of Rails subsystems, including:
       #
-      # By default, Rails will configure the test database, test fixtures to use
-      # "ApplicationRecord", but this can be set to `nil` to turn off the integrations entirely,
-      # including Rails records (see `tenanted_rails_records` below).
+      # - Active Job
+      # - Active Storage
+      # - Action Cable
+      # - Action Dispatch middleware (Tenant Selector)
+      # - Test frameworks and fixtures
+      #
+      # Defaults to "ApplicationRecord", but this can be set to `nil` to turn off the integrations
+      # entirely.
       config.active_record_tenanted.connection_class = "ApplicationRecord"
 
       # Set this to false in an initializer if you don't want Rails records to share a connection
@@ -22,12 +28,14 @@ module ActiveRecord
       #
       # This should only be turned off if your primary database configuration is not tenanted, and
       # that is where you want Rails to create the tables for these records.
+      #
+      # Defaults to `true`.
       config.active_record_tenanted.tenanted_rails_records = true
 
       # Set this to control whether the Rails logger will include the tenant name in a tag in each
       # log line.
       #
-      # Defaults to false in development and test, and true in all other environments.
+      # Defaults to false in development and test environments, and true in all other environments.
       config.active_record_tenanted.log_tenant_tag = !Rails.env.local?
 
       config.before_configuration do
