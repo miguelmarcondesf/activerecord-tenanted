@@ -109,6 +109,7 @@ describe ActiveRecord::Tenanted::DatabaseConfigurations do
           conn.execute("SELECT 1")
 
           assert(File.exist?(config.database))
+          assert_operator(File.size(config.database), :>, 0)
         end
       end
     end

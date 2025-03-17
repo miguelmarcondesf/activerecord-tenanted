@@ -377,3 +377,9 @@ TODO:
       annoying `NoTenantError` because the task doesn't run with a temporary pool. See some
       information at https://github.com/rails/rails/pull/46270 and my first (wrong) attempt to fix
       it at https://github.com/rails/rails/pull/54536
+- [ ] It is possible for `create_tenant` to create an empty file. For example, if a sqlite3 database
+      config includes `readonly: true`, then the file would be created but the migration would raise
+      something like `ActiveRecord::StatementInvalid` and the file will exist, but have zero size.
+      I think we should try to make `create_tenant` detect these failures during schema application
+      and migration, and delete the file. But it should not do this if the passed block is what
+      raises exceptions.
