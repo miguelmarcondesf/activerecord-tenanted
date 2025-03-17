@@ -118,6 +118,8 @@ TODO:
     - [x] test production eager loading of the schema cache from dump files
   - [ ] feature to turn off automatic creation/migration
     - [ ] pay attention to Rails.config.active_record.migration_error when we turn off auto-migrating
+    - [ ] file creation shouldn't be implicit in the sqlite3 adapter, it should be explicit like in the other adapters
+      - see working branch `flavorjones/rails/flavorjones-sqlite3-adapter-explicit-create` for a start here
   - [ ] UntenantedConnectionPool should peek at its stack and if it happened during schema cache load, output a friendly message to let people know what to do
   - [ ] be explicit about what happens when a non-abstract class sets current_tenant, e.g. `User.current_tenant=`
     - right now it seems like it silently fails

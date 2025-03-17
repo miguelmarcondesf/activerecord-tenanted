@@ -11,9 +11,9 @@ class ApplicationCable::ConnectionTest < ActionCable::Connection::TestCase
   test "with_tenant host and tenant" do
     ApplicationRecord.with_tenant("action-cable-test-case-host") do
       assert_reject_connection { connect }
+    end
 
-      Note.first # create the tenant
-
+    ApplicationRecord.create_tenant("action-cable-test-case-host") do
       connect
     end
 

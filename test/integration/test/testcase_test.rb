@@ -42,7 +42,7 @@ class TestActionDispatchIntegrationTest < ActionDispatch::IntegrationTest
   end
 
   test "middleware: creating a new tenant and requesting that domain" do
-    note = ApplicationRecord.with_tenant("non-default-tenant") do
+    note = ApplicationRecord.create_tenant("non-default-tenant") do
       Note.create!(title: "asdf", body: "Lorem ipsum.")
     end
 

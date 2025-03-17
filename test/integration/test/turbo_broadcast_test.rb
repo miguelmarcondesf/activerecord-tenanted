@@ -5,7 +5,7 @@ class TestTurboBroadcast < ApplicationSystemTestCase
     tenant2 = __method__
 
     note1 = Note.create!(title: "Tenant-1", body: "note 1 version 1")
-    note2 = ApplicationRecord.with_tenant(tenant2) do
+    note2 = ApplicationRecord.create_tenant(tenant2) do
       Note.create!(title: "Tenant-2", body: "note 2 version 1", id: note1.id)
     end
     assert_equal(note1.id, note2.id)

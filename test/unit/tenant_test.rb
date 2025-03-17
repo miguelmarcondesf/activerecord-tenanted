@@ -44,6 +44,8 @@ describe ActiveRecord::Tenanted::Tenant do
       end
 
       test ".current_tenant= sets tenant context" do
+        TenantedApplicationRecord.create_tenant("foo")
+
         assert_nil(TenantedApplicationRecord.current_tenant)
 
         TenantedApplicationRecord.current_tenant = "foo"
@@ -53,6 +55,8 @@ describe ActiveRecord::Tenanted::Tenant do
       end
 
       test ".current_tenant= sets tenant context for a symbol" do
+        TenantedApplicationRecord.create_tenant("foo")
+
         assert_nil(TenantedApplicationRecord.current_tenant)
 
         TenantedApplicationRecord.current_tenant = :foo
@@ -74,6 +78,9 @@ describe ActiveRecord::Tenanted::Tenant do
       end
 
       test "using a record after changing tenant raises WrongTenantError" do
+        TenantedApplicationRecord.create_tenant("foo")
+        TenantedApplicationRecord.create_tenant("bar")
+
         TenantedApplicationRecord.current_tenant = "foo"
 
         user = User.create!(email: "user1@example.org")
@@ -86,6 +93,8 @@ describe ActiveRecord::Tenanted::Tenant do
       end
 
       test ".current_tenant inside with_tenant raises exception" do
+        TenantedApplicationRecord.create_tenant("foo")
+
         TenantedApplicationRecord.with_tenant("foo") do
           assert_raises(ArgumentError) do
             TenantedApplicationRecord.current_tenant = "bar"
@@ -101,6 +110,11 @@ describe ActiveRecord::Tenanted::Tenant do
 
   describe ".with_tenant" do
     for_each_scenario do
+      setup do
+        TenantedApplicationRecord.create_tenant("foo")
+        TenantedApplicationRecord.create_tenant("bar")
+      end
+
       test "current tenant is set in the block context " do
         TenantedApplicationRecord.with_tenant(:foo) do
           User.first
@@ -213,6 +227,11 @@ describe ActiveRecord::Tenanted::Tenant do
 
   describe ".without_tenant" do
     for_each_scenario do
+      setup do
+        TenantedApplicationRecord.create_tenant("foo")
+        TenantedApplicationRecord.create_tenant("bar")
+      end
+
       test "current_tenant is nil" do
         TenantedApplicationRecord.current_tenant = "foo"
         TenantedApplicationRecord.without_tenant do
@@ -238,7 +257,7 @@ describe ActiveRecord::Tenanted::Tenant do
       end
 
       test "it returns true if the tenant database has not been created" do
-        TenantedApplicationRecord.with_tenant("foo") { User.count }
+        TenantedApplicationRecord.create_tenant("foo")
 
         assert(TenantedApplicationRecord.tenant_exist?("foo"))
       end
@@ -248,7 +267,7 @@ describe ActiveRecord::Tenanted::Tenant do
   describe ".create_tenant" do
     for_each_scenario do
       test "raises an Exception if the tenant already exists" do
-        TenantedApplicationRecord.with_tenant("foo") { User.count }
+        TenantedApplicationRecord.create_tenant("foo")
 
         assert_raises(ActiveRecord::Tenanted::TenantExistsError) do
           TenantedApplicationRecord.create_tenant("foo")
@@ -328,11 +347,11 @@ describe ActiveRecord::Tenanted::Tenant do
       test "it returns an array of existing tenants" do
         assert_empty(TenantedApplicationRecord.tenants)
 
-        TenantedApplicationRecord.with_tenant("foo") { User.count }
+        TenantedApplicationRecord.create_tenant("foo")
 
         assert_equal([ "foo" ], TenantedApplicationRecord.tenants)
 
-        TenantedApplicationRecord.with_tenant("bar") { User.count }
+        TenantedApplicationRecord.create_tenant("bar")
 
         assert_same_elements([ "foo", "bar" ], TenantedApplicationRecord.tenants)
 
@@ -352,8 +371,8 @@ describe ActiveRecord::Tenanted::Tenant do
         end
         assert_empty(result)
 
-        TenantedApplicationRecord.with_tenant("foo") { User.count }
-        TenantedApplicationRecord.with_tenant("bar") { User.count }
+        TenantedApplicationRecord.create_tenant("foo")
+        TenantedApplicationRecord.create_tenant("bar")
 
         result = []
         TenantedApplicationRecord.with_each_tenant do |tenant|
@@ -367,7 +386,7 @@ describe ActiveRecord::Tenanted::Tenant do
   describe "connection pools" do
     for_each_scenario do
       test "models should share connection pools" do
-        TenantedApplicationRecord.with_tenant("foo") do
+        TenantedApplicationRecord.create_tenant("foo") do
           assert_same(User.connection_pool, Post.connection_pool)
           assert_same(TenantedApplicationRecord.connection_pool, User.connection_pool)
         end
@@ -378,8 +397,7 @@ describe ActiveRecord::Tenanted::Tenant do
   describe "creation and migration" do
     for_each_scenario do
       test "database should be created" do
-        db_path = TenantedApplicationRecord.with_tenant("foo") do
-          User.first
+        db_path = TenantedApplicationRecord.create_tenant("foo") do
           User.connection_db_config.database
         end
 
@@ -389,17 +407,19 @@ describe ActiveRecord::Tenanted::Tenant do
       test "database should be migrated" do
         ActiveRecord::Migration.verbose = true
 
-        TenantedApplicationRecord.with_tenant("foo") do
-          assert_output(/migrating.*create_table/m, nil) do
-            User.first
-          end
-          assert_equal(20250203191115, User.connection_pool.migration_context.current_version)
+        assert_output(/migrating.*create_table/m, nil) do
+          TenantedApplicationRecord.create_tenant("foo")
         end
+
+        version = TenantedApplicationRecord.with_tenant("foo") do
+          User.connection_pool.migration_context.current_version
+        end
+
+        assert_equal(20250203191115, version)
       end
 
       test "database schema file should be created" do
-        schema_path = TenantedApplicationRecord.with_tenant("foo") do
-          User.first
+        schema_path = TenantedApplicationRecord.create_tenant("foo") do
           ActiveRecord::Tasks::DatabaseTasks.schema_dump_path(User.connection_db_config)
         end
 
@@ -407,8 +427,7 @@ describe ActiveRecord::Tenanted::Tenant do
       end
 
       test "database schema cache file should be created" do
-        schema_cache_path = TenantedApplicationRecord.with_tenant("foo") do
-          User.first
+        schema_cache_path = TenantedApplicationRecord.create_tenant("foo") do
           ActiveRecord::Tasks::DatabaseTasks.cache_dump_filename(User.connection_db_config)
         end
 
@@ -421,12 +440,15 @@ describe ActiveRecord::Tenanted::Tenant do
         test "database should load the schema dump file" do
           ActiveRecord::Migration.verbose = true
 
-          TenantedApplicationRecord.with_tenant("bar") do
-            assert_silent do
-              User.first
-            end
-            assert_equal(20250203191115, User.connection_pool.migration_context.current_version)
+          assert_silent do
+            TenantedApplicationRecord.create_tenant("bar")
           end
+
+          version = TenantedApplicationRecord.with_tenant("bar") do
+            User.connection_pool.migration_context.current_version
+          end
+
+          assert_equal(20250203191115, version)
         end
 
         describe "and there are pending migrations" do
@@ -435,14 +457,17 @@ describe ActiveRecord::Tenanted::Tenant do
           test "it runs the migrations after loading the schema" do
             ActiveRecord::Migration.verbose = true
 
-            TenantedApplicationRecord.with_tenant("foo") do
-              assert_output(/migrating.*add_column/m, nil) do
-                User.count
-              end
-              assert_equal(20250213005959, User.connection_pool.migration_context.current_version)
-              assert_same_elements([ "id", "email", "created_at", "updated_at", "age" ],
-                                   User.new.attributes.keys)
+            assert_output(/migrating.*add_column/m, nil) do
+              TenantedApplicationRecord.create_tenant("foo")
             end
+
+            version = TenantedApplicationRecord.with_tenant("foo") do
+              User.connection_pool.migration_context.current_version
+            end
+
+            assert_equal(20250213005959, version)
+            assert_same_elements([ "id", "email", "created_at", "updated_at", "age" ],
+                                 User.new.attributes.keys)
           end
         end
       end
@@ -462,14 +487,17 @@ describe ActiveRecord::Tenanted::Tenant do
           test "remaining migrations are applied" do
             ActiveRecord::Migration.verbose = true
 
-            TenantedApplicationRecord.with_tenant("foo") do
-              assert_output(/migrating.*add_column/m, nil) do
-                User.count
-              end
-              assert_equal(20250213005959, User.connection_pool.migration_context.current_version)
-              assert_same_elements([ "id", "email", "created_at", "updated_at", "age" ],
-                                   User.new.attributes.keys)
+            assert_output(/migrating.*add_column/m, nil) do
+              TenantedApplicationRecord.create_tenant("foo")
             end
+
+            version = TenantedApplicationRecord.with_tenant("foo") do
+              User.connection_pool.migration_context.current_version
+            end
+
+            assert_equal(20250213005959, version)
+            assert_same_elements([ "id", "email", "created_at", "updated_at", "age" ],
+                                 User.new.attributes.keys)
           end
         end
       end
@@ -479,11 +507,14 @@ describe ActiveRecord::Tenanted::Tenant do
   describe "logging" do
     for_each_scenario do
       test "database logs should emit the tenant name" do
+        TenantedApplicationRecord.create_tenant("foo")
+
         log = capture_log do
           TenantedApplicationRecord.with_tenant("foo") do
             User.count
           end
         end
+
         assert_includes(log.string, "[tenant=foo]")
       end
     end
@@ -508,6 +539,8 @@ describe ActiveRecord::Tenanted::Tenant do
 
           describe "tenanted" do
             test "database logs should emit the tenant name" do
+              TenantedApplicationRecord.create_tenant("foo")
+
               log = capture_rails_log do
                 TenantedApplicationRecord.with_tenant("foo") do
                   Rails.logger.info("hello")
@@ -523,6 +556,8 @@ describe ActiveRecord::Tenanted::Tenant do
           setup { Rails.application.config.active_record_tenanted.log_tenant_tag = false }
 
           test "database logs should not emit the tenant name" do
+            TenantedApplicationRecord.create_tenant("foo")
+
             log = capture_rails_log do
               TenantedApplicationRecord.with_tenant("foo") do
                 Rails.logger.info("hello")
@@ -548,6 +583,8 @@ describe ActiveRecord::Tenanted::Tenant do
       end
 
       describe "created in tenanted context" do
+        setup { TenantedApplicationRecord.create_tenant("foo") }
+
         test "returns the tenant name even outside of tenant context" do
           ids = []
 
@@ -592,7 +629,7 @@ describe ActiveRecord::Tenanted::Tenant do
 
       describe "created in tenanted context" do
         test "includes the tenant name" do
-          user = TenantedApplicationRecord.with_tenant("foo") do
+          user = TenantedApplicationRecord.create_tenant("foo") do
             User.create!(email: "user1@example.org")
           end
 

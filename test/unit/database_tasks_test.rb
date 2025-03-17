@@ -13,10 +13,15 @@ describe ActiveRecord::Tenanted::DatabaseTasks do
 
   describe ".migrate_tenant" do
     for_each_scenario do
+      setup do
+        # TODO: This should really be a create_database method on the sqlite3 adapter, see the notes
+        #       in Tenant.create_tenant.
+        FileUtils.mkdir_p(File.dirname(tenanted_config.database_path_for("foo")))
+        FileUtils.touch(tenanted_config.database_path_for("foo"))
+      end
+
       test "database should be created" do
         db_path = tenanted_config.database_path_for("foo")
-
-        assert_not(File.exist?(db_path))
 
         ActiveRecord::Tenanted::DatabaseTasks.migrate_tenant("foo")
 
@@ -118,7 +123,7 @@ describe ActiveRecord::Tenanted::DatabaseTasks do
 
       setup do
         tenants.each do |tenant|
-          TenantedApplicationRecord.with_tenant(tenant) { User.count }
+          TenantedApplicationRecord.create_tenant(tenant)
         end
 
         with_new_migration_file
