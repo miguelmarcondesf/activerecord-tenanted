@@ -541,9 +541,6 @@ describe ActiveRecord::Tenanted::Tenant do
 
     with_scenario(:primary_named_db, :primary_record) do
       describe "config log_tenant_tag" do
-        setup { @was_log = Rails.application.config.active_record_tenanted.log_tenant_tag }
-        teardown { Rails.application.config.active_record_tenanted.log_tenant_tag = @was_log }
-
         describe "true" do
           setup { Rails.application.config.active_record_tenanted.log_tenant_tag = true }
 
