@@ -70,10 +70,12 @@ Documentation outline:
     - `active_record.check_schema_cache_dump_version = false`
   - explain gem railtie config options
     - `connection_class`
+    - `tenant_resolver`
     - `tenanted_rails_records`
+    - `log_tenant_tag`
   - demonstrate how to configure an app for subdomain tenants
     - app.config.hosts
-    - example TenantSelector proc
+    - example TenantSelector
 
 - operations
   - how to run database tasks
@@ -155,10 +157,7 @@ TODO:
 
 - installation
   - [ ] install a variation on the default database.yml with primary tenanted and non-primary "global" untenanted
-  - initializer
-    - [ ] install `TenantSelector` and configure it with a proc
-    - [ ] commented line like `self.connection_class = "ApplicationRecord"`
-    - [ ] commented line like `self.tenanted_rails_records = true`
+  - [ ] initializer: commented lines with default values and some docstrings
 
 - [ ] think about race conditions
   - maybe use a file lock to figure it out?
@@ -301,6 +300,7 @@ TODO:
   - can we make this easier to use by implying the current tenant?
 - [ ] add tenant to the action_cable logger tags
 - [ ] add integration testing around executing a command (similar to Job testing)
+- [ ] reconsider the current API using `tenanted_connection` if we can figure out how to reliably wrap `#connect`
 
 
 ### Turbo Rails

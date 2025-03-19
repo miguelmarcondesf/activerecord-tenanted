@@ -144,6 +144,19 @@ module ActiveRecord
         end
       end
 
+      # save and restore the gem's configuration options, so we can safely muck with them in tests
+      setup do
+        @old_connection_class       = Rails.application.config.active_record_tenanted.connection_class
+        @old_tenanted_rails_records = Rails.application.config.active_record_tenanted.tenanted_rails_records
+        @old_log_tenant_tag         = Rails.application.config.active_record_tenanted.log_tenant_tag
+      end
+
+      teardown do
+        Rails.application.config.active_record_tenanted.connection_class        = @old_connection_class
+        Rails.application.config.active_record_tenanted.tenanted_rails_records  = @old_tenanted_rails_records
+        Rails.application.config.active_record_tenanted.log_tenant_tag          = @old_log_tenant_tag
+      end
+
       def all_configs
         ActiveRecord::Base.configurations.configs_for(include_hidden: true)
       end

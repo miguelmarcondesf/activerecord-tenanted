@@ -2,11 +2,9 @@
 
 module ActiveRecord
   module Tenanted
-    # I'm not happy with this class's design. When I circle back, I want to:
-    #
-    # - Extract code that's in TenantSelector and this class (request.subdomain)
-    # - I don't love the `tenanted_connection` method, which only exists as a compromise so I can
-    #   reliably wrap a method that may be defined after `tenanted` is called
+    # I'm not happy with this class's design, specifically the `tenanted_connection` method, which
+    # only exists as a compromise to allos the gem to reliably wrap the `connect` method which may
+    # not be defined until after `tenanted` is called
     #
     module CableConnection # :nodoc:
       # this module is included into ActionCable::Connection::Base
@@ -62,7 +60,7 @@ module ActiveRecord
         end
 
         def connect
-          unless (self.current_tenant = request.subdomain) &&
+          unless (self.current_tenant = tenant_resolver.call(request)) &&
                  (klass = self.class.tenanted_with_class) &&
                  klass.tenant_exist?(current_tenant)
             reject_unauthorized_connection
@@ -74,13 +72,17 @@ module ActiveRecord
         end
 
         def set_current_tenant(&block)
-          self.current_tenant ||= request.subdomain
+          self.current_tenant ||= tenant_resolver.call(request)
 
           tenanted_with_class.with_tenant(current_tenant, &block)
         end
 
         def tenanted_with_class
           self.class.tenanted_with_class
+        end
+
+        def tenant_resolver
+          @tenanted_resolver ||= Rails.application.config.active_record_tenanted.tenant_resolver
         end
       end
     end
