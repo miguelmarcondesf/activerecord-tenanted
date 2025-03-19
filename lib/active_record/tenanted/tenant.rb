@@ -90,8 +90,11 @@ module ActiveRecord
           end
         end
 
-        def create_tenant(tenant_name, &block)
-          raise TenantExistsError if tenant_exist?(tenant_name)
+        def create_tenant(tenant_name, if_not_exists: false, &block)
+          if tenant_exist?(tenant_name)
+            return if if_not_exists
+            raise TenantExistsError
+          end
 
           # NOTE: This is obviously a sqlite-specific implementation.
           # TODO: Add a `create_database` method upstream in the sqlite3 adapter, and call it.

@@ -278,11 +278,19 @@ describe ActiveRecord::Tenanted::Tenant do
 
   describe ".create_tenant" do
     for_each_scenario do
-      test "raises an Exception if the tenant already exists" do
+      test "raises an exception if the tenant already exists" do
         TenantedApplicationRecord.create_tenant("foo")
 
         assert_raises(ActiveRecord::Tenanted::TenantExistsError) do
           TenantedApplicationRecord.create_tenant("foo")
+        end
+      end
+
+      test "does not raise an exception if the tenant already exists and if_not_exists is true" do
+        TenantedApplicationRecord.create_tenant("foo")
+
+        assert_nothing_raised do
+          TenantedApplicationRecord.create_tenant("foo", if_not_exists: true)
         end
       end
 
