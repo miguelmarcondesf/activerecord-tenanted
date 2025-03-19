@@ -79,7 +79,7 @@ Documentation outline:
 
 - operations
   - how to run database tasks
-    - db:migrate:tenant AR_TENANT, default value of AR_TENANT
+    - db:migrate:tenant ARTENANT, default value of ARTENANT
     - db:migrate:tenant:all
   - and what assumptions have changed
     - tenants will be migrated by `db:migrate` in dev/test but not production
@@ -149,7 +149,7 @@ TODO:
 
 - database tasks
   - [x] make `db:migrate:tenant:all` iterate over all the tenants on disk
-  - [x] make `db:migrate:tenant AR_TENANT=asdf` run migrations on just that tenant
+  - [x] make `db:migrate:tenant ARTENANT=asdf` run migrations on just that tenant
   - [x] make `db:migrate:tenant` run migrations on `development-tenant` in dev
   - [x] make `db:migrate` run `db:migrate:tenant` in dev
   - [x] make `db:prepare` run `db:migrate:tenant` in dev

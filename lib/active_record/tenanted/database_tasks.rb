@@ -14,7 +14,7 @@ module ActiveRecord
         end
       end
 
-      def migrate_tenant(tenant_name)
+      def migrate_tenant(tenant_name = set_current_tenant)
         raise ArgumentError, "Could not find a tenanted database" unless root_config = root_database_config
 
         tenant_config = root_config.new_tenant_config(tenant_name)
@@ -28,6 +28,31 @@ module ActiveRecord
           include_hidden: true
         )
         db_configs.detect { |c| c.configuration_hash[:tenanted] }
+      end
+
+      def default_tenant
+        "#{Rails.env}-tenant"
+      end
+
+      def get_current_tenant
+        tenant = ENV["ARTENANT"]
+
+        unless tenant.present?
+          raise ArgumentError, "ARTENANT must be set in a non-local environment" unless Rails.env.local?
+
+          tenant = default_tenant
+          warn "Defaulting current tenant to #{tenant.inspect}" if verbose?
+        end
+
+        tenant
+      end
+
+      def set_current_tenant
+        if ApplicationRecord.current_tenant.nil?
+          ApplicationRecord.current_tenant = get_current_tenant
+        else
+          ApplicationRecord.current_tenant
+        end
       end
 
       # This is essentially a simplified implementation of ActiveRecord::Tasks::DatabaseTasks.migrate
@@ -52,7 +77,7 @@ module ActiveRecord
           end
 
           # dump the schema and schema cache
-          if Rails.env.development? || ENV["AR_TENANT_SCHEMA_DUMP"].present?
+          if Rails.env.development? || ENV["ARTENANT_SCHEMA_DUMP"].present?
             if migrated
               ActiveRecord::Tasks::DatabaseTasks.dump_schema(config)
             end
