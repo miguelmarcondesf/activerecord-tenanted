@@ -149,12 +149,14 @@ module ActiveRecord
         @old_connection_class       = Rails.application.config.active_record_tenanted.connection_class
         @old_tenanted_rails_records = Rails.application.config.active_record_tenanted.tenanted_rails_records
         @old_log_tenant_tag         = Rails.application.config.active_record_tenanted.log_tenant_tag
+        @old_tenant_resolver        = Rails.application.config.active_record_tenanted.tenant_resolver
       end
 
       teardown do
         Rails.application.config.active_record_tenanted.connection_class        = @old_connection_class
         Rails.application.config.active_record_tenanted.tenanted_rails_records  = @old_tenanted_rails_records
         Rails.application.config.active_record_tenanted.log_tenant_tag          = @old_log_tenant_tag
+        Rails.application.config.active_record_tenanted.tenant_resolver         = @old_tenant_resolver
       end
 
       def all_configs

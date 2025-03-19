@@ -36,4 +36,22 @@ class ApplicationCable::ConnectionTest < ActionCable::Connection::TestCase
     assert_equal("#{tenant}.example.com", connection.request.host)
     assert_equal(tenant, connection.current_tenant)
   end
+
+  test "overridden host and tenant and tenant resolver" do
+    domain = "action-cable-test-case-host"
+    tenant = "asdf" + domain
+    ApplicationRecord.create_tenant(tenant)
+
+    @old_tenant_resolver = Rails.application.config.active_record_tenanted.tenant_resolver
+    Rails.application.config.active_record_tenanted.tenant_resolver = ->(request) { "asdf" + request.subdomain }
+
+    ApplicationRecord.without_tenant do
+      connect env: { "HTTP_HOST" => "#{domain}.example.com" }
+    end
+
+    assert_equal("#{domain}.example.com", connection.request.host)
+    assert_equal(tenant, connection.current_tenant)
+  ensure
+    Rails.application.config.active_record_tenanted.tenant_resolver = @old_tenant_resolver
+  end
 end
