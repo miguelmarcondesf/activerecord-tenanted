@@ -113,6 +113,12 @@ module ActiveRecord
         ActiveStorage::Service::DiskService.prepend ActiveRecord::Tenanted::StorageService
       end
 
+      initializer "active_record-tenanted.active_record_connection_adapter" do
+        ActiveSupport.on_load(:active_record) do
+          ActiveRecord::ConnectionAdapters::AbstractAdapter.prepend ActiveRecord::Tenanted::ConnectionAdapter
+        end
+      end
+
       config.after_initialize do
         ActiveSupport.on_load(:action_mailbox_record) do
           if Rails.application.config.active_record_tenanted.connection_class.present? &&

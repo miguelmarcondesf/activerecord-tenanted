@@ -55,20 +55,8 @@ module ActiveRecord
           configuration_hash.fetch(:tenant)
         end
 
-        def new_connection # :nodoc:
-          super.tap do |conn|
-            # Let's preserve the tenant name as a string literal in the log method for all tenanted
-            # connections at construction time, so that regardless of whether we're in a proper
-            # tenanted context we are able to log the tenant name when any tenanted connection is
-            # used.
-            #
-            # TODO: this could be upstreamed as a shard-related feature unrelated to tenanting.
-            conn.class_eval <<~CODE, __FILE__, __LINE__ + 1
-              private def log(sql, name = "SQL", *args, **kwargs, &block)
-                super(sql, "\#{name} [tenant=#{tenant}]", *args, **kwargs, &block)
-              end
-            CODE
-          end
+        def new_connection
+          super.tap { |conn| conn.tenant = tenant }
         end
 
         def tenanted_config_name
