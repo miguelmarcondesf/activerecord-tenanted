@@ -2,7 +2,7 @@
 
 # Configure Rails Environment
 ENV["RAILS_ENV"] = "test"
-ENV["AR_TENANT_SCHEMA_DUMP"] = "t" # we don't normally dump schemas outside of development
+ENV["ARTENANT_SCHEMA_DUMP"] = "t" # we don't normally dump schemas outside of development
 ENV["VERBOSE"] = "false" # suppress database task output
 
 require "rails"
