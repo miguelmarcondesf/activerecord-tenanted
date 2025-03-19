@@ -300,6 +300,7 @@ TODO:
   - can we make this easier to use by implying the current tenant?
 - [ ] add tenant to the action_cable logger tags
 - [ ] add integration testing around executing a command (similar to Job testing)
+- [ ] reconsider the current API using `tenanted_connection` if we can figure out how to reliably wrap `#connect`
 
 
 ### Turbo Rails
