@@ -3,6 +3,11 @@
 namespace :db do
   desc "Migrate the database for tenant ARTENANT"
   task "migrate:tenant" => "load_config" do
+    unless ActiveRecord::Tenanted.connection_class
+      warn "ActiveRecord::Tenanted integration is not configured via connection_class"
+      next
+    end
+
     unless ActiveRecord::Tenanted::DatabaseTasks.root_database_config
       warn "WARNING: No tenanted database found, skipping tenanted migration"
     else
@@ -19,6 +24,11 @@ namespace :db do
 
   desc "Migrate the database for all existing tenants"
   task "migrate:tenant:all" => "load_config" do
+    unless ActiveRecord::Tenanted.connection_class
+      warn "ActiveRecord::Tenanted integration is not configured via connection_class"
+      next
+    end
+
     verbose_was = ActiveRecord::Migration.verbose
     ActiveRecord::Migration.verbose = ActiveRecord::Tenanted::DatabaseTasks.verbose?
 
@@ -29,6 +39,11 @@ namespace :db do
 
   desc "Set the current tenant to ARTENANT if present, else the environment default"
   task "tenant" => "load_config" do
+    unless ActiveRecord::Tenanted.connection_class
+      warn "ActiveRecord::Tenanted integration is not configured via connection_class"
+      next
+    end
+
     ActiveRecord::Tenanted::DatabaseTasks.set_current_tenant
   end
 end

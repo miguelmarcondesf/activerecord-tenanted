@@ -32,6 +32,9 @@ module ActiveRecord
     # Raised when implicit creation is disabled and a tenant is referenced that does not exist
     class TenantDoesNotExistError < Error; end
 
+    # Raised when the Rails integration is being invoked but has not been configured.
+    class IntegrationNotConfiguredError < Error; end
+
     def self.connection_class
       # TODO: cache this / speed this up
       Rails.application.config.active_record_tenanted.connection_class&.constantize

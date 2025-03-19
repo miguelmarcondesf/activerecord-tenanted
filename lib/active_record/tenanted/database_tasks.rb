@@ -48,10 +48,15 @@ module ActiveRecord
       end
 
       def set_current_tenant
-        if ApplicationRecord.current_tenant.nil?
-          ApplicationRecord.current_tenant = get_current_tenant
+        unless (connection_class = ActiveRecord::Tenanted.connection_class)
+          raise ActiveRecord::Tenanted::IntegrationNotConfiguredError,
+                "ActiveRecord::Tenanted integration is not configured via connection_class"
+        end
+
+        if connection_class.current_tenant.nil?
+          connection_class.current_tenant = get_current_tenant
         else
-          ApplicationRecord.current_tenant
+          connection_class.current_tenant
         end
       end
 
