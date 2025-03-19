@@ -50,7 +50,7 @@ describe ActiveRecord::Tenanted::TenantSelector do
       let(:resolver) { ->(request) { "foo" } }
 
       setup do
-        TenantedApplicationRecord.with_tenant("foo") { User.count } # create the tenant
+        TenantedApplicationRecord.create_tenant("foo")
       end
 
       test "execute while tenanted" do

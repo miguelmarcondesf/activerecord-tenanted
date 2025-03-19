@@ -26,7 +26,7 @@ describe ActiveRecord::Tenanted::Job do
 
         test "in tenanted context" do
           ActiveRecord::Tenanted.stub(:connection_class, TenantedApplicationRecord) do
-            TenantedApplicationRecord.with_tenant("foo") do
+            TenantedApplicationRecord.create_tenant("foo") do
               assert_equal("foo", job_class.new.tenant)
             end
           end
@@ -45,7 +45,7 @@ describe ActiveRecord::Tenanted::Job do
         test "in tenanted context" do
           assert_nil(ActiveRecord::Tenanted.connection_class)
 
-          TenantedApplicationRecord.with_tenant("foo") do
+          TenantedApplicationRecord.create_tenant("foo") do
             assert_nil(job_class.new.tenant)
           end
         end
@@ -67,7 +67,7 @@ describe ActiveRecord::Tenanted::Job do
 
         test "in tenanted context" do
           ActiveRecord::Tenanted.stub(:connection_class, TenantedApplicationRecord) do
-            job_data = TenantedApplicationRecord.with_tenant("foo") do
+            job_data = TenantedApplicationRecord.create_tenant("foo") do
               job_class.new.serialize
             end
             job_later = job_class.new.tap { |j| j.deserialize(job_data) }
@@ -92,7 +92,7 @@ describe ActiveRecord::Tenanted::Job do
         test "in tenanted context" do
           assert_nil(ActiveRecord::Tenanted.connection_class)
 
-          job_data = TenantedApplicationRecord.with_tenant("foo") do
+          job_data = TenantedApplicationRecord.create_tenant("foo") do
             job_class.new.serialize
           end
           job_later = job_class.new.tap { |j| j.deserialize(job_data) }
@@ -118,7 +118,7 @@ describe ActiveRecord::Tenanted::Job do
 
         test "in tenanted context" do
           ActiveRecord::Tenanted.stub(:connection_class, TenantedApplicationRecord) do
-            job = TenantedApplicationRecord.with_tenant("foo") do
+            job = TenantedApplicationRecord.create_tenant("foo") do
               job_class.new
             end
 
@@ -145,7 +145,7 @@ describe ActiveRecord::Tenanted::Job do
         test "in tenanted context" do
           assert_nil(ActiveRecord::Tenanted.connection_class)
 
-          job = TenantedApplicationRecord.with_tenant("foo") do
+          job = TenantedApplicationRecord.create_tenant("foo") do
             job_class.new
           end
 

@@ -29,6 +29,9 @@ module ActiveRecord
     # Raised when the application's tenant configuration is invalid.
     class TenantConfigurationError < Error; end
 
+    # Raised when implicit creation is disabled and a tenant is referenced that does not exist
+    class TenantDoesNotExistError < Error; end
+
     def self.connection_class
       # TODO: cache this / speed this up
       Rails.application.config.active_record_tenanted.connection_class&.constantize
