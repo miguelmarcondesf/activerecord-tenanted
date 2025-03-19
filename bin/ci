@@ -1,0 +1,12 @@
+#!/usr/bin/env ruby
+
+require "bundler/setup"
+require "active_support/continuous_integration"
+
+ActiveSupport::ContinuousIntegration.run do
+  step "Style", "bin/rubocop"
+  step "Tests: Unit", "bin/test-unit"
+  Bundler.with_original_env do
+    step "Tests: Integration", "bin/test-integration"
+  end
+end
