@@ -29,19 +29,15 @@ COLOR_FG_BLUE = "\e[0;34m"
 COLOR_RESET = "\e[0m"
 
 def run_cmd(scenario, cmd, verbose: false)
-  print "#{COLOR_FG_BLUE}#{scenario}#{COLOR_RESET} > #{cmd} "
+  message = "#{COLOR_FG_BLUE}#{scenario}#{COLOR_RESET} > #{cmd}"
+  print message + (PARALLEL ? "\n" : "")
 
   output = status = nil
   elapsed = ActiveSupport::Benchmark.realtime do
     output, status = Open3.capture2e(cmd)
   end
 
-  if PARALLEL
-    puts
-  else
-    puts "(#{elapsed.round(2)}s)"
-  end
-
+  puts " (#{elapsed.round(2)}s)" if !PARALLEL
   puts output if verbose || !status.success? || ENV["CI"]
 
   abort("ERROR: Command failed") unless status.success?

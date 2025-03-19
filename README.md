@@ -56,6 +56,13 @@ For detailed configuration and usage, see [GUIDE.md](./GUIDE.md).
 
 Bug reports and pull requests are welcome on GitHub at https://github.com/basecamp/active_record-tenanted. This project is intended to be a safe, welcoming space for collaboration, and contributors are expected to adhere to the [code of conduct](https://github.com/basecamp/active_record-tenanted/blob/main/CODE_OF_CONDUCT.md).
 
+The tests are split between:
+
+- fast unit tests run by `bin/test-unit`
+- slower integration tests run by `bin/test-integration`
+
+For a full test feedback loop, run `bin/ci`.
+
 
 ## License
 
