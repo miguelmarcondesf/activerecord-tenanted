@@ -106,6 +106,31 @@ describe ActiveRecord::Tenanted::Tenant do
         end
       end
     end
+
+    for_each_scenario(except: { primary_db: [ :subtenant_record ] }) do
+      describe "concrete classes" do
+        test "concrete classes can call current_tenant=" do
+          TenantedApplicationRecord.current_tenant = "foo"
+          assert_equal("foo", TenantedApplicationRecord.current_tenant)
+          assert_equal("foo", User.current_tenant)
+
+          User.current_tenant = "bar"
+          assert_equal("bar", TenantedApplicationRecord.current_tenant)
+          assert_equal("bar", User.current_tenant)
+        end
+
+        test ".current_tenant= sets tenant context" do
+          TenantedApplicationRecord.create_tenant("foo")
+
+          assert_nil(User.current_tenant)
+
+          User.current_tenant = "foo"
+
+          assert_equal("foo", User.current_tenant)
+          assert_nothing_raised { User.first }
+        end
+      end
+    end
   end
 
   describe ".with_tenant" do
@@ -201,28 +226,6 @@ describe ActiveRecord::Tenanted::Tenant do
         assert(invoked)
       end
 
-      test "using the record outside of the block raises NoTenantError" do
-        user = TenantedApplicationRecord.with_tenant("foo") do
-          User.create!(email: "user1@example.org")
-        end
-
-        assert_raises(ActiveRecord::Tenanted::NoTenantError) do
-          user.update!(email: "user1+foo@example.org")
-        end
-      end
-
-      test "using the record in another block raises WrongTenantError" do
-        user = TenantedApplicationRecord.with_tenant("foo") do
-          User.create!(email: "user1@example.org")
-        end
-
-        assert_raises(ActiveRecord::Tenanted::WrongTenantError) do
-          TenantedApplicationRecord.with_tenant("bar") do
-            user.update!(email: "user1+foo@example.org")
-          end
-        end
-      end
-
       test "attempting to access a tenant that does not exist raises TenantDoesNotExistError" do
         assert_not(TenantedApplicationRecord.tenant_exist?("baz"))
 
@@ -232,6 +235,117 @@ describe ActiveRecord::Tenanted::Tenant do
 
         assert_raises(ActiveRecord::Tenanted::TenantDoesNotExistError) do
           TenantedApplicationRecord.with_tenant("baz") { User.count }
+        end
+      end
+    end
+
+    for_each_scenario(except: { primary_db: [ :subtenant_record ] }) do
+      setup do
+        TenantedApplicationRecord.create_tenant("foo")
+        TenantedApplicationRecord.create_tenant("bar")
+      end
+
+      describe "concrete classes" do
+        test "current tenant is set in the block context " do
+          User.with_tenant(:foo) do
+            User.first
+            assert_equal("foo", User.current_tenant)
+          end
+
+          User.with_tenant("foo") do
+            User.first
+            assert_equal("foo", User.current_tenant)
+          end
+        end
+
+        test "superclasses see the same tenant" do
+          assert_nil(User.current_tenant)
+
+          User.with_tenant("foo") do
+            assert_equal("foo", TenantedApplicationRecord.current_tenant)
+          end
+        end
+
+        test "raise if switching tenants in a with_tenant block" do
+          User.with_tenant("foo") do
+            # an odd exception to raise here IMHO, but that's the current behavior of Rails
+            e = assert_raises(ArgumentError) do
+              TenantedApplicationRecord.with_tenant("bar") { }
+            end
+            assert_includes(e.message, "shard swapping is prohibited")
+          end
+        end
+
+        test "overrides the current tenant if set with current_tenant=" do
+          TenantedApplicationRecord.current_tenant = "foo"
+
+          User.with_tenant("bar") do
+            assert_equal("bar", TenantedApplicationRecord.current_tenant)
+          end
+
+          assert_equal("foo", TenantedApplicationRecord.current_tenant)
+        end
+
+        test "using a record outside of the block raises NoTenantError" do
+          user = User.with_tenant("bar") do
+            User.create!(email: "user1@example.org")
+          end
+
+          assert_raises(ActiveRecord::Tenanted::NoTenantError) do
+            user.update!(email: "user1+bar@example.org")
+          end
+        end
+
+        test "using a record in another block raises WrongTenantError" do
+          user = User.with_tenant("foo") do
+            User.create!(email: "user1@example.org")
+          end
+
+          User.with_tenant("bar") do
+            assert_raises(ActiveRecord::Tenanted::WrongTenantError) do
+              user.update!(email: "user1+bar@example.org")
+            end
+          end
+        end
+
+        test "may allow shard swapping if explicitly asked" do
+          invoked = nil
+
+          User.with_tenant("foo", prohibit_shard_swapping: false) do
+            assert_nothing_raised do
+              TenantedApplicationRecord.with_tenant("bar") { invoked = true }
+            end
+          end
+
+          assert(invoked)
+        end
+
+        test "allow nesting with_tenant calls when the tenant is the same" do
+          invoked = 0
+
+          assert_nothing_raised do
+            User.with_tenant("foo") do
+              User.with_tenant("foo") { invoked += 1 }
+            end
+
+            User.with_tenant("foo") do
+              TenantedApplicationRecord.with_tenant("foo") { invoked += 1 }
+            end
+          end
+
+          assert_equal(2, invoked)
+        end
+
+        test "attempting to access a tenant that does not exist raises TenantDoesNotExistError" do
+          assert_not(TenantedApplicationRecord.tenant_exist?("baz"))
+
+          assert_nothing_raised do
+            User.with_tenant("baz") { } # this is OK because it doesn't hit the database
+          end
+
+          assert_raises(ActiveRecord::Tenanted::TenantDoesNotExistError) do
+            User.with_tenant("baz") { User.count }
+          end
         end
       end
     end
