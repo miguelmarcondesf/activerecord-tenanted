@@ -123,8 +123,7 @@ TODO:
     - [ ] file creation shouldn't be implicit in the sqlite3 adapter, it should be explicit like in the other adapters
       - see working branch `flavorjones/rails/flavorjones-sqlite3-adapter-explicit-create` for a start here
   - [ ] UntenantedConnectionPool should peek at its stack and if it happened during schema cache load, output a friendly message to let people know what to do
-  - [ ] be explicit about what happens when a non-abstract class sets current_tenant, e.g. `User.current_tenant=`
-    - right now it seems like it silently fails
+  - [x] concrete class usage, e.g.: `User.current_tenant=` or `User.with_tenant { ... }`
   - [x] make it OK to call `while_tenanted("foo") { while_tenanted("foo") { ... } }`
   - [x] rename `while_tenanted` to `with_tenant`
   - [x] introduce `.with_each_tenant` which is sugar for `ApplicationRecord.tenants.each { ApplicationRecord.while_tenanted(_1) { } }`
