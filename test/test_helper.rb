@@ -51,10 +51,11 @@ module ActiveRecord
           super
         end
 
-        def for_each_scenario(s = all_scenarios, &block)
+        def for_each_scenario(s = all_scenarios, except: {}, &block)
           s.each do |db_scenario, model_scenarios|
             with_db_scenario(db_scenario) do
               model_scenarios.each do |model_scenario|
+                next if except[db_scenario.to_sym]&.include?(model_scenario.to_sym)
                 with_model_scenario(model_scenario, &block)
               end
             end
