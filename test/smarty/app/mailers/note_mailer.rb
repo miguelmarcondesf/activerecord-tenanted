@@ -1,0 +1,2 @@
+class NoteMailer < ApplicationMailer
+end
