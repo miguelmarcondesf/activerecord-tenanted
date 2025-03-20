@@ -37,7 +37,9 @@ module ActiveRecord
       def get_current_tenant
         tenant = ENV["ARTENANT"]
 
-        unless tenant.present?
+        if tenant.present?
+          warn "Setting current tenant to #{tenant.inspect}" if verbose?
+        else
           raise ArgumentError, "ARTENANT must be set in a non-local environment" unless Rails.env.local?
 
           tenant = default_tenant
