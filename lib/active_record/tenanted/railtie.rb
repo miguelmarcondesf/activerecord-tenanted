@@ -120,6 +120,11 @@ module ActiveRecord
       end
 
       config.after_initialize do
+        if defined?(Rails::Console)
+          require "rails/commands/console/irb_console"
+          Rails::Console::IRBConsole.prepend ActiveRecord::Tenanted::Console
+        end
+
         ActiveSupport.on_load(:action_mailbox_record) do
           if Rails.application.config.active_record_tenanted.connection_class.present? &&
              Rails.application.config.active_record_tenanted.tenanted_rails_records
