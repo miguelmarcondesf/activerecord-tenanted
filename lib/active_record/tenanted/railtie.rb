@@ -119,6 +119,12 @@ module ActiveRecord
         end
       end
 
+      initializer "active_record-tenanted.action_mailer" do
+        ActiveSupport.on_load(:action_mailer) do
+          prepend ActiveRecord::Tenanted::Mailer
+        end
+      end
+
       config.after_initialize do
         if defined?(Rails::Console)
           require "rails/commands/console/irb_console"

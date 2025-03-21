@@ -355,6 +355,23 @@ TODO:
   - waiting until we have a concrete need and some opinions
 
 
+## ActionMailer
+
+Documentation outline:
+
+- explain how to configure the action mailer default host if needed, with a "%{tenant}" format specifier.
+
+
+TODO:
+
+- [x] Interpolate the tenant into a host set in config.action_mailer.default_url_options
+- [ ] Do we need to do something similar for the asset host?
+  - I'm going to wait until someone needs it, because it's not trivial to hijack.
+- [ ] Do we need to do something similar for explicit host parameters to url helpers?
+  - I don't think so.
+  - I'm going to wait until someone needs it, because it's not trivial to hijack.
+
+
 ## ActionMailbox
 
 TODO:

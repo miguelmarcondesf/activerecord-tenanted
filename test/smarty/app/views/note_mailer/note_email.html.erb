@@ -1,0 +1,10 @@
+<h1><%= @note.title %></h1>
+
+<p>
+  <%= @note.body %>
+</p>
+
+<p id="default_url_options">
+  <!-- test tenantization of config.action_mailer.default_url_options.host -->
+  <%= link_to "View the latest version of this note here", note_url(@note) %>.
+</p>
