@@ -157,6 +157,8 @@ TODO:
 - installation
   - [ ] install a variation on the default database.yml with primary tenanted and non-primary "global" untenanted
   - [ ] initializer: commented lines with default values and some docstrings
+  - [ ] storage.yml defaults (with `%{tenant}`)
+  - [ ] mailer defaults (with `%{tenant}`)
 
 - [ ] think about race conditions
   - maybe use a file lock to figure it out?

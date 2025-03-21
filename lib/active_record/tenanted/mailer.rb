@@ -5,7 +5,7 @@ module ActiveRecord
     module Mailer
       def url_options(...)
         super.tap do |options|
-          if options.key?(:host)
+          if ActiveRecord::Tenanted.connection_class && options.key?(:host)
             options[:host] = sprintf(options[:host], tenant: ActiveRecord::Tenanted.connection_class.current_tenant)
           end
         end
