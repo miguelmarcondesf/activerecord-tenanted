@@ -22,6 +22,17 @@ module ActiveRecord
         migrate(tenant_config)
       end
 
+      def drop_all
+        raise ArgumentError, "Could not find a tenanted database" unless root_config = root_database_config
+
+        root_config.tenants.each do |tenant|
+          # NOTE: This is obviously a sqlite-specific implementation.
+          # TODO: Create a `drop_database` method upstream in the sqlite3 adapter, and call it.
+          #       Then this would delegate to the adapter and become adapter-agnostic.
+          FileUtils.rm(root_config.database_path_for(tenant))
+        end
+      end
+
       def root_database_config
         db_configs = ActiveRecord::Base.configurations.configs_for(
           env_name: ActiveRecord::Tasks::DatabaseTasks.env,

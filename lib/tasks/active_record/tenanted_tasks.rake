@@ -37,6 +37,25 @@ namespace :db do
     ActiveRecord::Migration.verbose = verbose_was
   end
 
+  desc "Drop and recreate all tenant databases from their schema for the current environment"
+  task "reset:tenant" => [ "db:drop:tenant", "db:migrate:tenant" ]
+
+  desc "Drop all tenanted databases for the current environment"
+  task "drop:tenant" => "load_config" do
+    unless ActiveRecord::Tenanted::DatabaseTasks.root_database_config
+      warn "WARNING: No tenanted database found, skipping tenanted reset"
+    else
+      begin
+        verbose_was = ActiveRecord::Migration.verbose
+        ActiveRecord::Migration.verbose = ActiveRecord::Tenanted::DatabaseTasks.verbose?
+
+        ActiveRecord::Tenanted::DatabaseTasks.drop_all
+      ensure
+        ActiveRecord::Migration.verbose = verbose_was
+      end
+    end
+  end
+
   desc "Set the current tenant to ARTENANT if present, else the environment default"
   task "tenant" => "load_config" do
     unless ActiveRecord::Tenanted.connection_class
@@ -51,5 +70,6 @@ end
 if Rails.env.local?
   task "db:migrate" => "db:migrate:tenant"
   task "db:prepare" => "db:migrate:tenant"
+  task "db:reset" => "db:reset:tenant"
   task "db:fixtures:load" => "db:tenant"
 end
