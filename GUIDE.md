@@ -152,7 +152,13 @@ TODO:
   - [x] make `db:migrate:tenant` run migrations on `development-tenant` in dev
   - [x] make `db:migrate` run `db:migrate:tenant` in dev
   - [x] make `db:prepare` run `db:migrate:tenant` in dev
-  - [ ] implement other database tasks like `db:create`, `db:seed`, `db:fixtures:load`, etc.
+  - [ ] implement other database tasks like
+    - [x] `db:create`
+    - [x] `db:fixtures:load`
+    - [ ] `db:seed`
+    - [ ] `db:purge` (see Known Issues below)
+    - ...
+  - [ ] make a decision on what output tasks should emit, and whether we need a separate verbose setting
 
 - installation
   - [ ] install a variation on the default database.yml with primary tenanted and non-primary "global" untenanted
@@ -188,6 +194,9 @@ TODO:
     - [x] integration test session verbs
   - [x] fixtures are loaded
   - [x] tenanted_rails_records
+
+- additional configuration
+  - [ ] default_tenant (development only)
 
 
 ### Tenanting in your application
@@ -381,7 +390,7 @@ TODO:
 - [ ] I need a use case here around mail routing before I tackle it
 
 
-## Known issues
+## Known Issues
 
 ### LOW
 
