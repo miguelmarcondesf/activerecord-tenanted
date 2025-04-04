@@ -72,4 +72,5 @@ if Rails.env.local?
   task "db:prepare" => "db:migrate:tenant"
   task "db:reset" => "db:reset:tenant"
   task "db:fixtures:load" => "db:tenant"
+  task "db:drop" => "db:drop:tenant"
 end
