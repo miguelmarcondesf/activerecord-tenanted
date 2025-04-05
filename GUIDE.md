@@ -140,6 +140,7 @@ TODO:
   - [x] `.tenant_exist?`
   - [x] `.while_tenanted`
   - [x] `.create_tenant`
+    - [ ] which should roll back gracefully if it fails for some reason
   - [x] `.destroy_tenant`
 
 - autoloading and configuration hooks
