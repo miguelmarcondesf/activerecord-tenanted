@@ -748,21 +748,34 @@ describe ActiveRecord::Tenanted::Tenant do
         setup do
           TenantedApplicationRecord.create_tenant("foo")
           TenantedApplicationRecord.create_tenant("bar")
+
+          @announcement = Announcement.create!(message: "hello")
+          TenantedApplicationRecord.with_tenant("foo") do
+            @user = User.create!(email: "foo@example.org")
+          end
         end
 
         test "is set correctly" do
           TenantedApplicationRecord.with_tenant("foo") do
-            @user = User.create!(email: "foo@example.org")
             @users = User.where(email: "foo@example.org").load_async
+            @announcements = Announcement.where("message like '%hel%'").load_async
+
             assert_predicate @users, :scheduled?
+            assert_predicate @announcements, :scheduled?
           end
 
           TenantedApplicationRecord.with_tenant("bar") do
             assert_predicate @users, :scheduled?
+            assert_predicate @announcements, :scheduled?
+
             @users.to_a
             assert_equal [ @user ], @users
             assert_equal "foo", @user.tenant
             assert_equal "foo", @users.first.tenant
+
+            @announcements.to_a
+            assert_equal [ @announcement ], @announcements
+            assert_nil @announcements.first.instance_variable_get(:@tenant)
           end
         end
       end
