@@ -743,6 +743,29 @@ describe ActiveRecord::Tenanted::Tenant do
           end
         end
       end
+
+      describe "created by #load_async in another context" do
+        setup do
+          TenantedApplicationRecord.create_tenant("foo")
+          TenantedApplicationRecord.create_tenant("bar")
+        end
+
+        test "is set correctly" do
+          TenantedApplicationRecord.with_tenant("foo") do
+            @user = User.create!(email: "foo@example.org")
+            @users = User.where(email: "foo@example.org").load_async
+            assert_predicate @users, :scheduled?
+          end
+
+          TenantedApplicationRecord.with_tenant("bar") do
+            assert_predicate @users, :scheduled?
+            @users.to_a
+            assert_equal [ @user ], @users
+            assert_equal "foo", @user.tenant
+            assert_equal "foo", @users.first.tenant
+          end
+        end
+      end
     end
   end
 
