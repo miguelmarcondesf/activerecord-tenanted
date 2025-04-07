@@ -63,6 +63,7 @@ module ActiveRecord
       initializer "active_record_tenanted.active_record_base" do
         ActiveSupport.on_load(:active_record) do
           prepend ActiveRecord::Tenanted::Base
+          ActiveRecord::Relation.prepend ActiveRecord::Tenanted::Relation
         end
       end
 
