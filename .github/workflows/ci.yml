@@ -42,5 +42,4 @@ jobs:
         with:
           ruby-version: "3.4"
           bundler-cache: true
-          working-directory: test/smarty
       - run: bin/test-integration
