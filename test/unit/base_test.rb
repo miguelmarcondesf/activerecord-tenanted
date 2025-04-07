@@ -62,12 +62,19 @@ describe ActiveRecord::Tenanted::Base do
         assert_not(User.connection_class)
       end
 
-      test "it implements #tenanted?" do
-        assert_predicate(TenantedApplicationRecord, :tenanted?)
-        assert_predicate(User, :tenanted?)
-
+      test "it implements .tenanted?" do
         assert_not(SharedApplicationRecord.tenanted?)
         assert_not(Announcement.tenanted?)
+
+        assert_predicate(TenantedApplicationRecord, :tenanted?)
+        assert_predicate(User, :tenanted?)
+      end
+
+      test "it implements #tenanted?" do
+        assert_not(Announcement.new.tenanted?)
+        TenantedApplicationRecord.create_tenant("foo") do
+          assert_predicate(User.new, :tenanted?)
+        end
       end
 
       test "sets the default shard to UNTENANTED_SENTINEL" do

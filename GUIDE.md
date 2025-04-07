@@ -112,6 +112,7 @@ TODO:
     - [x] mixin `Subtenant`
     - [x] should error if self is not an abstract base class or if target is not tenanted abstract base class
     - [x] `.tenanted?`
+    - [x] `#tenanted?`
   - [x] shared connection pools
   - [x] all the creation and schema migration complications (we have existing tests for this)
     - [x] read and write to the schema dump file
