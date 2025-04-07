@@ -8,14 +8,6 @@ updates:
   groups:
     development-dependencies:
       dependency-type: "development"
-- package-ecosystem: bundler
-  directory: "test/smarty"
-  schedule:
-    interval: daily
-  open-pull-requests-limit: 10
-  groups:
-    dependencies:
-      patterns: [ "*" ]
 - package-ecosystem: github-actions
   directory: "/"
   schedule:
