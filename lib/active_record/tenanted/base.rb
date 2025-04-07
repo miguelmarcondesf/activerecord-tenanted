@@ -54,6 +54,10 @@ module ActiveRecord
           false
         end
       end
+
+      def tenanted?
+        false
+      end
     end
   end
 end

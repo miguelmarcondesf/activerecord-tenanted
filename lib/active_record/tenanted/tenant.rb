@@ -196,6 +196,10 @@ module ActiveRecord
 
         prepend TenantCommon
       end
+
+      def tenanted?
+        true
+      end
     end
   end
 end
