@@ -18,3 +18,17 @@ group :rubocop do
   gem "rubocop-rails", "2.30.3", require: false
   gem "rubocop-rake", "0.7.1", require: false
 end
+
+# dependencies needed by the test/smarty integration tests
+gem "capybara"
+gem "importmap-rails"
+gem "jbuilder"
+gem "propshaft"
+gem "puma", ">= 5.0"
+gem "selenium-webdriver"
+gem "solid_cable"
+gem "solid_cache"
+gem "solid_queue"
+gem "stimulus-rails"
+gem "tailwindcss-rails"
+gem "turbo-rails"
