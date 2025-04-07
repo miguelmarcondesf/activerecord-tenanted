@@ -5,12 +5,16 @@ module ActiveRecord
     module Relation # :nodoc:
       def initialize(...)
         super
-        @tenant = @model.current_tenant
+        @tenant = @model.current_tenant if @model.tenanted?
       end
 
       def instantiate_records(...)
         super.tap do |records|
-          records.each { |record| record.instance_variable_set(:@tenant, @tenant) }
+          if @tenant
+            records.each do |record|
+              record.instance_variable_set(:@tenant, @tenant)
+            end
+          end
         end
       end
     end
