@@ -75,3 +75,4 @@ task "db:drop"    => "db:drop:tenant"
 
 # Ensure a default tenant is set for database tasks that may need it.
 task "db:fixtures:load" => "db:tenant"
+task "db:seed"          => "db:tenant"

@@ -158,7 +158,7 @@ TODO:
   - [ ] implement other database tasks like
     - [x] `db:create`
     - [x] `db:fixtures:load`
-    - [ ] `db:seed`
+    - [x] `db:seed`
     - [ ] `db:purge` (see Known Issues below)
     - [ ] `db:rollback` and `db:rollback STEP=3`
     - [ ] `db:migrate:redo` and `db:migrate:redo STEP=3`
