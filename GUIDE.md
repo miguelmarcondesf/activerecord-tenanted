@@ -165,7 +165,7 @@ TODO:
     - [ ] `db:migrate:down` and `db:migrate:down VERSION=20240428000000`
     - [ ] `db:migrate:up` and `db:migrate:up VERSION=20240428000000`
     - [ ] `db:migrate VERSION=20240428000000`
-  - [ ] make a decision on what output tasks should emit, and whether we need a separate verbose setting
+  - [x] make a decision on what output tasks should emit, and whether we need a separate verbose setting
 
 - installation
   - [ ] install a variation on the default database.yml with primary tenanted and non-primary "global" untenanted

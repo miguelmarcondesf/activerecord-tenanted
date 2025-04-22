@@ -29,7 +29,10 @@ module ActiveRecord
           # NOTE: This is obviously a sqlite-specific implementation.
           # TODO: Create a `drop_database` method upstream in the sqlite3 adapter, and call it.
           #       Then this would delegate to the adapter and become adapter-agnostic.
-          FileUtils.rm(root_config.database_path_for(tenant))
+          root_config.database_path_for(tenant).tap do |path|
+            FileUtils.rm(path)
+            $stdout.puts "Dropped database '#{path}'" if verbose?
+          end
         end
       end
 
@@ -49,12 +52,12 @@ module ActiveRecord
         tenant = ENV["ARTENANT"]
 
         if tenant.present?
-          warn "Setting current tenant to #{tenant.inspect}" if verbose?
+          $stdout.puts "Setting current tenant to #{tenant.inspect}" if verbose?
         else
           raise ArgumentError, "ARTENANT must be set in a non-local environment" unless Rails.env.local?
 
           tenant = default_tenant
-          warn "Defaulting current tenant to #{tenant.inspect}" if verbose?
+          $stdout.puts "Defaulting current tenant to #{tenant.inspect}" if verbose?
         end
 
         tenant
@@ -84,6 +87,7 @@ module ActiveRecord
             if schema_dump_path && File.exist?(schema_dump_path)
               ActiveRecord::Tasks::DatabaseTasks.load_schema(config)
             end
+            # TODO: emit a "Created database" message once we sort out implicit creation
           end
 
           # migrate
@@ -109,7 +113,7 @@ module ActiveRecord
       end
 
       def verbose?
-        ENV["VERBOSE"] ? ENV["VERBOSE"] != "false" : true
+        ActiveRecord::Tasks::DatabaseTasks.send(:verbose?)
       end
     end
   end
