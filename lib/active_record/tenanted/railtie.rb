@@ -46,12 +46,6 @@ module ActiveRecord
       # Defaults to false in development and test environments, and true in all other environments.
       config.active_record_tenanted.log_tenant_tag = !Rails.env.local?
 
-      config.before_configuration do
-        ActiveSupport.on_load(:active_record) do
-          ActiveRecord::Tenanted::DatabaseConfigurations.register_db_config_handler
-        end
-      end
-
       config.before_initialize do
         Rails.application.configure do
           if config.active_record_tenanted.connection_class.present?
