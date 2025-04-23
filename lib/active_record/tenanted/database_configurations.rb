@@ -95,3 +95,10 @@ module ActiveRecord
     end
   end
 end
+
+# Do this here instead of the railtie so we register the handlers before Rails's rake tasks get
+# loaded. If the handler is not present, then the RootConfigs will not return false from
+# `#database_tasks?` and the database tasks will get created anyway.
+#
+# TODO: This can be moved back into the railtie if https://github.com/rails/rails/pull/54959 is merged.
+ActiveRecord::Tenanted::DatabaseConfigurations.register_db_config_handler

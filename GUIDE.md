@@ -154,13 +154,18 @@ TODO:
   - [x] make `db:migrate:tenant` run migrations on `development-tenant` in dev
   - [x] make `db:migrate` run `db:migrate:tenant` in dev
   - [x] make `db:prepare` run `db:migrate:tenant` in dev
+  - [ ] use the database name instead of "tenant", e.g. "db:migrate:primary"
   - [ ] implement other database tasks like
     - [x] `db:create`
     - [x] `db:fixtures:load`
-    - [ ] `db:seed`
+    - [x] `db:seed`
     - [ ] `db:purge` (see Known Issues below)
-    - ...
-  - [ ] make a decision on what output tasks should emit, and whether we need a separate verbose setting
+    - [ ] `db:rollback` and `db:rollback STEP=3`
+    - [ ] `db:migrate:redo` and `db:migrate:redo STEP=3`
+    - [ ] `db:migrate:down` and `db:migrate:down VERSION=20240428000000`
+    - [ ] `db:migrate:up` and `db:migrate:up VERSION=20240428000000`
+    - [ ] `db:migrate VERSION=20240428000000`
+  - [x] make a decision on what output tasks should emit, and whether we need a separate verbose setting
 
 - installation
   - [ ] install a variation on the default database.yml with primary tenanted and non-primary "global" untenanted

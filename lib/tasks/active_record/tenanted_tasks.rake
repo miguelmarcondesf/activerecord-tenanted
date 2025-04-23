@@ -67,10 +67,12 @@ namespace :db do
   end
 end
 
-if Rails.env.local?
-  task "db:migrate" => "db:migrate:tenant"
-  task "db:prepare" => "db:migrate:tenant"
-  task "db:reset" => "db:reset:tenant"
-  task "db:fixtures:load" => "db:tenant"
-  task "db:drop" => "db:drop:tenant"
-end
+# Decorate database tasks with the tenanted version.
+task "db:migrate" => "db:migrate:tenant"
+task "db:prepare" => "db:migrate:tenant"
+task "db:reset"   => "db:reset:tenant"
+task "db:drop"    => "db:drop:tenant"
+
+# Ensure a default tenant is set for database tasks that may need it.
+task "db:fixtures:load" => "db:tenant"
+task "db:seed"          => "db:tenant"
