@@ -123,7 +123,8 @@ module ActiveRecord
       config.after_initialize do
         if defined?(Rails::Console)
           require "rails/commands/console/irb_console"
-          Rails::Console::IRBConsole.prepend ActiveRecord::Tenanted::Console
+          Rails::Console::IRBConsole.prepend ActiveRecord::Tenanted::Console::IRBConsole
+          Rails::Console::ReloadHelper.prepend ActiveRecord::Tenanted::Console::ReloadHelper
         end
 
         ActiveSupport.on_load(:action_mailbox_record) do
