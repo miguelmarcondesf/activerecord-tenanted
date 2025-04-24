@@ -77,14 +77,10 @@ Documentation outline:
     - app.config.hosts
     - example TenantSelector
 
-- operations
-  - how to run database tasks
-    - db:migrate:tenant ARTENANT, default value of ARTENANT
-    - db:migrate:tenant:all
-  - and what assumptions have changed
-    - tenants will be migrated by `db:migrate` in dev/test but not production
-    - tenants will be migrated by `db:prepare` in dev/test but not production
-    - other database tasks do not work yet (db:create, db:seed, db:drop)
+- migrations
+  - create_tenant migrates the new database
+  - but otherwise, creation of the connection pool for a tenant that has pending migrations will raise a PendingMigrationError
+  - `db:migrate` will migrate all tenants
 
 TODO:
 

@@ -104,7 +104,8 @@ module ActiveRecord
           FileUtils.touch(database_path)
 
           with_tenant(tenant_name) do
-            connection_pool
+            connection_pool(schema_version_check: false)
+            ActiveRecord::Tenanted::DatabaseTasks.migrate_tenant(tenant_name)
             yield if block_given?
           end
         end
@@ -113,6 +114,7 @@ module ActiveRecord
           return unless tenant_exist?(tenant_name)
 
           with_tenant(tenant_name) do
+            connection_pool(schema_version_check: false)
             lease_connection.send(:log, "/* destroying tenant database */", "DESTROY [tenant=#{tenant_name}]")
           ensure
             remove_connection
@@ -137,12 +139,12 @@ module ActiveRecord
           with_tenant(ActiveRecord::Tenanted::Tenant::UNTENANTED_SENTINEL, prohibit_shard_swapping: false, &block)
         end
 
-        def connection_pool # :nodoc:
+        def connection_pool(schema_version_check: true) # :nodoc:
           if current_tenant
             pool = retrieve_connection_pool(strict: false)
 
             if pool.nil?
-              _create_tenanted_pool
+              _create_tenanted_pool(schema_version_check: schema_version_check)
               pool = retrieve_connection_pool(strict: true)
             end
 
@@ -160,7 +162,7 @@ module ActiveRecord
           @tenanted_config_name ||= (superclass.respond_to?(:tenanted_config_name) ? superclass.tenanted_config_name : nil)
         end
 
-        def _create_tenanted_pool # :nodoc:
+        def _create_tenanted_pool(schema_version_check: true) # :nodoc:
           # ensure all classes use the same connection pool
           return superclass._create_tenanted_pool unless connection_class?
 
@@ -170,9 +172,14 @@ module ActiveRecord
           end
 
           config = tenanted_root_config.new_tenant_config(tenant)
+          pool = establish_connection(config)
 
-          establish_connection(config)
-          ActiveRecord::Tenanted::DatabaseTasks.migrate(config)
+          if schema_version_check
+            pending_migrations = pool.migration_context.open.pending_migrations
+            raise ActiveRecord::PendingMigrationError.new(pending_migrations: pending_migrations) if pending_migrations.any?
+          end
+
+          pool
         end
 
         private def retrieve_connection_pool(strict:)

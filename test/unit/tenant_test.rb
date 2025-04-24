@@ -614,6 +614,29 @@ describe ActiveRecord::Tenanted::Tenant do
           assert_same(TenantedApplicationRecord.connection_pool, User.connection_pool)
         end
       end
+
+      describe "with a pending migration" do
+        setup do
+          TenantedApplicationRecord.create_tenant("foo") do
+            # force creation of a new connection pool later
+            TenantedApplicationRecord.remove_connection
+          end
+
+          with_new_migration_file
+        end
+
+        test "pending migrations should raise an error" do
+          assert_raises(ActiveRecord::PendingMigrationError) do
+            TenantedApplicationRecord.with_tenant("foo") { User.first }
+          end
+        end
+
+        test ".destroy_tenant should not raise an error" do
+          assert_nothing_raised do
+            TenantedApplicationRecord.destroy_tenant("foo")
+          end
+        end
+      end
     end
   end
 
