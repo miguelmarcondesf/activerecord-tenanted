@@ -8,7 +8,8 @@ module ActiveRecord
       def migrate_all
         raise ArgumentError, "Could not find a tenanted database" unless root_config = root_database_config
 
-        root_config.tenants.each do |tenant|
+        tenants = root_config.tenants.presence || [ get_current_tenant ]
+        tenants.each do |tenant|
           tenant_config = root_config.new_tenant_config(tenant)
           migrate(tenant_config)
         end
