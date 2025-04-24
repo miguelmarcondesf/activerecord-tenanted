@@ -77,14 +77,10 @@ Documentation outline:
     - app.config.hosts
     - example TenantSelector
 
-- operations
-  - how to run database tasks
-    - db:migrate:tenant ARTENANT, default value of ARTENANT
-    - db:migrate:tenant:all
-  - and what assumptions have changed
-    - tenants will be migrated by `db:migrate` in dev/test but not production
-    - tenants will be migrated by `db:prepare` in dev/test but not production
-    - other database tasks do not work yet (db:create, db:seed, db:drop)
+- migrations
+  - create_tenant migrates the new database
+  - but otherwise, creation of the connection pool for a tenant that has pending migrations will raise a PendingMigrationError
+  - `db:migrate` will migrate all tenants
 
 TODO:
 
@@ -154,18 +150,70 @@ TODO:
   - [x] make `db:migrate:tenant` run migrations on `development-tenant` in dev
   - [x] make `db:migrate` run `db:migrate:tenant` in dev
   - [x] make `db:prepare` run `db:migrate:tenant` in dev
-  - [ ] use the database name instead of "tenant", e.g. "db:migrate:primary"
-  - [ ] implement other database tasks like
-    - [x] `db:create`
-    - [x] `db:fixtures:load`
-    - [x] `db:seed`
-    - [ ] `db:purge` (see Known Issues below)
-    - [ ] `db:rollback` and `db:rollback STEP=3`
-    - [ ] `db:migrate:redo` and `db:migrate:redo STEP=3`
-    - [ ] `db:migrate:down` and `db:migrate:down VERSION=20240428000000`
-    - [ ] `db:migrate:up` and `db:migrate:up VERSION=20240428000000`
-    - [ ] `db:migrate VERSION=20240428000000`
   - [x] make a decision on what output tasks should emit, and whether we need a separate verbose setting
+  - [ ] make the implicit migration opt-in
+  - [ ] use the database name instead of "tenant", e.g. "db:migrate:primary"
+  - [ ] fully implement all the relevant database tasks:
+    - [ ] `db:_dump`
+    - [ ] `db:_dump:__name__`
+    - [ ] `db:abort_if_pending_migrations`
+    - [ ] `db:abort_if_pending_migrations:__name__`
+    - [ ] `db:charset`
+    - [ ] `db:check_protected_environments`
+    - [ ] `db:collation`
+    - [ ] `db:create`
+    - [ ] `db:create:all`
+    - [ ] `db:create:__name__`
+    - [ ] `db:drop`
+    - [ ] `db:drop:_unsafe`
+    - [ ] `db:drop:all`
+    - [ ] `db:drop:__name__`
+    - [ ] `db:encryption:init`
+    - [ ] `db:environment:set`
+    - [ ] `db:fixtures:identify`
+    - [ ] `db:fixtures:load`
+    - [ ] `db:forward`
+    - [ ] `db:install:migrations`
+    - [ ] `db:load_config`
+    - [ ] `db:migrate` with support for VERSION
+    - [ ] `db:migrate:down` with support for VERSION
+    - [ ] `db:migrate:down:__name__`
+    - [ ] `db:migrate:__name__`
+    - [ ] `db:migrate:redo` with support for STEP and VERSION
+    - [ ] `db:migrate:redo:__name__`
+    - [ ] `db:migrate:reset`
+    - [ ] `db:migrate:status`
+    - [ ] `db:migrate:status:__name__`
+    - [ ] `db:migrate:up` with support for VERSION
+    - [ ] `db:migrate:up:__name__`
+    - [ ] `db:prepare`
+    - [ ] `db:purge` (see Known Issues below)
+    - [ ] `db:purge:all` (see Known Issues below)
+    - [ ] `db:reset`
+    - [ ] `db:reset:all`
+    - [ ] `db:reset:__name__`
+    - [ ] `db:rollback` with support for STEP
+    - [ ] `db:rollback:__name__`
+    - [ ] `db:schema:cache:clear`
+    - [ ] `db:schema:cache:dump`
+    - [ ] `db:schema:dump`
+    - [ ] `db:schema:dump:__name__`
+    - [ ] `db:schema:load`
+    - [ ] `db:schema:load:__name__`
+    - [ ] `db:seed`
+    - [ ] `db:seed:replant`
+    - [ ] `db:setup`
+    - [ ] `db:setup:all`
+    - [ ] `db:setup:__name__`
+    - [ ] `db:test:load_schema`
+    - [ ] `db:test:load_schema:__name__`
+    - [ ] `db:test:prepare`
+    - [ ] `db:test:prepare:__name__`
+    - [ ] `db:test:purge`
+    - [ ] `db:test:purge:__name__`
+    - [ ] `db:truncate_all`
+    - [ ] `db:version`
+    - [ ] `db:version:__name__`
 
 - installation
   - [ ] install a variation on the default database.yml with primary tenanted and non-primary "global" untenanted
