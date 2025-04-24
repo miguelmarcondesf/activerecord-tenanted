@@ -397,6 +397,14 @@ TODO:
 - [ ] I need a use case here around mail routing before I tackle it
 
 
+## Console
+
+Documentation outline:
+
+- explain the concept of a "default tenant"
+- explain usage of the `ARTENANT` environment variable to control startup
+
+
 ## Known Issues
 
 ### LOW
