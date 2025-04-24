@@ -68,8 +68,8 @@ namespace :db do
 end
 
 # Decorate database tasks with the tenanted version.
-task "db:migrate" => "db:migrate:tenant"
-task "db:prepare" => "db:migrate:tenant"
+task "db:migrate" => "db:migrate:tenant:all"
+task "db:prepare" => "db:migrate:tenant:all"
 task "db:reset"   => "db:reset:tenant"
 task "db:drop"    => "db:drop:tenant"
 

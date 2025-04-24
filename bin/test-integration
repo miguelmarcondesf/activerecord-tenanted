@@ -118,14 +118,17 @@ if PARALLEL
     statuses[scenario] = Process::Status.wait(pid)
   end
 
+  failure = false
   statuses.each do |scenario, status|
     scenario = "#{COLOR_FG_BLUE}#{scenario}#{COLOR_RESET}"
     if status.success?
       puts "Scenario #{scenario} succeeded."
     else
       puts "Scenario #{scenario} FAILED."
+      failure = true
     end
   end
+  exit(1) if failure
 else
   scenarios.each do |scenario|
     run_scenario(scenario)
