@@ -8,7 +8,7 @@ module ActiveRecord
       def migrate_all
         raise ArgumentError, "Could not find a tenanted database" unless root_config = root_database_config
 
-        tenants = root_config.tenants.presence || [ get_current_tenant ]
+        tenants = root_config.tenants.presence || [ get_current_tenant ].compact
         tenants.each do |tenant|
           tenant_config = root_config.new_tenant_config(tenant)
           migrate(tenant_config)
@@ -54,11 +54,12 @@ module ActiveRecord
 
         if tenant.present?
           $stdout.puts "Setting current tenant to #{tenant.inspect}" if verbose?
-        else
-          raise ArgumentError, "ARTENANT must be set in a non-local environment" unless Rails.env.local?
-
+        elsif Rails.env.local?
           tenant = default_tenant
           $stdout.puts "Defaulting current tenant to #{tenant.inspect}" if verbose?
+        else
+          tenant = nil
+          $stdout.puts "Cannot determine an implicit tenant: ARTENANT not set, and Rails.env is not local." if verbose?
         end
 
         tenant
