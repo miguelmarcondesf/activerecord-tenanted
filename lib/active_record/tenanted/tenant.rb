@@ -29,6 +29,8 @@ module ActiveRecord
         super(options.merge(tenant: tenant))
       end
 
+      alias to_sgid to_signed_global_id
+
       private def initialize_tenant_attribute
         @tenant = self.class.current_tenant
       end
