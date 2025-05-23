@@ -16,9 +16,19 @@ describe ActiveRecord::Tenanted::Tenant do
         assert_equal("gid://dummy/User/1?x=y&tenant=foo", user.to_global_id(x: "y").uri.to_s)
       end
 
+      test "#to_gid" do
+        assert_equal("gid://dummy/User/1?tenant=foo", user.to_gid.uri.to_s)
+        assert_equal("gid://dummy/User/1?x=y&tenant=foo", user.to_gid(x: "y").uri.to_s)
+      end
+
       test "#to_signed_global_id" do
         assert_equal("gid://dummy/User/1?tenant=foo", user.to_signed_global_id.uri.to_s)
         assert_equal("gid://dummy/User/1?x=y&tenant=foo", user.to_signed_global_id(x: "y").uri.to_s)
+      end
+
+      test "#to_sgid" do
+        assert_equal("gid://dummy/User/1?tenant=foo", user.to_sgid.uri.to_s)
+        assert_equal("gid://dummy/User/1?x=y&tenant=foo", user.to_sgid(x: "y").uri.to_s)
       end
     end
   end
