@@ -25,22 +25,118 @@ describe ActiveRecord::Tenanted::DatabaseConfigurations do
   end
 
   describe "RootConfig" do
-    describe ".database_path_for" do
-      let(:config_hash) { { adapter: "sqlite3", database: "db/tenanted/%{tenant}/main.sqlite3" } }
+    describe ".database_path_for and .tenants" do
+      let(:config_hash) { { adapter: "sqlite3", database: database } }
       let(:config) { ActiveRecord::Tenanted::DatabaseConfigurations::RootConfig.new("test", "foo", config_hash) }
 
-      test "returns the path for a tenant" do
-        assert_equal("db/tenanted/foo/main.sqlite3", config.database_path_for("foo"))
+      describe "file path" do
+        let(:dir) { Dir.mktmpdir("database-path-for-tenants") }
+        let(:database) { "storage/db/tenanted/%{tenant}/main.sqlite3" }
+
+        test "returns the path for a tenant" do
+          assert_equal("storage/db/tenanted/foo/main.sqlite3", config.database_path_for("foo"))
+        end
+
+        test "raises if the tenant name contains a path separator" do
+          assert_raises(ActiveRecord::Tenanted::BadTenantNameError) { config.database_path_for("foo/bar") }
+        end
+
+        test "raises if the tenant name contains a quote or double-quote or back-quote" do
+          assert_raises(ActiveRecord::Tenanted::BadTenantNameError) { config.database_path_for("foo'bar") }
+          assert_raises(ActiveRecord::Tenanted::BadTenantNameError) { config.database_path_for("foo\"bar") }
+          assert_raises(ActiveRecord::Tenanted::BadTenantNameError) { config.database_path_for("foo`bar") }
+        end
+
+        test "returns all tenants" do
+          Dir.chdir(dir) do
+            [ "foo", "bar", "baz" ].each do |tenant|
+              FileUtils.mkdir_p("storage/db/tenanted/#{tenant}")
+              FileUtils.touch("storage/db/tenanted/#{tenant}/main.sqlite3")
+            end
+
+            assert_equal(Set.new(config.tenants), Set.new([ "foo", "bar", "baz" ]))
+          end
+        end
       end
 
-      test "raises if the tenant name contains a path separator" do
-        assert_raises(ActiveRecord::Tenanted::BadTenantNameError) { config.database_path_for("foo/bar") }
+      describe "absolute URI" do
+        let(:dir) { Dir.mktmpdir("database-path-for-tenants") }
+        let(:database) { "file:#{dir}/storage/db/tenanted/%{tenant}/main.sqlite3" }
+
+        test "returns the path for a tenant" do
+          assert_equal("#{dir}/storage/db/tenanted/foo/main.sqlite3", config.database_path_for("foo"))
+        end
+
+        test "returns all tenants" do
+          Dir.chdir(dir) do
+            [ "foo", "bar", "baz" ].each do |tenant|
+              FileUtils.mkdir_p("storage/db/tenanted/#{tenant}")
+              FileUtils.touch("storage/db/tenanted/#{tenant}/main.sqlite3")
+            end
+          end
+
+          assert_equal(Set.new(config.tenants), Set.new([ "foo", "bar", "baz" ]))
+        end
       end
 
-      test "raises if the tenant name contains a quote or double-quote or back-quote" do
-        assert_raises(ActiveRecord::Tenanted::BadTenantNameError) { config.database_path_for("foo'bar") }
-        assert_raises(ActiveRecord::Tenanted::BadTenantNameError) { config.database_path_for("foo\"bar") }
-        assert_raises(ActiveRecord::Tenanted::BadTenantNameError) { config.database_path_for("foo`bar") }
+      describe "absolute URI with query params" do
+        let(:dir) { Dir.mktmpdir("database-path-for-tenants") }
+        let(:database) { "file:#{dir}/storage/db/tenanted/%{tenant}/main.sqlite3?vfs=unix-dotfile" }
+
+        test "returns the path for a tenant" do
+          assert_equal("#{dir}/storage/db/tenanted/foo/main.sqlite3", config.database_path_for("foo"))
+        end
+
+        test "returns all tenants" do
+          Dir.chdir(dir) do
+            [ "foo", "bar", "baz" ].each do |tenant|
+              FileUtils.mkdir_p("storage/db/tenanted/#{tenant}")
+              FileUtils.touch("storage/db/tenanted/#{tenant}/main.sqlite3")
+            end
+          end
+
+          assert_equal(Set.new(config.tenants), Set.new([ "foo", "bar", "baz" ]))
+        end
+      end
+
+      describe "relative URI" do
+        let(:dir) { Dir.mktmpdir("database-path-for-tenants") }
+        let(:database) { "file:storage/db/tenanted/%{tenant}/main.sqlite3" }
+
+        test "returns the path for a tenant" do
+          assert_equal("storage/db/tenanted/foo/main.sqlite3", config.database_path_for("foo"))
+        end
+
+        test "returns all tenants" do
+          Dir.chdir(dir) do
+            [ "foo", "bar", "baz" ].each do |tenant|
+              FileUtils.mkdir_p("storage/db/tenanted/#{tenant}")
+              FileUtils.touch("storage/db/tenanted/#{tenant}/main.sqlite3")
+            end
+
+            assert_equal(Set.new(config.tenants), Set.new([ "foo", "bar", "baz" ]))
+          end
+        end
+      end
+
+      describe "relative URI with query params" do
+        let(:dir) { Dir.mktmpdir("database-path-for-tenants") }
+        let(:database) { "file:storage/db/tenanted/%{tenant}/main.sqlite3?vfs=unix-dotfile" }
+
+        test "returns the path for a tenant" do
+          assert_equal("storage/db/tenanted/foo/main.sqlite3", config.database_path_for("foo"))
+        end
+
+        test "returns all tenants" do
+          Dir.chdir(dir) do
+            [ "foo", "bar", "baz" ].each do |tenant|
+              FileUtils.mkdir_p("storage/db/tenanted/#{tenant}")
+              FileUtils.touch("storage/db/tenanted/#{tenant}/main.sqlite3")
+            end
+
+            assert_equal(Set.new(config.tenants), Set.new([ "foo", "bar", "baz" ]))
+          end
+        end
       end
     end
 

@@ -15,12 +15,12 @@ module ActiveRecord
             raise BadTenantNameError, "Tenant name contains an invalid character: #{tenant_name.inspect}"
           end
 
-          sprintf(database, tenant: tenant_name)
+          coerce_path(sprintf(database, tenant: tenant_name))
         end
 
         def tenants
-          glob = sprintf(database, tenant: "*")
-          scanner = Regexp.new(sprintf(database, tenant: "(.+)"))
+          glob = coerce_path(sprintf(database, tenant: "*"))
+          scanner = Regexp.new(coerce_path(sprintf(database, tenant: "(.+)")))
 
           Dir.glob(glob).map do |path|
             result = path.scan(scanner).flatten.first
@@ -47,6 +47,18 @@ module ActiveRecord
                                "If you have a model that inherits directly from ActiveRecord::Base, " \
                                "make sure to use 'subtenant_of'. In development, you may see this error " \
                                "if constant reloading is not being done properly."
+        end
+
+        # A sqlite database path can be a file path or a URI (either relative or absolute).
+        # We can't parse it as a standard URI in all circumstances, though, see https://sqlite.org/uri.html
+        private def coerce_path(path)
+          if path.start_with?("file:/")
+            URI.parse(path).path
+          elsif path.start_with?("file:")
+            URI.parse(path.sub(/\?.*$/, "")).opaque
+          else
+            path
+          end
         end
       end
 
