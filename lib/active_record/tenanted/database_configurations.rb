@@ -10,12 +10,16 @@ module ActiveRecord
           false
         end
 
-        def database_path_for(tenant_name)
+        def database_for(tenant_name)
           if tenant_name.match?(%r{[/'"`]})
             raise BadTenantNameError, "Tenant name contains an invalid character: #{tenant_name.inspect}"
           end
 
-          coerce_path(sprintf(database, tenant: tenant_name))
+          sprintf(database, tenant: tenant_name)
+        end
+
+        def database_path_for(tenant_name)
+          coerce_path(database_for(tenant_name))
         end
 
         def tenants
@@ -36,8 +40,8 @@ module ActiveRecord
           config_name = "#{name}_#{tenant_name}"
           config_hash = configuration_hash.dup.tap do |hash|
             hash[:tenant] = tenant_name
-            hash[:database] = sprintf(database, tenant: tenant_name)
-            hash[:database_path] = coerce_path(hash[:database])
+            hash[:database] = database_for(tenant_name)
+            hash[:database_path] = database_path_for(tenant_name)
             hash[:tenanted_config_name] = name
           end
           Tenanted::DatabaseConfigurations::TenantConfig.new(env_name, config_name, config_hash)
@@ -104,7 +108,6 @@ module ActiveRecord
 
         private
           def ensure_database_directory_exists
-            database_path = configuration_hash[:database_path]
             return unless database_path
 
             database_dir = File.dirname(database_path)
