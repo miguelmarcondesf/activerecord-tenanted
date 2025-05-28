@@ -64,6 +64,7 @@ describe ActiveRecord::Tenanted::DatabaseConfigurations do
         let(:database) { "file:#{dir}/storage/db/tenanted/%{tenant}/main.sqlite3" }
 
         test "returns the path for a tenant" do
+          assert_equal("file:#{dir}/storage/db/tenanted/foo/main.sqlite3", config.database_for("foo"))
           assert_equal("#{dir}/storage/db/tenanted/foo/main.sqlite3", config.database_path_for("foo"))
         end
 
@@ -84,6 +85,7 @@ describe ActiveRecord::Tenanted::DatabaseConfigurations do
         let(:database) { "file:#{dir}/storage/db/tenanted/%{tenant}/main.sqlite3?vfs=unix-dotfile" }
 
         test "returns the path for a tenant" do
+          assert_equal("file:#{dir}/storage/db/tenanted/foo/main.sqlite3?vfs=unix-dotfile", config.database_for("foo"))
           assert_equal("#{dir}/storage/db/tenanted/foo/main.sqlite3", config.database_path_for("foo"))
         end
 
@@ -104,6 +106,7 @@ describe ActiveRecord::Tenanted::DatabaseConfigurations do
         let(:database) { "file:storage/db/tenanted/%{tenant}/main.sqlite3" }
 
         test "returns the path for a tenant" do
+          assert_equal("file:storage/db/tenanted/foo/main.sqlite3", config.database_for("foo"))
           assert_equal("storage/db/tenanted/foo/main.sqlite3", config.database_path_for("foo"))
         end
 
@@ -124,6 +127,7 @@ describe ActiveRecord::Tenanted::DatabaseConfigurations do
         let(:database) { "file:storage/db/tenanted/%{tenant}/main.sqlite3?vfs=unix-dotfile" }
 
         test "returns the path for a tenant" do
+          assert_equal("file:storage/db/tenanted/foo/main.sqlite3?vfs=unix-dotfile", config.database_for("foo"))
           assert_equal("storage/db/tenanted/foo/main.sqlite3", config.database_path_for("foo"))
         end
 
