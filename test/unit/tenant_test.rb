@@ -412,7 +412,7 @@ describe ActiveRecord::Tenanted::Tenant do
         assert_not(TenantedApplicationRecord.tenant_exist?("foo"))
 
         db_path = TenantedApplicationRecord.create_tenant("foo") do
-          User.connection_db_config.database
+          User.connection_db_config.database_path
         end
 
         assert(TenantedApplicationRecord.tenant_exist?("foo"))

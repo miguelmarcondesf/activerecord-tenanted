@@ -162,15 +162,17 @@ describe ActiveRecord::Tenanted::DatabaseConfigurations do
 
           assert_equal([ "bar" ], tenanted_config.tenants)
         end
+      end
+    end
 
-        test "handles non-alphanumeric characters" do
-          assert_empty(tenanted_config.tenants)
+    with_scenario(:primary_db, :primary_record) do
+      test "handles non-alphanumeric characters" do
+        assert_empty(tenanted_config.tenants)
 
-          crazy_name = 'a~!@#$%^&*()_-+=:;[{]}|,.?9' # please don't do this
-          TenantedApplicationRecord.create_tenant(crazy_name)
+        crazy_name = 'a~!@#$%^&*()_-+=:;[{]}|,.?9' # please don't do this
+        TenantedApplicationRecord.create_tenant(crazy_name)
 
-          assert_equal([ crazy_name ], tenanted_config.tenants)
-        end
+        assert_equal([ crazy_name ], tenanted_config.tenants)
       end
     end
   end
@@ -240,6 +242,14 @@ describe ActiveRecord::Tenanted::DatabaseConfigurations do
         test "to a named dump file" do
           config = TenantedApplicationRecord.create_tenant("foo") { User.connection_db_config }
           assert_equal("tenanted_schema.rb", config.schema_dump)
+        end
+      end
+
+      with_scenario(:primary_uri_db, :primary_record) do
+        test "the URI is preserved in the config" do
+          config = TenantedApplicationRecord.create_tenant("foo") { User.connection_db_config }
+          assert_operator(config.database, :start_with?, "file:")
+          assert_operator(config.database, :end_with?, "?foo=bar")
         end
       end
     end
