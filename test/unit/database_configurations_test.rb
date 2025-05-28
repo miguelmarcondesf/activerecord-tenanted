@@ -244,6 +244,14 @@ describe ActiveRecord::Tenanted::DatabaseConfigurations do
           assert_equal("tenanted_schema.rb", config.schema_dump)
         end
       end
+
+      with_scenario(:primary_uri_db, :primary_record) do
+        test "the URI is preserved in the config" do
+          config = TenantedApplicationRecord.create_tenant("foo") { User.connection_db_config }
+          assert_operator(config.database, :start_with?, "file:")
+          assert_operator(config.database, :end_with?, "?foo=bar")
+        end
+      end
     end
 
     describe "schema cache dump" do

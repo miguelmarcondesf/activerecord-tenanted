@@ -32,14 +32,15 @@ module ActiveRecord
           end
         end
 
-        def new_tenant_config(tenant)
-          tenant_name = "#{name}_#{tenant}"
+        def new_tenant_config(tenant_name)
+          config_name = "#{name}_#{tenant_name}"
           config_hash = configuration_hash.dup.tap do |hash|
-            hash[:tenant] = tenant
-            hash[:database] = database_path_for(tenant)
+            hash[:tenant] = tenant_name
+            hash[:database] = sprintf(database, tenant: tenant_name)
+            hash[:database_path] = coerce_path(hash[:database])
             hash[:tenanted_config_name] = name
           end
-          Tenanted::DatabaseConfigurations::TenantConfig.new(env_name, tenant_name, config_hash)
+          Tenanted::DatabaseConfigurations::TenantConfig.new(env_name, config_name, config_hash)
         end
 
         def new_connection
@@ -49,17 +50,18 @@ module ActiveRecord
                                "if constant reloading is not being done properly."
         end
 
-        # A sqlite database path can be a file path or a URI (either relative or absolute).
-        # We can't parse it as a standard URI in all circumstances, though, see https://sqlite.org/uri.html
-        private def coerce_path(path)
-          if path.start_with?("file:/")
-            URI.parse(path).path
-          elsif path.start_with?("file:")
-            URI.parse(path.sub(/\?.*$/, "")).opaque
-          else
-            path
+        private
+          # A sqlite database path can be a file path or a URI (either relative or absolute).
+          # We can't parse it as a standard URI in all circumstances, though, see https://sqlite.org/uri.html
+          def coerce_path(path)
+            if path.start_with?("file:/")
+              URI.parse(path).path
+            elsif path.start_with?("file:")
+              URI.parse(path.sub(/\?.*$/, "")).opaque
+            else
+              path
+            end
           end
-        end
       end
 
       class TenantConfig < ActiveRecord::DatabaseConfigurations::HashConfig
@@ -68,6 +70,7 @@ module ActiveRecord
         end
 
         def new_connection
+          ensure_database_directory_exists # adapter doesn't handle this if the database is a URI
           super.tap { |conn| conn.tenant = tenant }
         end
 
@@ -94,6 +97,21 @@ module ActiveRecord
             File.join(db_dir, "#{tenanted_config_name}_schema_cache.yml")
           end
         end
+
+        def database_path
+          configuration_hash[:database_path]
+        end
+
+        private
+          def ensure_database_directory_exists
+            database_path = configuration_hash[:database_path]
+            return unless database_path
+
+            database_dir = File.dirname(database_path)
+            unless File.directory?(database_dir)
+              FileUtils.mkdir_p(database_dir)
+            end
+          end
       end
 
       # Invoked by the railtie
