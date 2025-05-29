@@ -16,6 +16,10 @@ class TestActiveStorage < ActionDispatch::IntegrationTest
     assert_predicate(note.image, :attached?)
 
     attachment_path = ActiveStorage::Blob.service.path_for(note.image.key)
-    assert_includes(attachment_path, "tmp/storage/#{ApplicationRecord.current_tenant}/")
+
+    root_glob = "*/tmp/storage/#{ApplicationRecord.current_tenant}"
+    blob_glob = "#{ApplicationRecord.current_tenant}/??/??/#{note.image.key.split("/").last}"
+    assert(File.fnmatch(File.join(root_glob, blob_glob), attachment_path),
+           "path #{attachment_path.inspect} does not match expected pattern")
   end
 end

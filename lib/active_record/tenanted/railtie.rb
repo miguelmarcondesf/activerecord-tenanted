@@ -105,7 +105,13 @@ module ActiveRecord
         # module into the class before the service is initialized.
         # As a workaround, explicitly require this file.
         require "active_storage/service/disk_service"
-        ActiveStorage::Service::DiskService.prepend ActiveRecord::Tenanted::StorageService
+        ActiveStorage::Service::DiskService.prepend ActiveRecord::Tenanted::Storage::DiskService
+      end
+
+      initializer "active_record-tenanted.active_storage_blob" do
+        ActiveSupport.on_load(:active_storage_blob) do
+          prepend ActiveRecord::Tenanted::Storage::Blob
+        end
       end
 
       initializer "active_record-tenanted.active_record_connection_adapter" do
