@@ -218,8 +218,7 @@ TODO:
 - installation
   - [ ] install a variation on the default database.yml with primary tenanted and non-primary "global" untenanted
   - [ ] initializer: commented lines with default values and some docstrings
-  - [ ] storage.yml defaults (with `%{tenant}`)
-  - [ ] mailer defaults (with `%{tenant}`)
+  - [ ] mailer URL defaults (setting `%{tenant}` for subdomain tenanting)
 
 - [ ] think about race conditions
   - maybe use a file lock to figure it out?
@@ -408,17 +407,15 @@ TODO:
 Documentation outline:
 
 - explain why we need to be careful
-- how to configure Disk Service so that each client is in a tenanted subdirectory
-  - similar to database config,
-    - `tenanted: true` config param
-    - disk path parameterized with `%{tenant}`
-- how to configure S3 so that each client is in a tenanted bucket
+- explain how it works
+  - if `connection_class` is set, then Active Storage will insert the tenant into the blob key
+    - and the disk service will include the tenant in the path on disk in the root location, like: 'foobar/ab/cd/abcd12345678abcd'
+- Disk Service can also have a tenanted root path, but it's optional
 
 TODO:
 
-- [x] extend Disk Service
-- [ ] extend S3 Service
-  - waiting until we have a concrete need and some opinions
+- [x] extend Disk Service to change the path on disk
+- [x] extend Blob to have tenanted keys
 
 
 ## ActionMailer

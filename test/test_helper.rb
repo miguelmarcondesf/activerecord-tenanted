@@ -25,7 +25,7 @@ require "minitest/mock"
 # Needed to test Active Storage Disk Service in the absence of a full active_storage:install in the dummy app
 require "active_storage"
 require "active_storage/service/disk_service"
-ActiveStorage::Service::DiskService.include ActiveRecord::Tenanted::StorageService
+ActiveStorage::Service::DiskService.prepend ActiveRecord::Tenanted::Storage::DiskService
 
 if ENV["NCPU"].to_i > 1
   require "minitest/parallel_fork"
@@ -141,6 +141,20 @@ module ActiveRecord
         def with_scenario(db_scenario, model_scenario, &block)
           with_db_scenario(db_scenario) do
             with_model_scenario(model_scenario, &block)
+          end
+        end
+
+        def with_active_storage(&block)
+          with_scenario(:primary_db, :primary_record) do
+            setup do
+              as_path = Gem.loaded_specs["activestorage"].full_gem_path
+              as_migrations = Dir.glob(File.join(as_path, "db", "*migrate", "*.rb"))
+              FileUtils.cp as_migrations, File.join(db_path, "tenanted_migrations")
+
+              ActiveStorage::Record.subtenant_of "TenantedApplicationRecord"
+            end
+
+            instance_eval(&block)
           end
         end
       end
