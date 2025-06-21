@@ -603,6 +603,33 @@ describe ActiveRecord::Tenanted::Tenant do
         end
         assert_same_elements([ [ "foo", "foo" ], [ "bar", "bar" ] ], result)
       end
+
+      test "by default does not allow shard swapping" do
+        TenantedApplicationRecord.create_tenant("foo")
+        TenantedApplicationRecord.create_tenant("bar")
+
+        TenantedApplicationRecord.with_each_tenant do |tenant|
+          if tenant != "foo"
+            e = assert_raises(ArgumentError) do
+              TenantedApplicationRecord.with_tenant("foo") { }
+            end
+            assert_includes(e.message, "shard swapping is prohibited")
+          end
+        end
+      end
+
+      test "accepts prohibit_shard_swapping kwarg" do
+        TenantedApplicationRecord.create_tenant("foo")
+        TenantedApplicationRecord.create_tenant("bar")
+
+        TenantedApplicationRecord.with_each_tenant(prohibit_shard_swapping: false) do |tenant|
+          if tenant != "foo"
+            assert_nothing_raised do
+              TenantedApplicationRecord.with_tenant("foo") { }
+            end
+          end
+        end
+      end
     end
   end
 
