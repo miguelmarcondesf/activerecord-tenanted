@@ -133,8 +133,8 @@ module ActiveRecord
           tenanted_root_config.tenants
         end
 
-        def with_each_tenant(&block)
-          tenants.each { |tenant| with_tenant(tenant) { yield tenant } }
+        def with_each_tenant(**options, &block)
+          tenants.each { |tenant| with_tenant(tenant, **options) { yield tenant } }
         end
 
         # This method is really only intended to be used for testing.

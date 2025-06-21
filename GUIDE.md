@@ -121,9 +121,9 @@ TODO:
       - see working branch `flavorjones/rails/flavorjones-sqlite3-adapter-explicit-create` for a start here
   - [ ] UntenantedConnectionPool should peek at its stack and if it happened during schema cache load, output a friendly message to let people know what to do
   - [x] concrete class usage, e.g.: `User.current_tenant=` or `User.with_tenant { ... }`
-  - [x] make it OK to call `while_tenanted("foo") { while_tenanted("foo") { ... } }`
+  - [x] make it OK to call `with_tenant("foo") { with_tenant("foo") { ... } }`
   - [x] rename `while_tenanted` to `with_tenant`
-  - [x] introduce `.with_each_tenant` which is sugar for `ApplicationRecord.tenants.each { ApplicationRecord.while_tenanted(_1) { } }`
+  - [x] introduce `.with_each_tenant` which is sugar for `ApplicationRecord.tenants.each { ApplicationRecord.with_tenant(_1) { } }`
 
 - tenant selector
   - [x] rebuild `AR::Tenanted::TenantSelector` to take a proc
@@ -135,7 +135,7 @@ TODO:
   - [x] `.current_tenant`
   - [x] `.current_tenant=`
   - [x] `.tenant_exist?`
-  - [x] `.while_tenanted`
+  - [x] `.with_tenant`
   - [x] `.create_tenant`
     - [ ] which should roll back gracefully if it fails for some reason
   - [x] `.destroy_tenant`
@@ -257,9 +257,11 @@ TODO:
 
 Documentation outline:
 
-- introduce the `ActiveRecord::Tenanted::Tenant` module
+- introduce the basics
+  - explain `.tenanted` and the `ActiveRecord::Tenanted::Tenant` module
+  - explain `.subtenant_of` and the `ActiveRecord::Tenanted::Subtenant` module
+  - explain `.with_tenant`, `.with_each_tenant`, `.current_tenant=`, and `current_tenant`
   - demonstrate how to create a tenant, destroy a tenant, etc.
-  - explain `.while_tenanted` and `current_tenant`
 - troubleshooting: what errors you might see in your app and how to deal with it
   - specifically when running untenanted
 
@@ -273,7 +275,7 @@ Documentation outline:
 - explain creating a new tenant
   - and how that database is NOT wrapped in a transaction during the test,
   - but those non-fixture databases will be cleaned up at the start of the test suite
-- explain `while_untenanted`
+- explain `without_tenant`
 - example of:
   - unit test with fixtures
   - integration test
@@ -282,12 +284,12 @@ Documentation outline:
 TODO:
 
 - testing
-  - [x] a `while_untenanted` test helper
+  - [x] a `without_tenant` test helper
   - [x] set up test helper to default to a tenanted named "test-tenant"
   - [x] set up test helpers to deal with parallelized tests, too (e.g. "test-tenant-19")
   - [x] set up integration tests to do the right things ...
     - [x] set the domain name in integration tests
-    - [x] wrap the HTTP verbs with `while_untenanted`
+    - [x] wrap the HTTP verbs with `without_tenant`
     - [x] set the domain name in system tests
   - [x] allow the creation of tenants within transactional tests
 
@@ -399,7 +401,7 @@ TODO:
 - [x] extend `to_global_id` and friends for Subtenant
 - [x] create a tenanted GlobalID locator
 - [x] inject the tenanted GlobalID locator as the default app locator
-- [x] make sure the test helper `perform_enqueued_jobs` wraps everything in a `while_untenanted` block
+- [x] make sure the test helper `perform_enqueued_jobs` wraps everything in a `without_tenant` block
 
 
 ## Active Storage
@@ -454,10 +456,10 @@ Documentation outline:
 
 ### LOW
 
-- [ ] When running code outside of a `while_tenanted` block (e.g., the console), it's probably
+- [ ] When running code outside of a `with_tenant` block (e.g., the console), it's probably
       possible to read associations from an object belonging to tenant A while in tenant B context
       and getting back records from the wrong tenant. This is low priority because normally
-      application code will be sandboxed by the framework with a `while_tenanted` block that
+      application code will be sandboxed by the framework with a `with_tenant` block that
       prevents shard switching; but we should fix it to prevent errors in tests and while executing
       code from the console.
 - [ ] The `db:purge` rake task, which is run before the test suite, will emit a harmless but
