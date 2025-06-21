@@ -382,6 +382,19 @@ describe ActiveRecord::Tenanted::Tenant do
         assert_not(TenantedApplicationRecord.tenant_exist?("doesnotexist"))
       end
 
+      test "it returns false if the tenant database is in the process of being migrated" do
+        db_path = TenantedApplicationRecord.tenanted_root_config.database_path_for("foo")
+
+        assert_not(TenantedApplicationRecord.tenant_exist?("foo"))
+
+        ActiveRecord::Tenanted::Mutex::Ready.lock(db_path) do
+          assert_not(TenantedApplicationRecord.tenant_exist?("foo"))
+          FileUtils.touch(db_path) # pretend the database was created and migrated
+        end
+
+        assert(TenantedApplicationRecord.tenant_exist?("foo"))
+      end
+
       test "it returns true if the tenant database has not been created" do
         TenantedApplicationRecord.create_tenant("foo")
 
@@ -395,17 +408,21 @@ describe ActiveRecord::Tenanted::Tenant do
       test "raises an exception if the tenant already exists" do
         TenantedApplicationRecord.create_tenant("foo")
 
+        called = false
         assert_raises(ActiveRecord::Tenanted::TenantExistsError) do
-          TenantedApplicationRecord.create_tenant("foo")
+          TenantedApplicationRecord.create_tenant("foo") { called = true }
         end
+        assert_not(called, "Block should not be called when tenant already exists")
       end
 
       test "does not raise an exception if the tenant already exists and if_not_exists is true" do
         TenantedApplicationRecord.create_tenant("foo")
 
+        called = false
         assert_nothing_raised do
-          TenantedApplicationRecord.create_tenant("foo", if_not_exists: true)
+          TenantedApplicationRecord.create_tenant("foo", if_not_exists: true) { called = true }
         end
+        assert(called, "Block should be called when if_not_exists is true")
       end
 
       test "creates the database" do
@@ -581,6 +598,21 @@ describe ActiveRecord::Tenanted::Tenant do
         TenantedApplicationRecord.destroy_tenant("foo")
 
         assert_equal([ "bar" ], TenantedApplicationRecord.tenants)
+      end
+
+      test "it does not return tenants that are not ready" do
+        foo_db_path = TenantedApplicationRecord.tenanted_root_config.database_path_for("foo")
+        TenantedApplicationRecord.create_tenant("bar")
+
+        ActiveRecord::Tenanted::Mutex::Ready.lock(foo_db_path) do
+          assert_equal([ "bar" ], TenantedApplicationRecord.tenants)
+
+          FileUtils.touch(foo_db_path) # pretend the database was created
+
+          assert_equal([ "bar" ], TenantedApplicationRecord.tenants)
+        end
+
+        assert_same_elements([ "foo", "bar" ], TenantedApplicationRecord.tenants)
       end
     end
   end
