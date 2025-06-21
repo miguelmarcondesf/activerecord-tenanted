@@ -76,7 +76,9 @@ module ActiveRecord
 
         def tenant_exist?(tenant_name)
           # this will have to be an adapter-specific implementation if we support other than sqlite
-          File.exist?(tenanted_root_config.database_path_for(tenant_name))
+          database_path = tenanted_root_config.database_path_for(tenant_name)
+
+          File.exist?(database_path) && !ActiveRecord::Tenanted::Mutex::Ready.locked?(database_path)
         end
 
         def with_tenant(tenant_name, prohibit_shard_swapping: true, &block)
@@ -94,21 +96,28 @@ module ActiveRecord
         end
 
         def create_tenant(tenant_name, if_not_exists: false, &block)
-          if tenant_exist?(tenant_name)
-            return if if_not_exists
-            raise TenantExistsError
+          created_db = false
+          database_path = tenanted_root_config.database_path_for(tenant_name)
+
+          ActiveRecord::Tenanted::Mutex::Ready.lock(database_path) do
+            unless File.exist?(database_path)
+              # NOTE: This is obviously a sqlite-specific implementation.
+              # TODO: Add a `create_database` method upstream in the sqlite3 adapter, and call it.
+              #       Then this would delegate to the adapter and become adapter-agnostic.
+              FileUtils.touch(database_path)
+
+              with_tenant(tenant_name) do
+                connection_pool(schema_version_check: false)
+                ActiveRecord::Tenanted::DatabaseTasks.migrate_tenant(tenant_name)
+              end
+
+              created_db = true
+            end
           end
 
-          # NOTE: This is obviously a sqlite-specific implementation.
-          # TODO: Add a `create_database` method upstream in the sqlite3 adapter, and call it.
-          #       Then this would delegate to the adapter and become adapter-agnostic.
-          database_path = tenanted_root_config.database_path_for(tenant_name)
-          FileUtils.mkdir_p(File.dirname(database_path))
-          FileUtils.touch(database_path)
+          raise TenantExistsError unless created_db || if_not_exists
 
           with_tenant(tenant_name) do
-            connection_pool(schema_version_check: false)
-            ActiveRecord::Tenanted::DatabaseTasks.migrate_tenant(tenant_name)
             yield if block_given?
           end
         end
@@ -130,7 +139,10 @@ module ActiveRecord
         end
 
         def tenants
-          tenanted_root_config.tenants
+          # DatabaseConfigurations::RootConfig#tenants returns all tenants whose database files
+          # exist, but some of those may be getting initially migrated, so we perform an additional
+          # filter on readiness with `tenant_exist?`.
+          tenanted_root_config.tenants.select { |t| tenant_exist?(t) }
         end
 
         def with_each_tenant(**options, &block)
@@ -170,8 +182,8 @@ module ActiveRecord
           return superclass._create_tenanted_pool unless connection_class?
 
           tenant = current_tenant
-          unless tenant_exist?(tenant)
-            raise TenantDoesNotExistError, "The referenced tenant #{tenant.inspect} does not exist."
+          unless File.exist?(tenanted_root_config.database_path_for(tenant))
+            raise TenantDoesNotExistError, "The database file for tenant #{tenant.inspect} does not exist."
           end
 
           config = tenanted_root_config.new_tenant_config(tenant)

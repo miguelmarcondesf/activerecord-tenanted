@@ -222,10 +222,11 @@ TODO:
 
 - [ ] think about race conditions
   - maybe use a file lock to figure it out?
-  - [ ] create
+  - [x] create
     - if two threads are racing
+    - in a parallel test suite, `with_each_tenant` returning a not-yet-ready tenant from another process
   - [ ] migrations
-    - done in a transaction, but the second thread's migration may fail resulting in a 500?
+    - not sure this matters, since they're done in a transaction
   - [ ] schema load
     - if first thread loads the schema and inserts data, can the second thread accidentally drop/load causing data loss?
   - [ ] destroy
