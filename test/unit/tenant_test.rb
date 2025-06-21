@@ -65,6 +65,17 @@ describe ActiveRecord::Tenanted::Tenant do
         assert_nothing_raised { User.first }
       end
 
+      test ".current_tenant= sets tenant context for an integer" do
+        TenantedApplicationRecord.create_tenant("12345678")
+
+        assert_nil(TenantedApplicationRecord.current_tenant)
+
+        TenantedApplicationRecord.current_tenant = 12345678
+
+        assert_equal("12345678", TenantedApplicationRecord.current_tenant)
+        assert_nothing_raised { User.first }
+      end
+
       test ".current_tenant= can be called repeatedly" do
         assert_nil(TenantedApplicationRecord.current_tenant)
 
@@ -138,6 +149,7 @@ describe ActiveRecord::Tenanted::Tenant do
       setup do
         TenantedApplicationRecord.create_tenant("foo")
         TenantedApplicationRecord.create_tenant("bar")
+        TenantedApplicationRecord.create_tenant("12345678")
       end
 
       test "current tenant is set in the block context " do
@@ -149,6 +161,11 @@ describe ActiveRecord::Tenanted::Tenant do
         TenantedApplicationRecord.with_tenant("foo") do
           User.first
           assert_equal("foo", TenantedApplicationRecord.current_tenant)
+        end
+
+        TenantedApplicationRecord.with_tenant(12345678) do
+          User.first
+          assert_equal("12345678", TenantedApplicationRecord.current_tenant)
         end
       end
 
@@ -395,10 +412,22 @@ describe ActiveRecord::Tenanted::Tenant do
         assert(TenantedApplicationRecord.tenant_exist?("foo"))
       end
 
-      test "it returns true if the tenant database has not been created" do
+      test "it returns true if the tenant database has been created" do
         TenantedApplicationRecord.create_tenant("foo")
 
         assert(TenantedApplicationRecord.tenant_exist?("foo"))
+      end
+
+      test "it returns true for symbols if the tenant database has been created" do
+        TenantedApplicationRecord.create_tenant("foo")
+
+        assert(TenantedApplicationRecord.tenant_exist?("foo"))
+      end
+
+      test "it returns true for integers if the tenant database has been created" do
+        TenantedApplicationRecord.create_tenant("12345678")
+
+        assert(TenantedApplicationRecord.tenant_exist?(12345678))
       end
     end
   end
@@ -433,6 +462,28 @@ describe ActiveRecord::Tenanted::Tenant do
         end
 
         assert(TenantedApplicationRecord.tenant_exist?("foo"))
+        assert(File.exist?(db_path))
+      end
+
+      test "creates the database given a symbol" do
+        assert_not(TenantedApplicationRecord.tenant_exist?("foo"))
+
+        db_path = TenantedApplicationRecord.create_tenant(:foo) do
+          User.connection_db_config.database_path
+        end
+
+        assert(TenantedApplicationRecord.tenant_exist?("foo"))
+        assert(File.exist?(db_path))
+      end
+
+      test "creates the database given an integer" do
+        assert_not(TenantedApplicationRecord.tenant_exist?("12345678"))
+
+        db_path = TenantedApplicationRecord.create_tenant(12345678) do
+          User.connection_db_config.database_path
+        end
+
+        assert(TenantedApplicationRecord.tenant_exist?("12345678"))
         assert(File.exist?(db_path))
       end
 
@@ -577,6 +628,20 @@ describe ActiveRecord::Tenanted::Tenant do
           TenantedApplicationRecord.destroy_tenant("foo")
 
           assert_not(TenantedApplicationRecord.tenant_exist?("foo"))
+        end
+
+        test "it deletes the database file for symbols" do
+          TenantedApplicationRecord.destroy_tenant(:foo)
+
+          assert_not(TenantedApplicationRecord.tenant_exist?("foo"))
+        end
+
+        test "it deletes the database file for integers" do
+          TenantedApplicationRecord.create_tenant("12345678")
+
+          TenantedApplicationRecord.destroy_tenant(12345678)
+
+          assert_not(TenantedApplicationRecord.tenant_exist?("12345678"))
         end
       end
     end

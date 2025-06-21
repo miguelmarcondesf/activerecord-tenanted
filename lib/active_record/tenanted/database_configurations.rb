@@ -11,6 +11,7 @@ module ActiveRecord
         end
 
         def database_for(tenant_name)
+          tenant_name = tenant_name.to_s
           if tenant_name.match?(%r{[/'"`]})
             raise BadTenantNameError, "Tenant name contains an invalid character: #{tenant_name.inspect}"
           end
