@@ -2,88 +2,48 @@
 
 module ActiveRecord
   module Tenanted
-    # I'm not happy with this class's design, specifically the `tenanted_connection` method, which
-    # only exists as a compromise to allos the gem to reliably wrap the `connect` method which may
-    # not be defined until after `tenanted` is called
-    #
     module CableConnection # :nodoc:
       # this module is included into ActionCable::Connection::Base
       module Base
         extend ActiveSupport::Concern
 
-        class_methods do
-          def initialize(...)
-            super
-
-            @tenanted_connection_class = nil
-          end
-
-          def tenanted_connection(connection_class = "ApplicationRecord", &block)
-            raise Error, "Class #{self} is already tenanted" if tenanted?
-
-            prepend Tenant
-
-            @tenanted_connection_class = connection_class
-            @tenanted_connection_block = block
-          end
-
-          def tenanted?
-            false
-          end
-        end
-      end
-
-      # this module is dynamically included if `tenanted_connection` is called
-      module Tenant
-        extend ActiveSupport::Concern
-
-        class_methods do
-          attr_accessor :tenanted_connection_block
-
-          def tenanted?
-            true
-          end
-
-          def tenanted_with_class
-            klass = @tenanted_connection_class&.constantize
-
-            raise Error, "Class #{klass} is not tenanted" unless klass.tenanted?
-            raise Error, "Class #{klass} is not a connection class" unless klass.abstract_class?
-
-            klass
-          end
-        end
-
         prepended do
           identified_by :current_tenant
-          around_command :set_current_tenant
+          around_command :with_tenant
         end
 
         def connect
-          unless (self.current_tenant = tenant_resolver.call(request)) &&
-                 (klass = self.class.tenanted_with_class) &&
-                 klass.tenant_exist?(current_tenant)
-            reject_unauthorized_connection
+          # If Rails had a before_connect hook, this could be moved there.
+          set_current_tenant if connection_class && tenant_resolver
+        end
+
+        private
+          def set_current_tenant
+            if tenant = tenant_resolver.call(request)
+              if connection_class.tenant_exist?(tenant)
+                self.current_tenant = tenant
+              else
+                reject_unauthorized_connection
+              end
+            end
           end
 
-          if block = self.class.tenanted_connection_block
-            set_current_tenant { instance_eval(&block) }
+          def with_tenant(&block)
+            if current_tenant.present?
+              connection_class.with_tenant(current_tenant, &block)
+            else
+              yield
+            end
           end
-        end
 
-        def set_current_tenant(&block)
-          self.current_tenant ||= tenant_resolver.call(request)
+          def tenant_resolver
+            @tenant_resolver ||= Rails.application.config.active_record_tenanted.tenant_resolver
+          end
 
-          tenanted_with_class.with_tenant(current_tenant, &block)
-        end
-
-        def tenanted_with_class
-          self.class.tenanted_with_class
-        end
-
-        def tenant_resolver
-          @tenanted_resolver ||= Rails.application.config.active_record_tenanted.tenant_resolver
-        end
+          def connection_class
+            # TODO: cache this / speed this up
+            Rails.application.config.active_record_tenanted.connection_class&.constantize
+          end
       end
     end
   end
