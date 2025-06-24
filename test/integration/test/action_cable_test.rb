@@ -54,4 +54,17 @@ class ApplicationCable::ConnectionTest < ActionCable::Connection::TestCase
   ensure
     Rails.application.config.active_record_tenanted.tenant_resolver = @old_tenant_resolver
   end
+
+  test "untenanted request" do
+    @old_tenant_resolver = Rails.application.config.active_record_tenanted.tenant_resolver
+    Rails.application.config.active_record_tenanted.tenant_resolver = ->(request) { nil }
+
+    ApplicationRecord.without_tenant do
+      connect
+    end
+
+    assert_nil(connection.current_tenant)
+  ensure
+    Rails.application.config.active_record_tenanted.tenant_resolver = @old_tenant_resolver
+  end
 end

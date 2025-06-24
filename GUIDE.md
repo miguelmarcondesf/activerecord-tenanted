@@ -351,8 +351,8 @@ Documentation outline:
 
 - explain why we need to be careful
 - how to tenant a channel
- - `tenanted_connection`
-- how the global id contains tenant also
+  - make sure to call `super` if you override `#connect`
+- how the global id also contains the tenant
 - do we need to document each adapter?
   - async
   - test
@@ -362,12 +362,13 @@ Documentation outline:
 TODO:
 
 - [x] extend the base connection to support tenanting with a `tenanted_connection` method
+- [x] reconsider the current API using `tenanted_connection` if we can figure out how to reliably wrap `#connect`
+  - did this! prefer to force the app to call super() from `#connect`, it's simpler
 - [ ] test disconnection
   - `ActionCable.server.remote_connections.where(current_tenant: "foo", current_user: User.find(1)).disconnect`
   - can we make this easier to use by implying the current tenant?
 - [ ] add tenant to the action_cable logger tags
 - [ ] add integration testing around executing a command (similar to Job testing)
-- [ ] reconsider the current API using `tenanted_connection` if we can figure out how to reliably wrap `#connect`
 
 
 ### Turbo Rails
