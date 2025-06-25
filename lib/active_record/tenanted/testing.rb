@@ -8,19 +8,19 @@ module ActiveRecord
 
         prepended do
           if klass = ActiveRecord::Tenanted.connection_class
-            klass.current_tenant = "#{Rails.env}-tenant"
+            klass.current_tenant = Rails.application.config.active_record_tenanted.default_tenant
             klass.destroy_tenant(klass.current_tenant)
             klass.create_tenant(klass.current_tenant)
 
             parallelize_setup do |worker|
-              klass.current_tenant = "#{Rails.env}-tenant-#{worker}"
+              klass.current_tenant += "-#{worker}"
               klass.destroy_tenant(klass.current_tenant)
               klass.create_tenant(klass.current_tenant)
             end
 
             # clean up any non-default tenants left over from the last test run
             klass.tenants.each do |tenant|
-              klass.destroy_tenant(tenant) unless tenant.start_with?("#{Rails.env}-tenant")
+              klass.destroy_tenant(tenant) unless tenant.start_with?(Rails.application.config.active_record_tenanted.default_tenant)
             end
           end
         end
@@ -77,7 +77,7 @@ module ActiveRecord
           # 2. having an open transaction will prevent the test from being able to destroy the tenant.
           is_non_default_tenant = (
             config.instance_of?(Tenanted::DatabaseConfigurations::TenantConfig) &&
-            !config.tenant.start_with?("#{Rails.env}-tenant")
+            !config.tenant.start_with?(Rails.application.config.active_record_tenanted.default_tenant)
           )
 
           return false if is_root_config || is_non_default_tenant

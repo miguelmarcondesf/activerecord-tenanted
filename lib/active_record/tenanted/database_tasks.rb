@@ -45,17 +45,13 @@ module ActiveRecord
         db_configs.detect { |c| c.configuration_hash[:tenanted] }
       end
 
-      def default_tenant
-        "#{Rails.env}-tenant"
-      end
-
       def get_current_tenant
         tenant = ENV["ARTENANT"]
 
         if tenant.present?
           $stdout.puts "Setting current tenant to #{tenant.inspect}" if verbose?
         elsif Rails.env.local?
-          tenant = default_tenant
+          tenant = Rails.application.config.active_record_tenanted.default_tenant
           $stdout.puts "Defaulting current tenant to #{tenant.inspect}" if verbose?
         else
           tenant = nil

@@ -254,7 +254,7 @@ TODO:
   - [x] tenanted_rails_records
 
 - additional configuration
-  - [ ] default_tenant (development only)
+  - [x] default_tenant (local only)
 
 
 ### Tenanting in your application
