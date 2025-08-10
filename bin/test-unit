@@ -5,3 +5,5 @@ ENV["DEFAULT_TEST"] ||= "test/unit/**_test.rb"
 
 require "bundler/setup"
 require "rails/plugin/test"
+
+Rails::TestUnitReporter.executable = __FILE__
