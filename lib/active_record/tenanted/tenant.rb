@@ -123,19 +123,18 @@ module ActiveRecord
         end
 
         def destroy_tenant(tenant_name)
-          return unless tenant_exist?(tenant_name)
+          ActiveRecord::Base.logger.info "  DESTROY [tenant=#{tenant_name}] Destroying tenant database"
 
-          with_tenant(tenant_name) do
-            connection_pool(schema_version_check: false)
-            lease_connection.send(:log, "/* destroying tenant database */", "DESTROY [tenant=#{tenant_name}]")
-          ensure
-            remove_connection
+          with_tenant(tenant_name, prohibit_shard_swapping: false) do
+            if retrieve_connection_pool(strict: false)
+              remove_connection
+            end
           end
 
           # NOTE: This is obviously a sqlite-specific implementation.
           # TODO: Create a `drop_database` method upstream in the sqlite3 adapter, and call it.
           #       Then this would delegate to the adapter and become adapter-agnostic.
-          FileUtils.rm(tenanted_root_config.database_path_for(tenant_name))
+          FileUtils.rm_f(tenanted_root_config.database_path_for(tenant_name))
         end
 
         def tenants
