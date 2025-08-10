@@ -620,7 +620,7 @@ describe ActiveRecord::Tenanted::Tenant do
           log = capture_log do
             TenantedApplicationRecord.destroy_tenant("foo")
           end
-          assert_includes(log.string, "destroying tenant database")
+          assert_includes(log.string, "Destroying tenant database")
           assert_includes(log.string, "DESTROY [tenant=foo]")
         end
 

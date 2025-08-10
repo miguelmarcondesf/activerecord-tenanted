@@ -6,6 +6,13 @@ module ActiveRecord
   module Tenanted
     module DatabaseConfigurations
       class RootConfig < ActiveRecord::DatabaseConfigurations::HashConfig
+        attr_accessor :test_worker_id
+
+        def initialize(...)
+          super
+          @test_worker_id = nil
+        end
+
         def database_tasks?
           false
         end
@@ -16,7 +23,18 @@ module ActiveRecord
             raise BadTenantNameError, "Tenant name contains an invalid character: #{tenant_name.inspect}"
           end
 
-          sprintf(database, tenant: tenant_name)
+          path = sprintf(database, tenant: tenant_name)
+
+          if test_worker_id
+            test_worker_suffix = "_#{test_worker_id}"
+            if path.start_with?("file:") && path.include?("?")
+              path.sub!(/(\?.*)$/, "#{test_worker_suffix}\\1")
+            else
+              path += test_worker_suffix
+            end
+          end
+
+          path
         end
 
         def database_path_for(tenant_name)
@@ -24,8 +42,8 @@ module ActiveRecord
         end
 
         def tenants
-          glob = coerce_path(sprintf(database, tenant: "*"))
-          scanner = Regexp.new(coerce_path(sprintf(database, tenant: "(.+)")))
+          glob = database_path_for("*")
+          scanner = Regexp.new(database_path_for("(.+)"))
 
           Dir.glob(glob).map do |path|
             result = path.scan(scanner).flatten.first

@@ -37,6 +37,12 @@ describe ActiveRecord::Tenanted::DatabaseConfigurations do
           assert_equal("storage/db/tenanted/foo/main.sqlite3", config.database_path_for("foo"))
         end
 
+        test "parallel test workers have unique files" do
+          config.test_worker_id = 99
+
+          assert_equal("storage/db/tenanted/foo/main.sqlite3_99", config.database_path_for("foo"))
+        end
+
         test "raises if the tenant name contains a path separator" do
           assert_raises(ActiveRecord::Tenanted::BadTenantNameError) { config.database_path_for("foo/bar") }
         end
@@ -50,8 +56,23 @@ describe ActiveRecord::Tenanted::DatabaseConfigurations do
         test "returns all tenants" do
           Dir.chdir(dir) do
             [ "foo", "bar", "baz" ].each do |tenant|
-              FileUtils.mkdir_p("storage/db/tenanted/#{tenant}")
-              FileUtils.touch("storage/db/tenanted/#{tenant}/main.sqlite3")
+              path = config.database_path_for(tenant)
+              FileUtils.mkdir_p(File.dirname(path))
+              FileUtils.touch(path)
+            end
+
+            assert_equal(Set.new(config.tenants), Set.new([ "foo", "bar", "baz" ]))
+          end
+        end
+
+        test "parallel test worker returns all tenants" do
+          config.test_worker_id = 99
+
+          Dir.chdir(dir) do
+            [ "foo", "bar", "baz" ].each do |tenant|
+              path = config.database_path_for(tenant)
+              FileUtils.mkdir_p(File.dirname(path))
+              FileUtils.touch(path)
             end
 
             assert_equal(Set.new(config.tenants), Set.new([ "foo", "bar", "baz" ]))
@@ -68,15 +89,37 @@ describe ActiveRecord::Tenanted::DatabaseConfigurations do
           assert_equal("#{dir}/storage/db/tenanted/foo/main.sqlite3", config.database_path_for("foo"))
         end
 
+        test "parallel test workers have unique files" do
+          config.test_worker_id = 99
+
+          assert_equal("file:#{dir}/storage/db/tenanted/foo/main.sqlite3_99", config.database_for("foo"))
+          assert_equal("#{dir}/storage/db/tenanted/foo/main.sqlite3_99", config.database_path_for("foo"))
+        end
+
         test "returns all tenants" do
           Dir.chdir(dir) do
             [ "foo", "bar", "baz" ].each do |tenant|
-              FileUtils.mkdir_p("storage/db/tenanted/#{tenant}")
-              FileUtils.touch("storage/db/tenanted/#{tenant}/main.sqlite3")
+              path = config.database_path_for(tenant)
+              FileUtils.mkdir_p(File.dirname(path))
+              FileUtils.touch(path)
             end
           end
 
           assert_equal(Set.new(config.tenants), Set.new([ "foo", "bar", "baz" ]))
+        end
+
+        test "parallel test worker returns all tenants" do
+          config.test_worker_id = 99
+
+          Dir.chdir(dir) do
+            [ "foo", "bar", "baz" ].each do |tenant|
+              path = config.database_path_for(tenant)
+              FileUtils.mkdir_p(File.dirname(path))
+              FileUtils.touch(path)
+            end
+
+            assert_equal(Set.new(config.tenants), Set.new([ "foo", "bar", "baz" ]))
+          end
         end
       end
 
@@ -89,15 +132,37 @@ describe ActiveRecord::Tenanted::DatabaseConfigurations do
           assert_equal("#{dir}/storage/db/tenanted/foo/main.sqlite3", config.database_path_for("foo"))
         end
 
+        test "parallel test workers have unique files" do
+          config.test_worker_id = 99
+
+          assert_equal("file:#{dir}/storage/db/tenanted/foo/main.sqlite3_99?vfs=unix-dotfile", config.database_for("foo"))
+          assert_equal("#{dir}/storage/db/tenanted/foo/main.sqlite3_99", config.database_path_for("foo"))
+        end
+
         test "returns all tenants" do
           Dir.chdir(dir) do
             [ "foo", "bar", "baz" ].each do |tenant|
-              FileUtils.mkdir_p("storage/db/tenanted/#{tenant}")
-              FileUtils.touch("storage/db/tenanted/#{tenant}/main.sqlite3")
+              path = config.database_path_for(tenant)
+              FileUtils.mkdir_p(File.dirname(path))
+              FileUtils.touch(path)
             end
           end
 
           assert_equal(Set.new(config.tenants), Set.new([ "foo", "bar", "baz" ]))
+        end
+
+        test "parallel test worker returns all tenants" do
+          config.test_worker_id = 99
+
+          Dir.chdir(dir) do
+            [ "foo", "bar", "baz" ].each do |tenant|
+              path = config.database_path_for(tenant)
+              FileUtils.mkdir_p(File.dirname(path))
+              FileUtils.touch(path)
+            end
+
+            assert_equal(Set.new(config.tenants), Set.new([ "foo", "bar", "baz" ]))
+          end
         end
       end
 
@@ -110,11 +175,33 @@ describe ActiveRecord::Tenanted::DatabaseConfigurations do
           assert_equal("storage/db/tenanted/foo/main.sqlite3", config.database_path_for("foo"))
         end
 
+        test "parallel test workers have unique files" do
+          config.test_worker_id = 99
+
+          assert_equal("file:storage/db/tenanted/foo/main.sqlite3_99", config.database_for("foo"))
+          assert_equal("storage/db/tenanted/foo/main.sqlite3_99", config.database_path_for("foo"))
+        end
+
         test "returns all tenants" do
           Dir.chdir(dir) do
             [ "foo", "bar", "baz" ].each do |tenant|
-              FileUtils.mkdir_p("storage/db/tenanted/#{tenant}")
-              FileUtils.touch("storage/db/tenanted/#{tenant}/main.sqlite3")
+              path = config.database_path_for(tenant)
+              FileUtils.mkdir_p(File.dirname(path))
+              FileUtils.touch(path)
+            end
+
+            assert_equal(Set.new(config.tenants), Set.new([ "foo", "bar", "baz" ]))
+          end
+        end
+
+        test "parallel test worker returns all tenants" do
+          config.test_worker_id = 99
+
+          Dir.chdir(dir) do
+            [ "foo", "bar", "baz" ].each do |tenant|
+              path = config.database_path_for(tenant)
+              FileUtils.mkdir_p(File.dirname(path))
+              FileUtils.touch(path)
             end
 
             assert_equal(Set.new(config.tenants), Set.new([ "foo", "bar", "baz" ]))
@@ -131,11 +218,32 @@ describe ActiveRecord::Tenanted::DatabaseConfigurations do
           assert_equal("storage/db/tenanted/foo/main.sqlite3", config.database_path_for("foo"))
         end
 
+        test "parallel test workers have unique files" do
+          config.test_worker_id = 99
+
+          assert_equal("file:storage/db/tenanted/foo/main.sqlite3_99?vfs=unix-dotfile", config.database_for("foo"))
+          assert_equal("storage/db/tenanted/foo/main.sqlite3_99", config.database_path_for("foo"))
+        end
+
         test "returns all tenants" do
           Dir.chdir(dir) do
             [ "foo", "bar", "baz" ].each do |tenant|
               FileUtils.mkdir_p("storage/db/tenanted/#{tenant}")
               FileUtils.touch("storage/db/tenanted/#{tenant}/main.sqlite3")
+            end
+
+            assert_equal(Set.new(config.tenants), Set.new([ "foo", "bar", "baz" ]))
+          end
+        end
+
+        test "parallel test worker returns all tenants" do
+          config.test_worker_id = 99
+
+          Dir.chdir(dir) do
+            [ "foo", "bar", "baz" ].each do |tenant|
+              path = config.database_path_for(tenant)
+              FileUtils.mkdir_p(File.dirname(path))
+              FileUtils.touch(path)
             end
 
             assert_equal(Set.new(config.tenants), Set.new([ "foo", "bar", "baz" ]))

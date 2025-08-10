@@ -24,7 +24,7 @@ Documentation outline:
   - support and documentation for Solid Cache, Solid Queue, Solid Cable, and Turbo Rails
 - a Tenant is just a string that is used for:
   - the sqlite database filename (or perhaps the pg/mysql database name in the future)
-  - the subdomain (or path element)
+  - configuring either tenant-by-subdomain or a tenant-by-root-path-element
   - fragment cache disambiguation
   - global id disambiguation
   - invalid characters in a tenant name
@@ -73,9 +73,12 @@ Documentation outline:
     - `tenant_resolver`
     - `tenanted_rails_records`
     - `log_tenant_tag`
-  - demonstrate how to configure an app for subdomain tenants
+  - demonstrate how to configure an app with subdomain tenanting
     - app.config.hosts
-    - example TenantSelector
+    - example TenantSelector config
+  - demonstrate how to configure an app with root path tenanting
+    - app.config.hosts
+    - example TenantSelector config
 
 - migrations
   - create_tenant migrates the new database
@@ -251,7 +254,7 @@ TODO:
   - [x] tenanted_rails_records
 
 - additional configuration
-  - [ ] default_tenant (development only)
+  - [x] default_tenant (local only)
 
 
 ### Tenanting in your application

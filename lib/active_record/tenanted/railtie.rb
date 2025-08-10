@@ -46,6 +46,17 @@ module ActiveRecord
       # Defaults to false in development and test environments, and true in all other environments.
       config.active_record_tenanted.log_tenant_tag = !Rails.env.local?
 
+      # Set this to override the default tenant name used in development and test environments.
+      #
+      # This is the default tenant name used by database tasks and in the Rails console. In both
+      # cases, this can be overridden at runtime by setting the `ARTENANT` environment variable.
+      #
+      # Notably, it's also the tenant name used by the testing frameworks, so you may need to set
+      # this if you have application-specific constraints on tenant names.
+      #
+      # Defaults to "development-tenant" in development and "test-tenant" in test environments.
+      config.active_record_tenanted.default_tenant = Rails.env.local? ? "#{Rails.env}-tenant" : nil
+
       config.before_initialize do
         Rails.application.configure do
           if config.active_record_tenanted.connection_class.present?

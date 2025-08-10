@@ -8,21 +8,30 @@ module ActiveRecord
 
         prepended do
           if klass = ActiveRecord::Tenanted.connection_class
-            klass.current_tenant = "#{Rails.env}-tenant"
-            klass.destroy_tenant(klass.current_tenant)
-            klass.create_tenant(klass.current_tenant)
+            klass.current_tenant = Rails.application.config.active_record_tenanted.default_tenant
+            tenant_genesis(klass)
 
             parallelize_setup do |worker|
-              klass.current_tenant = "#{Rails.env}-tenant-#{worker}"
+              # free up the connection pool for the tenant name
               klass.destroy_tenant(klass.current_tenant)
-              klass.create_tenant(klass.current_tenant)
-            end
 
-            # clean up any non-default tenants left over from the last test run
-            klass.tenants.each do |tenant|
-              klass.destroy_tenant(tenant) unless tenant.start_with?("#{Rails.env}-tenant")
+              # destroy and create tenant databases for this worker's unique id
+              klass.tenanted_root_config.test_worker_id = worker
+              tenant_genesis(klass)
             end
           end
+        end
+
+        class_methods do
+          private
+            # Destroy any existing tenants from the last test run, and create a fresh tenant
+            # database for the current tenant.
+            #
+            # Yes, this is a Star Trek reference.
+            def tenant_genesis(klass)
+              klass.tenants.each { |tenant| klass.destroy_tenant(tenant) }
+              klass.create_tenant(klass.current_tenant)
+            end
         end
       end
 
@@ -77,7 +86,7 @@ module ActiveRecord
           # 2. having an open transaction will prevent the test from being able to destroy the tenant.
           is_non_default_tenant = (
             config.instance_of?(Tenanted::DatabaseConfigurations::TenantConfig) &&
-            !config.tenant.start_with?("#{Rails.env}-tenant")
+            config.tenant != Rails.application.config.active_record_tenanted.default_tenant.to_s
           )
 
           return false if is_root_config || is_non_default_tenant
