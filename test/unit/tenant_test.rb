@@ -731,6 +731,29 @@ describe ActiveRecord::Tenanted::Tenant do
   end
 
   describe "connection pools" do
+    with_scenario(:primary_named_db, :primary_record) do
+      test "handle race conditions when creating a new connection pool" do
+        TenantedApplicationRecord.create_tenant("foo") do
+          # force creation of a new connection pool later
+          TenantedApplicationRecord.remove_connection
+        end
+
+        success_log = Concurrent::Array.new
+
+        threads = 5.times.map do |j|
+          Thread.new do
+            TenantedApplicationRecord.with_tenant("foo") do
+              User.count
+              success_log << j
+            end
+          end
+        end
+        threads.each(&:join)
+
+        assert_equal(5, success_log.size)
+      end
+    end
+
     for_each_scenario do
       test "models should share connection pools" do
         TenantedApplicationRecord.create_tenant("foo") do
