@@ -58,6 +58,8 @@ module ActiveRecord
       # Active Record itself does not recognize `nil` as a valid shard value.
       UNTENANTED_SENTINEL = Object.new.freeze # :nodoc:
 
+      DB_CONFIG_CREATION_LOCK = Thread::Mutex.new
+
       class_methods do
         def tenanted?
           true
@@ -158,8 +160,18 @@ module ActiveRecord
             pool = retrieve_connection_pool(strict: false)
 
             if pool.nil?
-              _create_tenanted_pool(schema_version_check: schema_version_check)
-              pool = retrieve_connection_pool(strict: true)
+              # _create_tenanted_pool(schema_version_check: schema_version_check)
+              # pool = retrieve_connection_pool(strict: true)
+
+              # expensive locked operation to create the connection pool
+              DB_CONFIG_CREATION_LOCK.synchronize do
+                pool = retrieve_connection_pool(strict: false)
+
+                if pool.nil?
+                  _create_tenanted_pool(schema_version_check: schema_version_check)
+                  pool = retrieve_connection_pool(strict: true)
+                end
+              end
             end
 
             pool
