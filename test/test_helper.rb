@@ -91,14 +91,20 @@ module ActiveRecord
                                       db_path: db_path)
               db_config = YAML.load(db_config_yml)
 
+              FileUtils.mkdir(db_path)
+              FileUtils.cp_r Dir.glob(File.join(db_config_dir, "*migrations")), db_path
+
+              # Make sure that both the primary thread and any threads in the tests will have a
+              # fresh connection handler, otherwise threads may try to connect to a temporary
+              # database used in (and destroyed by) a previous test
+              @old_connection_handler = ActiveRecord::Base.connection_handler
+              ActiveRecord::Base.connection_handler = ActiveRecord::Base.default_connection_handler = ActiveRecord::ConnectionAdapters::ConnectionHandler.new
+
               @old_db_dir = ActiveRecord::Tasks::DatabaseTasks.db_dir
               ActiveRecord::Tasks::DatabaseTasks.db_dir = db_path
 
               @old_configurations = ActiveRecord::Base.configurations
               ActiveRecord::Base.configurations = db_config
-
-              FileUtils.mkdir(db_path)
-              FileUtils.cp_r Dir.glob(File.join(db_config_dir, "*migrations")), db_path
 
               @migration_verbose_was, ActiveRecord::Migration.verbose = ActiveRecord::Migration.verbose, false
               ActiveRecord::Tasks::DatabaseTasks.prepare_all
@@ -108,7 +114,7 @@ module ActiveRecord
               ActiveRecord::Migration.verbose = @migration_verbose_was
               ActiveRecord::Base.configurations = @old_configurations
               ActiveRecord::Tasks::DatabaseTasks.db_dir = @old_db_dir
-              ActiveRecord::Base.connection_handler = ActiveRecord::ConnectionAdapters::ConnectionHandler.new
+              ActiveRecord::Base.connection_handler = ActiveRecord::Base.default_connection_handler = @old_connection_handler
               FileUtils.remove_entry ephemeral_path
             end
 
