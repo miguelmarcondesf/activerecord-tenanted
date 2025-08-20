@@ -1,8 +1,6 @@
-require:
-  - rubocop-packaging
-
 plugins:
   - rubocop-minitest
+  - rubocop-packaging
   - rubocop-performance
   - rubocop-rails
   - rubocop-rake
@@ -10,7 +8,7 @@ plugins:
 AllCops:
   TargetRubyVersion: 3.2
   DisabledByDefault: true
-  SuggestExtensions: true
+  SuggestExtensions: false
   Exclude:
     # Don't rubocop generated files
     - test/dummy/**/*
