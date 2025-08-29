@@ -19,22 +19,16 @@ module ActiveRecord
 
         def database_for(tenant_name)
           tenant_name = tenant_name.to_s
-          if tenant_name.match?(%r{[/'"`]})
-            raise BadTenantNameError, "Tenant name contains an invalid character: #{tenant_name.inspect}"
-          end
+
+          validate_tenant_name(tenant_name)
 
           path = sprintf(database, tenant: tenant_name)
 
           if test_worker_id
-            test_worker_suffix = "_#{test_worker_id}"
-            if path.start_with?("file:") && path.include?("?")
-              path.sub!(/(\?.*)$/, "#{test_worker_suffix}\\1")
-            else
-              path += test_worker_suffix
-            end
+            test_worker_path(path)
+          else
+            path
           end
-
-          path
         end
 
         def database_path_for(tenant_name)
@@ -83,6 +77,22 @@ module ActiveRecord
               URI.parse(path.sub(/\?.*$/, "")).opaque
             else
               path
+            end
+          end
+
+          def validate_tenant_name(tenant_name)
+            if tenant_name.match?(%r{[/'"`]})
+              raise BadTenantNameError, "Tenant name contains an invalid character: #{tenant_name.inspect}"
+            end
+          end
+
+          def test_worker_path(path)
+            test_worker_suffix = "_#{test_worker_id}"
+
+            if path.start_with?("file:") && path.include?("?")
+              path.sub(/(\?.*)$/, "#{test_worker_suffix}\\1")
+            else
+              path + test_worker_suffix
             end
           end
       end

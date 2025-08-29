@@ -80,11 +80,11 @@ module ActiveRecord
         #
         # Rails defaults use_schema_cache_dump to true, but we explicitly re-set it here because if
         # this is ever turned off, Rails will not work as expected.
-        Rails.application.config.active_record.use_schema_cache_dump = true
+        config.active_record.use_schema_cache_dump = true
 
         # The schema cache version check needs to query the database, which isn't always possible
         # for tenanted models.
-        Rails.application.config.active_record.check_schema_cache_dump_version = false
+        config.active_record.check_schema_cache_dump_version = false
       end
 
       initializer "active_record_tenanted.monkey_patches" do

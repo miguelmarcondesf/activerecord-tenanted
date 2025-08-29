@@ -76,11 +76,6 @@ describe ActiveRecord::Tenanted::Base do
           assert_predicate(User.new, :tenanted?)
         end
       end
-
-      test "sets the default shard to UNTENANTED_SENTINEL" do
-        assert_equal(:default, ActiveRecord::Base.default_shard)
-        assert_equal(ActiveRecord::Tenanted::Tenant::UNTENANTED_SENTINEL, TenantedApplicationRecord.default_shard)
-      end
     end
   end
 

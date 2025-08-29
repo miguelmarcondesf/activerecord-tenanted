@@ -14,11 +14,7 @@ module ActiveRecord
       end
 
       def cache_key
-        if tenant
-          "#{super}?tenant=#{tenant}"
-        else
-          super
-        end
+        tenant ? "#{super}?tenant=#{tenant}" : super
       end
 
       def to_global_id(options = {})
@@ -57,9 +53,17 @@ module ActiveRecord
       # It's the default value returned by `current_shard` when the class is not tenanted. The
       # `current_tenant` method's job is to recognizes that sentinel value and return `nil`, because
       # Active Record itself does not recognize `nil` as a valid shard value.
-      UNTENANTED_SENTINEL = Object.new.freeze # :nodoc:
+      UNTENANTED_SENTINEL = Class.new do # :nodoc:
+        def inspect
+          "ActiveRecord::Tenanted::Tenant::UNTENANTED_SENTINEL"
+        end
 
-      DB_CONFIG_CREATION_LOCK = Thread::Mutex.new
+        def to_s
+          "(untenanted)"
+        end
+      end.new.freeze
+
+      CONNECTION_POOL_CREATION_LOCK = Thread::Mutex.new # :nodoc:
 
       class_methods do
         def tenanted?
@@ -161,11 +165,8 @@ module ActiveRecord
             pool = retrieve_connection_pool(strict: false)
 
             if pool.nil?
-              # _create_tenanted_pool(schema_version_check: schema_version_check)
-              # pool = retrieve_connection_pool(strict: true)
-
-              # expensive locked operation to create the connection pool
-              DB_CONFIG_CREATION_LOCK.synchronize do
+              CONNECTION_POOL_CREATION_LOCK.synchronize do
+                # re-check now that we have the lock
                 pool = retrieve_connection_pool(strict: false)
 
                 if pool.nil?
