@@ -165,11 +165,8 @@ module ActiveRecord
             pool = retrieve_connection_pool(strict: false)
 
             if pool.nil?
-              # _create_tenanted_pool(schema_version_check: schema_version_check)
-              # pool = retrieve_connection_pool(strict: true)
-
-              # expensive locked operation to create the connection pool
               CONNECTION_POOL_CREATION_LOCK.synchronize do
+                # re-check now that we have the lock
                 pool = retrieve_connection_pool(strict: false)
 
                 if pool.nil?
