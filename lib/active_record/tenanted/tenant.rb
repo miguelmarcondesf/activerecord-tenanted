@@ -14,11 +14,7 @@ module ActiveRecord
       end
 
       def cache_key
-        if tenant
-          "#{super}?tenant=#{tenant}"
-        else
-          super
-        end
+        tenant ? "#{super}?tenant=#{tenant}" : super
       end
 
       def to_global_id(options = {})
@@ -59,7 +55,7 @@ module ActiveRecord
       # Active Record itself does not recognize `nil` as a valid shard value.
       UNTENANTED_SENTINEL = Object.new.freeze # :nodoc:
 
-      DB_CONFIG_CREATION_LOCK = Thread::Mutex.new
+      CONNECTION_POOL_CREATION_LOCK = Thread::Mutex.new # :nodoc:
 
       class_methods do
         def tenanted?
@@ -165,7 +161,7 @@ module ActiveRecord
               # pool = retrieve_connection_pool(strict: true)
 
               # expensive locked operation to create the connection pool
-              DB_CONFIG_CREATION_LOCK.synchronize do
+              CONNECTION_POOL_CREATION_LOCK.synchronize do
                 pool = retrieve_connection_pool(strict: false)
 
                 if pool.nil?
