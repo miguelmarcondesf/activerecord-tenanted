@@ -225,26 +225,27 @@ module ActiveRecord
         end
       end
 
-      private def create_fake_record
-        # emulate models like ActiveStorage::Record that inherit directly from AR::Base
-        Object.const_set(:FakeRecord, Class.new(ActiveRecord::Base))
-      end
-
-      private def dummy_model_names
-        %w[TenantedApplicationRecord User Post SharedApplicationRecord Announcement FakeRecord]
-      end
-
-      private def clear_dummy_models
-        ActiveRecord.application_record_class = nil
-        dummy_model_names.each do |model_name|
-          Object.send(:remove_const, model_name) if Object.const_defined?(model_name)
+      private
+        def create_fake_record
+          # emulate models like ActiveStorage::Record that inherit directly from AR::Base
+          Object.const_set(:FakeRecord, Class.new(ActiveRecord::Base))
         end
-      end
 
-      private def clear_connected_to_stack
-        # definitely mucking with Rails private API here
-        ActiveSupport::IsolatedExecutionState[:active_record_connected_to_stack] = nil
-      end
+        def dummy_model_names
+          %w[TenantedApplicationRecord User Post SharedApplicationRecord Announcement FakeRecord]
+        end
+
+        def clear_dummy_models
+          ActiveRecord.application_record_class = nil
+          dummy_model_names.each do |model_name|
+            Object.send(:remove_const, model_name) if Object.const_defined?(model_name)
+          end
+        end
+
+        def clear_connected_to_stack
+          # definitely mucking with Rails private API here
+          ActiveSupport::IsolatedExecutionState[:active_record_connected_to_stack] = nil
+        end
     end
   end
 end
