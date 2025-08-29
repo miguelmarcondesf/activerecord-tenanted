@@ -32,20 +32,21 @@ module ActiveRecord
       alias to_gid to_global_id
       alias to_sgid to_signed_global_id
 
-      private def initialize_tenant_attribute
-        @tenant = self.class.current_tenant
-      end
-
-      private def ensure_tenant_context_safety
-        self_tenant = self.tenant
-        current_tenant = self.class.current_tenant
-
-        if self_tenant != current_tenant
-          raise WrongTenantError,
-                "#{self.class} model belongs to tenant #{self_tenant.inspect}, " \
-                "but current tenant is #{current_tenant.inspect}"
+      private
+        def initialize_tenant_attribute
+          @tenant = self.class.current_tenant
         end
-      end
+
+        def ensure_tenant_context_safety
+          self_tenant = self.tenant
+          current_tenant = self.class.current_tenant
+
+          if self_tenant != current_tenant
+            raise WrongTenantError,
+                  "#{self.class} model belongs to tenant #{self_tenant.inspect}, " \
+                  "but current tenant is #{current_tenant.inspect}"
+          end
+        end
     end
 
     module Tenant
@@ -208,20 +209,21 @@ module ActiveRecord
           pool
         end
 
-        private def retrieve_connection_pool(strict:)
-          connection_handler.retrieve_connection_pool(connection_specification_name,
-                                                      role: current_role,
-                                                      shard: current_tenant,
-                                                      strict: strict)
-        end
-
-        private def log_tenant_tag(tenant_name, &block)
-          if Rails.application.config.active_record_tenanted.log_tenant_tag
-            Rails.logger.tagged("tenant=#{tenant_name}", &block)
-          else
-            yield
+        private
+          def retrieve_connection_pool(strict:)
+            connection_handler.retrieve_connection_pool(connection_specification_name,
+                                                        role: current_role,
+                                                        shard: current_tenant,
+                                                        strict: strict)
           end
-        end
+
+          def log_tenant_tag(tenant_name, &block)
+            if Rails.application.config.active_record_tenanted.log_tenant_tag
+              Rails.logger.tagged("tenant=#{tenant_name}", &block)
+            else
+              yield
+            end
+          end
       end
 
       prepended do
