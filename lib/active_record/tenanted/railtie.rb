@@ -87,14 +87,14 @@ module ActiveRecord
         Rails.application.config.active_record.check_schema_cache_dump_version = false
       end
 
-      initializer "active_record-tenanted.monkey_patches" do
+      initializer "active_record_tenanted.monkey_patches" do
         ActiveSupport.on_load(:active_record) do
           prepend ActiveRecord::Tenanted::Patches::Attributes
           ActiveRecord::Tasks::DatabaseTasks.prepend ActiveRecord::Tenanted::Patches::DatabaseTasks
         end
       end
 
-      initializer "active_record-tenanted.active_job" do
+      initializer "active_record_tenanted.active_job" do
         ActiveSupport.on_load(:active_job) do
           prepend ActiveRecord::Tenanted::Job
         end
@@ -106,12 +106,12 @@ module ActiveRecord
         end
       end
 
-      initializer "active_record-tenanted.global_id", after: "global_id" do
+      initializer "active_record_tenanted.global_id", after: "global_id" do
         ::GlobalID.prepend ActiveRecord::Tenanted::GlobalId
         ::GlobalID::Locator.use GlobalID.app, ActiveRecord::Tenanted::GlobalId::Locator.new
       end
 
-      initializer "active_record-tenanted.active_storage", after: "active_storage.services" do
+      initializer "active_record_tenanted.active_storage", after: "active_storage.services" do
         # TODO: Add a hook for Disk Service. Without that, there's no good way to include this
         # module into the class before the service is initialized.
         # As a workaround, explicitly require this file.
@@ -119,19 +119,19 @@ module ActiveRecord
         ActiveStorage::Service::DiskService.prepend ActiveRecord::Tenanted::Storage::DiskService
       end
 
-      initializer "active_record-tenanted.active_storage_blob" do
+      initializer "active_record_tenanted.active_storage_blob" do
         ActiveSupport.on_load(:active_storage_blob) do
           prepend ActiveRecord::Tenanted::Storage::Blob
         end
       end
 
-      initializer "active_record-tenanted.active_record_connection_adapter" do
+      initializer "active_record_tenanted.active_record_connection_adapter" do
         ActiveSupport.on_load(:active_record) do
           ActiveRecord::ConnectionAdapters::AbstractAdapter.prepend ActiveRecord::Tenanted::ConnectionAdapter
         end
       end
 
-      initializer "active_record-tenanted.action_mailer" do
+      initializer "active_record_tenanted.action_mailer" do
         ActiveSupport.on_load(:action_mailer) do
           prepend ActiveRecord::Tenanted::Mailer
         end

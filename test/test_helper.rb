@@ -80,7 +80,7 @@ module ActiveRecord
           describe "scenario::#{db_scenario}" do
             @db_config_dir = db_config_dir = File.dirname(db_config_path)
 
-            let(:ephemeral_path) { Dir.mktmpdir("test-active_record-tenanted-") }
+            let(:ephemeral_path) { Dir.mktmpdir("test-activerecord-tenanted-") }
             let(:storage_path) { File.join(ephemeral_path, "storage") }
             let(:db_path) { File.join(ephemeral_path, "db") }
             let(:db_scenario) { db_scenario.to_sym }

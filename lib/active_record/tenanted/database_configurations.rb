@@ -49,7 +49,7 @@ module ActiveRecord
             result = path.scan(scanner).flatten.first
             if result.nil?
               warn "WARN: ActiveRecord::Tenanted: Cannot parse tenant name from filename #{path.inspect}. " \
-                   "This is a bug, please report it to https://github.com/basecamp/active_record-tenanted/issues"
+                   "This is a bug, please report it to https://github.com/basecamp/activerecord-tenanted/issues"
             end
             result
           end

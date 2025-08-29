@@ -3,12 +3,12 @@
 require_relative "lib/active_record/tenanted/version"
 
 Gem::Specification.new do |spec|
-  spec.name        = "active_record-tenanted"
+  spec.name        = "activerecord-tenanted"
   spec.version     = ActiveRecord::Tenanted::VERSION
   spec.authors     = [ "Mike Dalessio" ]
   spec.email       = [ "mike@37signals.com" ]
   spec.license     = "MIT"
-  spec.homepage    = "https://github.com/basecamp/active_record-tenanted"
+  spec.homepage    = "https://github.com/basecamp/activerecord-tenanted"
   spec.summary     = "Enable a Rails application to have separate databases for each tenant."
   spec.description = <<~TEXT
     Enable a Rails application to have separate databases for each tenant.
