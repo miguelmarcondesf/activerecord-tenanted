@@ -1,5 +1,5 @@
 
-# Contributing to active_record-tenanted
+# Contributing to activerecord-tenanted
 
 ## Getting up and running
 

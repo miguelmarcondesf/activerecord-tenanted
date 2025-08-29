@@ -45,7 +45,7 @@ end
 
 def run_scenario(scenario)
   # setup the test directory and cleanup
-  app_path = Dir.mktmpdir("active_record-tenanted-integration-test-")
+  app_path = Dir.mktmpdir("activerecord-tenanted-integration-test-")
   at_exit { FileUtils.remove_entry app_path } unless OPT_KEEP_DIR
   puts "Creating integration app for #{COLOR_FG_BLUE}#{scenario}#{COLOR_RESET} at #{app_path}"
 
