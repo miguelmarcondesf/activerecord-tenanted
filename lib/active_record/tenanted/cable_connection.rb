@@ -19,12 +19,12 @@ module ActiveRecord
 
         private
           def set_current_tenant
-            if tenant = tenant_resolver.call(request)
-              if connection_class.tenant_exist?(tenant)
-                self.current_tenant = tenant
-              else
-                reject_unauthorized_connection
-              end
+            return unless tenant = tenant_resolver.call(request)
+
+            if connection_class.tenant_exist?(tenant)
+              self.current_tenant = tenant
+            else
+              reject_unauthorized_connection
             end
           end
 
