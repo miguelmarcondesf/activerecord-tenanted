@@ -26,6 +26,21 @@ describe ActiveRecord::Tenanted::Tenant do
     end
   end
 
+  describe ".default_shard" do
+    test "UNTENANTED_SENTINEL is self-describing" do
+      assert_equal("ActiveRecord::Tenanted::Tenant::UNTENANTED_SENTINEL",
+                   ActiveRecord::Tenanted::Tenant::UNTENANTED_SENTINEL.inspect)
+      assert_equal("(untenanted)", ActiveRecord::Tenanted::Tenant::UNTENANTED_SENTINEL.to_s)
+    end
+
+    for_each_scenario do
+      test "sets the default shard to UNTENANTED_SENTINEL" do
+        assert_equal(:default, ActiveRecord::Base.default_shard)
+        assert_equal(ActiveRecord::Tenanted::Tenant::UNTENANTED_SENTINEL, TenantedApplicationRecord.default_shard)
+      end
+    end
+  end
+
   describe "no current tenant" do
     for_each_scenario do
       test "raise NoTenantError on database access if there is no current tenant" do

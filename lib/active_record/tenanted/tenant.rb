@@ -53,7 +53,15 @@ module ActiveRecord
       # It's the default value returned by `current_shard` when the class is not tenanted. The
       # `current_tenant` method's job is to recognizes that sentinel value and return `nil`, because
       # Active Record itself does not recognize `nil` as a valid shard value.
-      UNTENANTED_SENTINEL = Object.new.freeze # :nodoc:
+      UNTENANTED_SENTINEL = Class.new do # :nodoc:
+        def inspect
+          "ActiveRecord::Tenanted::Tenant::UNTENANTED_SENTINEL"
+        end
+
+        def to_s
+          "(untenanted)"
+        end
+      end.new.freeze
 
       CONNECTION_POOL_CREATION_LOCK = Thread::Mutex.new # :nodoc:
 
