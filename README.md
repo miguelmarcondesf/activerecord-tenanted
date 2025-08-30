@@ -34,9 +34,9 @@ Another guiding principle, though, is:
 
 - Developing a multi-tenant Rails app should be as easy as developing a single-tenant app.
 
-The hope is that you will rarely need to think about managing tenant isolation, and that as long as you're following Rails conventions, this gem and the framework will keep your tenants' data safe.
+Your code shouldn't have to know about tenanting! The hope is that you will rarely need to think about managing tenant isolation, and that as long as you're following Rails conventions, this gem and the framework will keep your tenants' data safe.
 
-This gem extends or integrates with Rack middleware, Action View Caching, Active Job, Action Cable, Active Storage, Action Mailbox, and Action Text to ensure that any data persisted or transmitted happens within an isolated tenant context — without developers having to think about it.
+This gem extends or integrates tightly with Rails to ensure that any data persisted or transmitted happens within an isolated tenant context — without developers having to think about it.
 
 
 ## Installation
@@ -46,6 +46,7 @@ Install the gem and add to the application's Gemfile by executing:
 ```bash
 bundle add activerecord-tenanted
 ```
+
 
 ## Usage
 
