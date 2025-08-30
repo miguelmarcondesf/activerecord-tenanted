@@ -448,6 +448,27 @@ describe ActiveRecord::Tenanted::Tenant do
   end
 
   describe ".create_tenant" do
+    with_scenario(:primary_named_db, :primary_record) do
+      describe "failed migration because database is readonly" do
+        setup do
+          db_config["test"]["tenanted"]["readonly"] = true
+          ActiveRecord::Base.configurations = db_config
+        end
+
+        it "block is not called, file is deleted, and exception is reraised" do
+          called = false
+
+          e = assert_raises(ActiveRecord::StatementInvalid) do
+            TenantedApplicationRecord.create_tenant("foo") { called = true }
+          end
+
+          assert_kind_of(SQLite3::Exception, e.cause)
+          assert_not(called)
+          assert_not(TenantedApplicationRecord.tenant_exist?("foo"))
+        end
+      end
+    end
+
     for_each_scenario do
       test "raises an exception if the tenant already exists" do
         TenantedApplicationRecord.create_tenant("foo")
