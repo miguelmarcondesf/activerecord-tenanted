@@ -120,6 +120,9 @@ module ActiveRecord
 
               created_db = true
             end
+          rescue
+            FileUtils.rm_f(database_path)
+            raise
           end
 
           raise TenantExistsError unless created_db || if_not_exists

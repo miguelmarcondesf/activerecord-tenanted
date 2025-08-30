@@ -84,13 +84,10 @@ module ActiveRecord
             let(:storage_path) { File.join(ephemeral_path, "storage") }
             let(:db_path) { File.join(ephemeral_path, "db") }
             let(:db_scenario) { db_scenario.to_sym }
+            let(:db_config_yml) { sprintf(File.read(db_config_path), storage: storage_path, db_path: db_path) }
+            let(:db_config) { YAML.load(db_config_yml) }
 
             setup do
-              db_config_yml = sprintf(File.read(db_config_path),
-                                      storage: storage_path,
-                                      db_path: db_path)
-              db_config = YAML.load(db_config_yml)
-
               FileUtils.mkdir(db_path)
               FileUtils.cp_r Dir.glob(File.join(db_config_dir, "*migrations")), db_path
 
