@@ -196,8 +196,11 @@ module ActiveRecord
       end
 
       def with_new_migration_file
-        FileUtils.cp "test/scenarios/20250213005959_add_age_to_users.rb",
-                     File.join(db_path, "tenanted_migrations")
+        with_migration("20250213005959_add_age_to_users.rb")
+      end
+
+      def with_migration(file)
+        FileUtils.cp File.join("test", "scenarios", file), File.join(db_path, "tenanted_migrations")
       end
 
       def assert_same_elements(expected, actual)

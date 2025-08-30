@@ -9,7 +9,6 @@ module ActiveRecord
       prepended do
         attr_reader :tenant
 
-        after_initialize :initialize_tenant_attribute
         before_save :ensure_tenant_context_safety
       end
 
@@ -25,19 +24,33 @@ module ActiveRecord
         super(options.merge(tenant: tenant))
       end
 
+      def association(name)
+        super.tap do |assoc|
+          if assoc.reflection.polymorphic? || assoc.reflection.klass.tenanted?
+            ensure_tenant_context_safety
+          end
+        end
+      end
+
       alias to_gid to_global_id
       alias to_sgid to_signed_global_id
 
       private
-        def initialize_tenant_attribute
+        # I would prefer to do this in an `after_initialize` callback, but some associations are
+        # created before those callbacks are invoked (for example, a `belongs_to` association) and
+        # we need to be able to ensure tenant context safety on all associations.
+        def init_internals
           @tenant = self.class.current_tenant
+          super
         end
 
         def ensure_tenant_context_safety
           self_tenant = self.tenant
           current_tenant = self.class.current_tenant
 
-          if self_tenant != current_tenant
+          if current_tenant.nil?
+            raise NoTenantError, "Cannot connect to a tenanted database while untenanted (#{self.class})"
+          elsif self_tenant != current_tenant
             raise WrongTenantError,
                   "#{self.class} model belongs to tenant #{self_tenant.inspect}, " \
                   "but current tenant is #{current_tenant.inspect}"
