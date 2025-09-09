@@ -137,6 +137,10 @@ module ActiveRecord
         end
       end
 
+      initializer "active_record_tenanted.action_dispatch", before: "action_dispatch.configure" do
+        config.action_dispatch.rescue_responses["ActiveRecord::Tenanted::TenantDoesNotExistError"] = :not_found
+      end
+
       config.after_initialize do
         if defined?(Rails::Console)
           require "rails/commands/console/irb_console"
