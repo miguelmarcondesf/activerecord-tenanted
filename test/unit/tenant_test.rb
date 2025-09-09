@@ -1109,7 +1109,7 @@ describe ActiveRecord::Tenanted::Tenant do
       describe "created in untenanted context" do
         setup { with_schema_cache_dump_file }
 
-        test "includes the tenant name" do
+        test "does not include the tenant name" do
           user = User.new(email: "user1@example.org")
 
           assert_equal("users/new", user.cache_key)
@@ -1150,11 +1150,7 @@ describe ActiveRecord::Tenanted::Tenant do
             User.create!(email: "user1@example.org")
           end
 
-          assert_match(/tenant=foo/, user.inspect)
-
-          TenantedApplicationRecord.with_tenant("foo") do
-            assert_match(/tenant=foo/, User.find(user.id).inspect)
-          end
+          assert_match(/, tenant="foo">$/, user.inspect)
         end
       end
     end

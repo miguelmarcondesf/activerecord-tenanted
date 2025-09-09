@@ -17,7 +17,7 @@ module ActiveRecord
       end
 
       def inspect
-        tenant ? super.sub(/>$/, " tenant=#{tenant}>") : super
+        tenant ? super.sub(/>$/, ", tenant=#{tenant.inspect}>") : super
       end
 
       def to_global_id(options = {})
