@@ -41,6 +41,14 @@ class TestActionDispatchIntegrationTest < ActionDispatch::IntegrationTest
     end
   end
 
+  test "middleware: to a nonexistent tenant domain" do
+    integration_session.host = "nonexistent-tenant.example.com"
+
+    get notes_url
+
+    assert_response :not_found
+  end
+
   test "middleware: creating a new tenant and requesting that domain" do
     note = ApplicationRecord.create_tenant("non-default-tenant") do
       Note.create!(title: "asdf", body: "Lorem ipsum.")

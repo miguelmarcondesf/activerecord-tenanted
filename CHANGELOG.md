@@ -5,6 +5,7 @@
 ### Added
 
 - `#inspect` on instances of tenanted models includes the tenant. #155, #161 @miguelmarcondesf @flavorjones
+- `TenantSelector` middleware no longer directly renders a 404. Instead, it configures ActionDispatch::ShowExceptions middlware and raises an appropriate exception. #167 @flavorjones
 
 
 ## 0.2.0 / 2025-09-04

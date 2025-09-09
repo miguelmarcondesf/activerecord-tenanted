@@ -41,13 +41,12 @@ describe ActiveRecord::Tenanted::TenantSelector do
     describe "when nonexistent tenant is resolved" do
       let(:resolver) { ->(request) { "does-not-exist" } }
 
-      test "returns 404" do
+      test "raises TenantDoesNotExistError" do
+        # Note that in production, this exception is handled by the ShowExceptions middleware, which
+        # will raise a 404. That behavior is covered by integration tests.
         selector = ActiveRecord::Tenanted::TenantSelector.new(fake_app)
 
-        response = selector.call(fake_env)
-
-        assert_nil(fake_app.env, "Rack app should not have been invoked")
-        assert_equal(404, response.first)
+        assert_raises(ActiveRecord::Tenanted::TenantDoesNotExistError) { selector.call(fake_env) }
       end
     end
 

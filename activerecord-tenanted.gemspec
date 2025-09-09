@@ -29,7 +29,5 @@ Gem::Specification.new do |spec|
   rails_requirement = ">= 8.1.alpha"
   spec.add_dependency "activerecord", rails_requirement
   spec.add_dependency "railties", rails_requirement
-
-  spec.add_dependency "rack-contrib", ">= 2.5.0"
   spec.add_dependency "zeitwerk"
 end

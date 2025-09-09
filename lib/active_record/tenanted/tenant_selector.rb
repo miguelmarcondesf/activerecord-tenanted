@@ -1,7 +1,5 @@
 # frozen_string_literal: true
 
-require "rack/contrib"
-
 module ActiveRecord
   module Tenanted
     #
@@ -34,8 +32,7 @@ module ActiveRecord
         elsif tenanted_class.tenant_exist?(tenant_name)
           tenanted_class.with_tenant(tenant_name) { @app.call(env) }
         else
-          Rails.logger.info("ActiveRecord::Tenanted::TenantSelector: Tenant not found: #{tenant_name.inspect}")
-          Rack::NotFound.new(Rails.root.join("public/404.html")).call(env)
+          raise ActiveRecord::Tenanted::TenantDoesNotExistError, "Tenant not found: #{tenant_name.inspect}"
         end
       end
 
