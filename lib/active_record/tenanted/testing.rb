@@ -73,9 +73,9 @@ module ActiveRecord
         def transactional_tests_for_pool?(pool)
           config = pool.db_config
 
-          # Prevent the tenanted RootConfig from creating transactional fixtures on an unnecessary
+          # Prevent the tenanted BaseConfig from creating transactional fixtures on an unnecessary
           # database, which would result in sporadic locking errors.
-          is_root_config = config.instance_of?(Tenanted::DatabaseConfigurations::RootConfig)
+          is_root_config = config.instance_of?(Tenanted::DatabaseConfigurations::BaseConfig)
 
           # Any tenanted database that isn't the default test fixture database should not be wrapped
           # in a transaction, for a couple of reasons:

@@ -165,7 +165,7 @@ module ActiveRecord
         end
 
         def tenants
-          # DatabaseConfigurations::RootConfig#tenants returns all tenants whose database files
+          # DatabaseConfigurations::BaseConfig#tenants returns all tenants whose database files
           # exist, but some of those may be getting initially migrated, so we perform an additional
           # filter on readiness with `tenant_exist?`.
           tenanted_root_config.tenants.select { |t| tenant_exist?(t) }
