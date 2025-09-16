@@ -20,7 +20,7 @@
   * [1.3 Concepts](#13-concepts)
   * [1.4 Prior Art](#14-prior-art)
 - [2. Application Configuration](#2-application-configuration)
-  * [2.1 With Default Options](#21-with-default-options)
+  * [2.1 The Default Configuration](#21-the-default-configuration)
   * [2.2 Configuring the Database](#22-configuring-the-database)
   * [2.3 Configuring the Connection Class](#23-configuring-the-connection-class)
   * [2.4 Configuring the Tenant Resolver](#24-configuring-the-tenant-resolver)
@@ -127,14 +127,22 @@ In early 2025, Julik Tarkhanov published a [tenanting implementation named "Shar
 
 ## 2. Application Configuration
 
-### 2.1 With Default Options
-
 This gem offers an "omakase" configuration that specifies:
 
-1. All models inheriting from `ApplicationRecord` will be tenanted
-2. The subdomain of the request will be used to determine the 
+1. All models inheriting from `ApplicationRecord` will be tenanted.
+2. The subdomain of the request will be used to determine the tenant context.
 
-To install this gem into an application with those defaults, first add the gem:
+These defaults can be overridden using the configuration options:
+
+- `config.active_record_tenanted.connection_class`
+- `config.active_record_tenanted.tenant_resolver`
+
+This gem also introduces behavior changes into Rails to accommodate tenanting. All of these behavior changes can be disabled by setting `config.active_record_tenanted.connection_class` to `nil`.
+
+
+### 2.1 The Default Configuration
+
+To install this gem into an application with the defaults, first add the gem:
 
 ``` diff
 --- a/Gemfile
@@ -193,7 +201,7 @@ ApplicationRecord.with_tenant("tenant-one") do
 end
 ```
 
-In this configuration, the `TenantSelector` middleware will automatically use the subdomain of a request to wrap request handling in a `with_tenant` block. A request to `tenant-one.example.com` will resolve a tenant `"tenant-one"`, and all code that runs in the application as part of request handling will automatically be in this context:
+And in this configuration, the `TenantSelector` middleware will automatically set the tenant context base on the request subdomain. A request to `tenant-one.example.com` will resolve to tenant ID `"tenant-one"`, and all code that runs in the application as part of request handling will automatically be in this context:
 
 ``` ruby
 class BooksController < ApplicationController
@@ -206,7 +214,7 @@ end
 
 ### 2.2 Configuring the Database
 
-By default, Active Record Tenanted will connect `ApplicationRecord` to tenanted shards based on the `primary` database.
+By default, Active Record Tenanted will connect `ApplicationRecord` to tenanted shards based on the `primary` database configuration.
 
 This can be overridden with an argument to `tenanted` with the name of the database. For example, if the `database.yml` file contained this configuration:
 
@@ -271,7 +279,7 @@ By default, Active Record Tenanted assumes that `ApplicationRecord` is the tenan
 config.active_record_tenanted.connection_class = "ApplicationRecord"
 ```
 
-Applications may override this to use any abstract connection for tenanting. For example, to connect some models to the "secondary" database in this configuration:
+Applications may override this to tenant a different abstract connection class. For example, to connect some models to the "secondary" database in this configuration:
 
 ``` yaml
 production:
@@ -287,11 +295,6 @@ production:
 A new abstract connection class could be defined and configured as follows:
 
 ``` ruby
-# configure Active Record Tenanted in an initializer
-Rails.application.configure do
-  config.active_record_tenanted.connection_class = "TenantedApplicationRecord"
-end
-
 # define the abstract connection class
 class TenantedApplicationRecord < ActiveRecord::Base
   self.abstract_class = true
@@ -300,6 +303,11 @@ end
 
 # concrete tenanted models inherit from TenantedApplicationRecord
 class User < TenantedApplicationRecord ; end
+
+# make sure the Rails integrations use the desired connection class
+Rails.application.configure do
+  config.active_record_tenanted.connection_class = "TenantedApplicationRecord"
+end
 ```
 
 
@@ -308,10 +316,16 @@ class User < TenantedApplicationRecord ; end
 Active Record Tenanted's default tenant resolver uses the request's subdomain:
 
 ``` ruby
+# Set this to a lambda that takes a request object and returns the tenant name. It's used by:
+#
+# - Action Dispatch middleware (Tenant Selector)
+# - Action Cable connections
+#
+# Defaults to the request subdomain.
 config.active_record_tenanted.tenant_resolver = ->(request) { request.subdomain }
 ```
 
-Applications may override this with more complex behavior as follows:
+Applications may override this with their own lambda that wraps more complex tenant resolution logic. For example:
 
 ``` ruby
 module TenantSlug
@@ -330,6 +344,7 @@ end
 
 TODO:
 
+- talk about connection_class and disabling integrations
 - `tenanted_rails_records`
 - `log_tenant_tag`
 - `default_tenant`
