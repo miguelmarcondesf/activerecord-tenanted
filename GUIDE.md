@@ -22,10 +22,11 @@
 - [2. Application Configuration](#2-application-configuration)
   * [2.1 The Default Configuration](#21-the-default-configuration)
   * [2.2 Configuring the Database](#22-configuring-the-database)
-  * [2.3 Configuring the Connection Class](#23-configuring-the-connection-class)
-  * [2.4 Configuring the Tenant Resolver](#24-configuring-the-tenant-resolver)
-  * [2.5 Other Tenant Configuration](#25-other-tenant-configuration)
-  * [2.6 Related Rails Configurations](#26-related-rails-configurations)
+  * [2.3 Configuring `max_connection_pools`](#23-configuring-max_connection_pools)
+  * [2.4 Configuring the Connection Class](#24-configuring-the-connection-class)
+  * [2.5 Configuring the Tenant Resolver](#25-configuring-the-tenant-resolver)
+  * [2.6 Other Tenant Configuration](#26-other-tenant-configuration)
+  * [2.7 Related Rails Configurations](#27-related-rails-configurations)
 - [Documentation "work in progress"](#documentation-work-in-progress)
   * [Active Record API](#active-record-api)
   * [Caching](#caching)
@@ -36,6 +37,7 @@
   * [ActionMailer](#actionmailer)
   * [ActionMailbox](#actionmailbox)
   * [Console](#console)
+  * [Metrics](#metrics)
 
 <!-- tocstop -->
 
@@ -258,8 +260,25 @@ class ApplicationRecord < ActiveRecord::Base
 end
 ```
 
+### 2.3 Configuring `max_connection_pools`
 
-### 2.3 Configuring the Connection Class
+By default, Active Record Tenanted will cap the number of tenanted connection pools to 50. Setting a limit on the number of "live" connection pools at any one time provides control over the number of file descriptors used for database connections. For SQLite databases, it's also an important control on the amount of memory used.
+
+The cap on the number of connection pools is configurable in `config/database.yml` by setting a `max_connection_pools` parameter:
+
+``` yaml
+production:
+  primary:
+    adapter: sqlite3
+    database: "storage/tenants/%{tenant}/main.sqlite3"
+    tenanted: true
+    max_connection_pools: 20
+```
+
+Active Record Tenanted will reap the least-recently-used connection pools when this limit is surpassed. Developers are encouraged to tune this parameter with care, since setting it too low may lead to increased request latency due to frequently re-establishing database connections, while setting it too high may consume precious file descriptors and memory resources.
+
+
+### 2.4 Configuring the Connection Class
 
 By default, Active Record Tenanted assumes that `ApplicationRecord` is the tenanted abstract base class:
 
@@ -311,7 +330,7 @@ end
 ```
 
 
-### 2.4 Configuring the Tenant Resolver
+### 2.5 Configuring the Tenant Resolver
 
 Active Record Tenanted's default tenant resolver uses the request's subdomain:
 
@@ -340,7 +359,7 @@ Rails.application.configure do
 end
 ```
 
-### 2.5 Other Tenant Configuration
+### 2.6 Other Tenant Configuration
 
 TODO:
 
@@ -350,7 +369,7 @@ TODO:
 - `default_tenant`
 
 
-### 2.6 Related Rails Configurations
+### 2.7 Related Rails Configurations
 
 TODO:
 
@@ -538,9 +557,7 @@ TODO:
       - relevant issue/pull-request https://github.com/rails/rails/pull/53893
 
 - pruning connections and connection pools
-  - [ ] look into whether the proposed Reaper changes will allow us to set appropriate connection min/max/timeouts
-    - and if not, figure out how to prune unused/timed-out connections
-  - [ ] we should also look into how to cap the number of connection pools, and prune them
+  - [x] look into how to cap the number of connection pools, and prune them
 
 - integration test coverage
   - [x] connection_class
@@ -754,3 +771,14 @@ Documentation outline:
 
 - explain the concept of a "default tenant"
 - explain usage of the `ARTENANT` environment variable to control startup
+
+
+### Metrics
+
+Some places we should add instrumentation:
+
+- Creating a new tenant database
+- Migrating a tenant database
+- Destroying a tenant database
+- Creating a tenanted connection pool
+- Reaping a tenanted connection pool
