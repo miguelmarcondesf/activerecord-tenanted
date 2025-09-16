@@ -57,6 +57,12 @@ module ActiveRecord
       # Defaults to "development-tenant" in development and "test-tenant" in test environments.
       config.active_record_tenanted.default_tenant = Rails.env.local? ? "#{Rails.env}-tenant" : nil
 
+      config.before_configuration do
+        ActiveSupport.on_load(:active_record_database_configurations) do
+          ActiveRecord::Tenanted::DatabaseConfigurations.register_db_config_handler
+        end
+      end
+
       config.before_initialize do
         Rails.application.configure do
           if config.active_record_tenanted.connection_class.present?

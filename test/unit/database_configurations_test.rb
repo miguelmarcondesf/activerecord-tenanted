@@ -8,26 +8,26 @@ describe ActiveRecord::Tenanted::DatabaseConfigurations do
 
   describe Rails do
     with_scenario(:primary_named_db, :primary_record) do
-      test "instantiates a RootConfig for the tenanted database" do
+      test "instantiates a BaseConfig for the tenanted database" do
         assert_equal(
           {
-            "tenanted" => ActiveRecord::Tenanted::DatabaseConfigurations::RootConfig,
+            "tenanted" => ActiveRecord::Tenanted::DatabaseConfigurations::BaseConfig,
             "shared" => ActiveRecord::DatabaseConfigurations::HashConfig,
           },
           all_configs.each_with_object({}) { |c, h| h[c.name] = c.class }
         )
       end
 
-      test "the RootConfig has tasks turned off by default" do
+      test "the BaseConfig has tasks turned off by default" do
         assert_not tenanted_config.database_tasks?
       end
     end
   end
 
-  describe "RootConfig" do
+  describe "BaseConfig" do
     describe ".database_path_for and .tenants" do
       let(:config_hash) { { adapter: "sqlite3", database: database } }
-      let(:config) { ActiveRecord::Tenanted::DatabaseConfigurations::RootConfig.new("test", "foo", config_hash) }
+      let(:config) { ActiveRecord::Tenanted::DatabaseConfigurations::BaseConfig.new("test", "foo", config_hash) }
 
       describe "file path" do
         let(:dir) { Dir.mktmpdir("database-path-for-tenants") }

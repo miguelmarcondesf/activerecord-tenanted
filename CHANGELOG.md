@@ -1,5 +1,11 @@
 # `activerecord-tenanted` Changelog
 
+## next / unreleased
+
+- Rename `ActiveRecord::Tenanted::DatabaseConfigurations::RootConfig` to `BaseConfig`.
+- Call `ActiveRecord::DatabaseConfigurations.register_db_config_handler` from the railtie.
+
+
 ## 0.3.0 / 2025-09-09
 
 ### Improved
