@@ -4,6 +4,8 @@ module ActiveRecord
   module Tenanted
     module DatabaseConfigurations
       class BaseConfig < ActiveRecord::DatabaseConfigurations::HashConfig
+        DEFAULT_MAX_CONNECTION_POOLS = 50
+
         attr_accessor :test_worker_id
 
         def initialize(...)
@@ -63,6 +65,10 @@ module ActiveRecord
                                "If you have a model that inherits directly from ActiveRecord::Base, " \
                                "make sure to use 'subtenant_of'. In development, you may see this error " \
                                "if constant reloading is not being done properly."
+        end
+
+        def max_connection_pools
+          (configuration_hash[:max_connection_pools] || DEFAULT_MAX_CONNECTION_POOLS).to_i
         end
 
         private

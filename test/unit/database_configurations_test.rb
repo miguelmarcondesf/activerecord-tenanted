@@ -25,7 +25,7 @@ describe ActiveRecord::Tenanted::DatabaseConfigurations do
   end
 
   describe "BaseConfig" do
-    describe ".database_path_for and .tenants" do
+    describe "database_path_for and tenants" do
       let(:config_hash) { { adapter: "sqlite3", database: database } }
       let(:config) { ActiveRecord::Tenanted::DatabaseConfigurations::BaseConfig.new("test", "foo", config_hash) }
 
@@ -249,6 +249,22 @@ describe ActiveRecord::Tenanted::DatabaseConfigurations do
             assert_equal(Set.new(config.tenants), Set.new([ "foo", "bar", "baz" ]))
           end
         end
+      end
+    end
+
+    describe "max_connection_pools" do
+      it "defaults to 50" do
+        config_hash = { adapter: "sqlite3", database: "database" }
+        config = ActiveRecord::Tenanted::DatabaseConfigurations::BaseConfig.new("test", "foo", config_hash)
+
+        assert_equal(50, config.max_connection_pools)
+      end
+
+      it "can be set in the config" do
+        config_hash = { adapter: "sqlite3", database: "database", max_connection_pools: 99 }
+        config = ActiveRecord::Tenanted::DatabaseConfigurations::BaseConfig.new("test", "foo", config_hash)
+
+        assert_equal(99, config.max_connection_pools)
       end
     end
 
