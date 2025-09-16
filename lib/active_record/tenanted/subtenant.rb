@@ -12,8 +12,7 @@ module ActiveRecord
 
         def tenanted_subtenant_of
           # TODO: cache this / speed this up
-          # but note that we should constantize as late as possible to avoid load order issues
-          klass = @tenanted_subtenant_of&.constantize || superclass.tenanted_subtenant_of
+          klass = tenanted_subtenant_of_klass_name&.constantize
 
           raise Error, "Class #{klass} is not tenanted" unless klass.tenanted?
           raise Error, "Class #{klass} is not a connection class" unless klass.abstract_class?
@@ -26,6 +25,8 @@ module ActiveRecord
 
       prepended do
         prepend TenantCommon
+
+        cattr_accessor :tenanted_subtenant_of_klass_name
       end
 
       def tenanted?

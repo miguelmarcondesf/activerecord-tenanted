@@ -8,9 +8,6 @@ module ActiveRecord
       class_methods do
         def initialize(...)
           super
-
-          @tenanted_config_name = nil
-          @tenanted_subtenant_of = nil
         end
 
         def tenanted(config_name = "primary")
@@ -20,7 +17,7 @@ module ActiveRecord
           prepend Tenant
 
           self.connection_class = true
-          @tenanted_config_name = config_name
+          self.tenanted_config_name = config_name
 
           unless tenanted_root_config.configuration_hash[:tenanted]
             raise Error, "The '#{tenanted_config_name}' database is not configured as tenanted."
@@ -30,7 +27,7 @@ module ActiveRecord
         def subtenant_of(class_name)
           prepend Subtenant
 
-          @tenanted_subtenant_of = class_name
+          self.tenanted_subtenant_of_klass_name = class_name
         end
 
         def tenanted?
