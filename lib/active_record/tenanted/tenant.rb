@@ -206,10 +206,6 @@ module ActiveRecord
           ActiveRecord::Base.configurations.resolve(tenanted_config_name.to_sym)
         end
 
-        def tenanted_config_name # :nodoc:
-          @tenanted_config_name ||= (superclass.respond_to?(:tenanted_config_name) ? superclass.tenanted_config_name : nil)
-        end
-
         def _create_tenanted_pool(schema_version_check: true) # :nodoc:
           # ensure all classes use the same connection pool
           return superclass._create_tenanted_pool unless connection_class?
@@ -251,6 +247,8 @@ module ActiveRecord
         self.default_shard = ActiveRecord::Tenanted::Tenant::UNTENANTED_SENTINEL
 
         prepend TenantCommon
+
+        cattr_accessor :tenanted_config_name
       end
 
       def tenanted?
