@@ -228,10 +228,24 @@ module ActiveRecord
 
         private
           def retrieve_connection_pool(strict:)
-            connection_handler.retrieve_connection_pool(connection_specification_name,
-                                                        role: current_role,
-                                                        shard: current_tenant,
-                                                        strict: strict)
+            role = current_role
+            shard = current_tenant
+            connection_handler.retrieve_connection_pool(connection_specification_name, role:, shard:, strict:).tap do |pool|
+              if pool
+                tenanted_connection_pools[[ shard, role ]] = pool
+                reap_connection_pools
+              end
+            end
+          end
+
+          def reap_connection_pools
+            while tenanted_connection_pools.size > tenanted_root_config.max_connection_pools
+              info, _ = *tenanted_connection_pools.pop
+              shard, role = *info
+
+              connection_handler.remove_connection_pool(connection_specification_name, role:, shard:)
+              Rails.logger.info "  REAPED [tenant=#{shard} role=#{role}] Tenanted connection pool reaped to limit total connection pools"
+            end
           end
 
           def log_tenant_tag(tenant_name, &block)
@@ -249,6 +263,7 @@ module ActiveRecord
         prepend TenantCommon
 
         cattr_accessor :tenanted_config_name
+        cattr_accessor(:tenanted_connection_pools) { LRU.new }
       end
 
       def tenanted?

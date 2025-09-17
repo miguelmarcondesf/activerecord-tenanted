@@ -925,6 +925,50 @@ describe ActiveRecord::Tenanted::Tenant do
 
         assert_equal(5, success_log.size)
       end
+
+      test "connection pools are reaped when they exceed the max" do
+        max = ActiveRecord::Tenanted::DatabaseConfigurations::BaseConfig::DEFAULT_MAX_CONNECTION_POOLS
+
+        assert_equal 0, TenantedApplicationRecord.tenanted_connection_pools.size
+
+        (1..max).each { |j| TenantedApplicationRecord.create_tenant("tenant#{j}") { User.count } }
+
+        assert_equal max, TenantedApplicationRecord.tenanted_connection_pools.size
+        assert TenantedApplicationRecord.tenanted_connection_pools.keys.include?([ "tenant1", :writing ])
+        assert TenantedApplicationRecord.tenanted_connection_pools.keys.include?([ "tenant2", :writing ])
+        assert TenantedApplicationRecord.tenanted_connection_pools.keys.include?([ "tenant3", :writing ])
+
+        tenant_pools = TenantedApplicationRecord.connection_handler.connection_pools
+                         .select { |pool| pool.shard =~ /^tenant/ }
+        assert_equal max, tenant_pools.size
+
+        TenantedApplicationRecord.create_tenant "tenant-wafer-thin-mint" do
+          User.count
+
+          assert_equal max, TenantedApplicationRecord.tenanted_connection_pools.size
+          assert_not TenantedApplicationRecord.tenanted_connection_pools.keys.include?([ "tenant1", :writing ])
+          assert TenantedApplicationRecord.tenanted_connection_pools.keys.include?([ "tenant2", :writing ])
+          assert TenantedApplicationRecord.tenanted_connection_pools.keys.include?([ "tenant3", :writing ])
+
+          tenant_pools = TenantedApplicationRecord.connection_handler.connection_pools
+                           .select { |pool| pool.shard =~ /^tenant/ }
+          assert_equal max, tenant_pools.size
+        end
+
+        TenantedApplicationRecord.with_tenant("tenant2") { User.count } # so it's no longer the oldest
+
+        TenantedApplicationRecord.create_tenant "tenant-the-cheque-monsieur" do
+          User.count
+
+          assert_equal max, TenantedApplicationRecord.tenanted_connection_pools.size
+          assert TenantedApplicationRecord.tenanted_connection_pools.keys.include?([ "tenant2", :writing ])
+          assert_not TenantedApplicationRecord.tenanted_connection_pools.keys.include?([ "tenant3", :writing ])
+
+          tenant_pools = TenantedApplicationRecord.connection_handler.connection_pools
+                           .select { |pool| pool.shard =~ /^tenant/ }
+          assert_equal max, tenant_pools.size
+        end
+      end
     end
 
     for_each_scenario do
