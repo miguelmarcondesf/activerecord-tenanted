@@ -102,7 +102,7 @@ GIT
 PATH
   remote: .
   specs:
-    activerecord-tenanted (0.3.0)
+    activerecord-tenanted (0.4.0)
       activerecord (>= 8.1.beta)
       railties (>= 8.1.beta)
       zeitwerk

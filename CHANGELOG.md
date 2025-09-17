@@ -1,9 +1,17 @@
 # `activerecord-tenanted` Changelog
 
-## next / unreleased
+## 0.4.0 / 2025-09-17
 
-- Rename `ActiveRecord::Tenanted::DatabaseConfigurations::RootConfig` to `BaseConfig`.
-- Call `ActiveRecord::DatabaseConfigurations.register_db_config_handler` from the railtie.
+### Added
+
+- Introduce `max_connection_pools` database configuration to limit the number of tenanted databases with open connections. Pools are reaped in least-recently-used order. #182 @flavorjones
+- Documentation: Improved `GUIDE.md`. @flavorjones
+
+
+### Changed
+
+- Rename `ActiveRecord::Tenanted::DatabaseConfigurations::RootConfig` to `BaseConfig`. @flavorjones
+- Rails dependency bumped to `>= 8.1.beta` #172 @andrewmarkle
 
 
 ## 0.3.0 / 2025-09-09
