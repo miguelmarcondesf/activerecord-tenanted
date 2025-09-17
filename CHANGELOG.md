@@ -1,6 +1,11 @@
 # `activerecord-tenanted` Changelog
 
-## 0.4.0 / 2025-09-17
+## v0.4.1 / 2025-09-17
+
+No functional changes from v0.4.0.
+
+
+## v0.4.0 / 2025-09-17
 
 ### Added
 
@@ -14,7 +19,7 @@
 - Rails dependency bumped to `>= 8.1.beta` #172 @andrewmarkle
 
 
-## 0.3.0 / 2025-09-09
+## v0.3.0 / 2025-09-09
 
 ### Improved
 
@@ -22,11 +27,11 @@
 - `TenantSelector` middleware no longer directly renders a 404. Instead, it configures ActionDispatch::ShowExceptions middlware and raises an appropriate exception. #167 @flavorjones
 
 
-## 0.2.0 / 2025-09-04
+## v0.2.0 / 2025-09-04
 
 First release.
 
 
-## 0.1.0
+## v0.1.0
 
 Empty gem file to claim the name.
