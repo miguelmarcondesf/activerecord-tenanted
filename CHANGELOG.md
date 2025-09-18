@@ -2,6 +2,11 @@
 
 ## next / unreleased
 
+### Changed
+
+- Format changed for `cache_key` from `users/1?tenant=foo` to `foo/users/1`. #187 @miguelmarcondesf
+
+
 ### Improved
 
 - For tenanted model instances, `#inspect` now outputs the tenant attribute first, before the column attributes. #191 @lairtonmendes
