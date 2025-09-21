@@ -17,7 +17,9 @@ module ActiveRecord
       end
 
       def inspect
-        tenant ? super.sub(/>$/, ", tenant=#{tenant.inspect}>") : super
+        return super unless tenant
+
+        super.sub(/\A#<\S+ /, "\\0tenant: #{tenant.inspect}, ")
       end
 
       def to_global_id(options = {})
