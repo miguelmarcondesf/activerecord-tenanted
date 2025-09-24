@@ -1194,7 +1194,7 @@ describe ActiveRecord::Tenanted::Tenant do
             User.create!(email: "user1@example.org")
           end
 
-          assert_match(/, tenant="foo">$/, user.inspect)
+          assert_match(/\A#<User tenant: "foo", id:/, user.inspect)
         end
       end
     end
