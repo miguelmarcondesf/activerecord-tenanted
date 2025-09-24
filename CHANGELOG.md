@@ -1,5 +1,12 @@
 # `activerecord-tenanted` Changelog
 
+## next / unreleased
+
+### Improved
+
+- For tenanted model instances, `#inspect` now outputs the tenant attribute first, before the column attributes. #191 @lairtonmendes
+
+
 ## v0.4.1 / 2025-09-17
 
 No functional changes from v0.4.0.
