@@ -7,8 +7,11 @@ gemspec
 group :development do
   gem "rails", github: "rails/rails", branch: "main"
   gem "sqlite3", "2.7.3"
-  gem "debug", "1.11.0"
   gem "minitest-parallel_fork", "2.1.0"
+end
+
+group :test, :development do
+  gem "debug", "1.11.0"
 end
 
 group :rubocop do
