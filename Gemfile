@@ -6,7 +6,7 @@ gemspec
 
 group :development do
   gem "rails", github: "rails/rails", branch: "main"
-  gem "sqlite3", "2.7.3"
+  gem "sqlite3", "2.7.4"
   gem "minitest-parallel_fork", "2.1.0"
 end
 
