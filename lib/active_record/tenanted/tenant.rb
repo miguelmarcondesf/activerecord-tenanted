@@ -13,7 +13,7 @@ module ActiveRecord
       end
 
       def cache_key
-        tenant ? "#{super}?tenant=#{tenant}" : super
+        tenant ? "#{tenant}/#{super}" : super
       end
 
       def inspect
