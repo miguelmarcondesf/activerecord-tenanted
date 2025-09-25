@@ -4,7 +4,7 @@
 
 ### Changed
 
-- Format changed for `cache_key` from `users/1?tenant=foo` to `foo/users/1`. #187 @miguelmarcondesf
+- The return value from an Active Record model `#cache_key` has changed from `users/1?tenant=foo` to `foo/users/1`. For existing applications, this will invalidate any relevant cache entries. #187 @miguelmarcondesf
 
 
 ### Improved
