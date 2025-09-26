@@ -47,26 +47,13 @@ module ActiveRecord
           end
         end
 
-        def acquire_lock(lock_identifier, timeout: 10, &block)
-          # Use file-based locking for SQLite
+        def acquire_lock(lock_identifier, &block)
           ActiveRecord::Tenanted::Mutex::Ready.lock(lock_identifier, &block)
         end
 
         def validate_tenant_name(tenant_name)
           if tenant_name.match?(%r{[/'"`]})
             raise BadTenantNameError, "Tenant name contains an invalid character: #{tenant_name.inspect}"
-          end
-        end
-
-        def coerce_database_path(database_string)
-          # Handle SQLite URI formats
-          # See https://sqlite.org/uri.html
-          if database_string.start_with?("file:/")
-            URI.parse(database_string).path
-          elsif database_string.start_with?("file:")
-            URI.parse(database_string.sub(/\?.*$/, "")).opaque
-          else
-            database_string
           end
         end
 
