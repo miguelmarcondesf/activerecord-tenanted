@@ -16,12 +16,12 @@ module ActiveRecord
           adapter_for(db_config).drop_database
         end
 
-        def database_exists?(db_config)
-          adapter_for(db_config).database_exists?
+        def database_exists?(db_config, arguments = {})
+          adapter_for(db_config).database_exists?(arguments)
         end
 
-        def acquire_lock(db_config, lock_identifier, &block)
-          adapter_for(db_config).acquire_lock(lock_identifier, &block)
+        def acquire_lock(db_config, &block)
+          adapter_for(db_config).acquire_lock(db_config, &block)
         end
 
         def list_tenant_databases(db_config)
