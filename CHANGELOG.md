@@ -10,6 +10,7 @@
 ### Improved
 
 - For tenanted model instances, `#inspect` now outputs the tenant attribute first, before the column attributes. #191 @lairtonmendes
+- The `debug` gem is now available during testing. #200 @andrewmarkle
 
 
 ## v0.4.1 / 2025-09-17
