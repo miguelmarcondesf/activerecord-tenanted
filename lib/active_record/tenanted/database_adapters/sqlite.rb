@@ -29,7 +29,7 @@ module ActiveRecord
           FileUtils.rm_f("#{database_path}-shm")  # Shared Memory file
         end
 
-        def database_exists?(arguments = {})
+        def database_exist?(arguments = {})
           database_path = get_database_path(db_config)
 
           if arguments.dig(:skip_lock) == true
