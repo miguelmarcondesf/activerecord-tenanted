@@ -2,9 +2,15 @@
 
 ## next / unreleased
 
+### Changed
+
+- The return value from an Active Record model `#cache_key` has changed from `users/1?tenant=foo` to `foo/users/1`. For existing applications, this will invalidate any relevant cache entries. #187 @miguelmarcondesf
+
+
 ### Improved
 
 - For tenanted model instances, `#inspect` now outputs the tenant attribute first, before the column attributes. #191 @lairtonmendes
+- The `debug` gem is now available during testing. #200 @andrewmarkle
 
 
 ## v0.4.1 / 2025-09-17
