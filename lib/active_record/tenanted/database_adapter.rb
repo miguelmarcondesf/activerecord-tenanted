@@ -2,7 +2,7 @@
 
 module ActiveRecord
   module Tenanted
-    class DatabaseAdapter
+    class DatabaseAdapter # :nodoc:
       ADAPTERS = {
         "sqlite3" => "ActiveRecord::Tenanted::DatabaseAdapters::SQLite",
       }.freeze
@@ -20,8 +20,8 @@ module ActiveRecord
           adapter_for(db_config).database_exist?(arguments)
         end
 
-        def acquire_lock(db_config, &block)
-          adapter_for(db_config).acquire_lock(db_config, &block)
+        def acquire_ready_lock(db_config, &block)
+          adapter_for(db_config).acquire_ready_lock(db_config, &block)
         end
 
         def list_tenant_databases(db_config)

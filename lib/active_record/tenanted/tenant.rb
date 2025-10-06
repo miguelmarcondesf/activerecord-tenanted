@@ -123,7 +123,7 @@ module ActiveRecord
           created_db = false
           db_config = tenanted_root_config.new_tenant_config(tenant_name)
 
-          ActiveRecord::Tenanted::DatabaseAdapter.acquire_lock(db_config) do
+          ActiveRecord::Tenanted::DatabaseAdapter.acquire_ready_lock(db_config) do
             unless ActiveRecord::Tenanted::DatabaseAdapter.database_exist?(db_config, skip_lock: true)
 
               ActiveRecord::Tenanted::DatabaseAdapter.create_database(db_config)

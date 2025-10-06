@@ -44,12 +44,12 @@ describe ActiveRecord::Tenanted::DatabaseAdapter do
         assert_mock adapter_mock
       end
 
-      test ".database_exists? calls adapter's #database_exists?" do
+      test ".database_exist? calls adapter's #database_exist?" do
         adapter_mock = Minitest::Mock.new
-        adapter_mock.expect(:database_exists?, true, [ {} ])
+        adapter_mock.expect(:database_exist?, true, [ {} ])
 
         result = adapter_class_name.constantize.stub(:new, adapter_mock) do
-          ActiveRecord::Tenanted::DatabaseAdapter.database_exists?(create_config(adapter), {})
+          ActiveRecord::Tenanted::DatabaseAdapter.database_exist?(create_config(adapter), {})
         end
 
         assert_equal true, result
@@ -79,15 +79,15 @@ describe ActiveRecord::Tenanted::DatabaseAdapter do
         assert_mock adapter_mock
       end
 
-      test ".acquire_lock calls adapter's #acquire_lock" do
+      test ".acquire_ready_lock calls adapter's #acquire_ready_lock" do
         fake_adapter = Object.new
-        fake_adapter.define_singleton_method(:acquire_lock) do |id, &blk|
+        fake_adapter.define_singleton_method(:acquire_ready_lock) do |id, &blk|
           blk&.call
         end
 
         yielded = false
         result = adapter_class_name.constantize.stub(:new, fake_adapter) do
-          ActiveRecord::Tenanted::DatabaseAdapter.acquire_lock(create_config(adapter)) { yielded = true; :ok }
+          ActiveRecord::Tenanted::DatabaseAdapter.acquire_ready_lock(create_config(adapter)) { yielded = true; :ok }
         end
 
         assert_equal true, yielded

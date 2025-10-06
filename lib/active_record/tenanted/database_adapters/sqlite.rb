@@ -3,10 +3,9 @@
 module ActiveRecord
   module Tenanted
     module DatabaseAdapters
-      class SQLite
+      class SQLite # :nodoc:
         def initialize(db_config)
           @db_config = db_config
-          @configuration_hash = db_config.configuration_hash
         end
 
         def create_database
@@ -52,7 +51,7 @@ module ActiveRecord
           end
         end
 
-        def acquire_lock(db_config, &block)
+        def acquire_ready_lock(db_config, &block)
           ActiveRecord::Tenanted::Mutex::Ready.lock(get_database_path(db_config), &block)
         end
 
@@ -63,7 +62,7 @@ module ActiveRecord
         end
 
         private
-          attr_reader :db_config, :db_configuration_hash
+          attr_reader :db_config
 
           def get_database_path(db_config)
             if db_config.respond_to?(:database_path) && db_config.database_path
