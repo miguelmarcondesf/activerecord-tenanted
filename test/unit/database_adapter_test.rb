@@ -68,12 +68,12 @@ describe ActiveRecord::Tenanted::DatabaseAdapter do
         assert_mock adapter_mock
       end
 
-      test "#{adapter} .list_tenant_databases calls adapter's #list_tenant_databases" do
+      test "#{adapter} .tenant_databases calls adapter's #tenant_databases" do
         adapter_mock = Minitest::Mock.new
-        adapter_mock.expect(:list_tenant_databases, [ "foo", "bar" ])
+        adapter_mock.expect(:tenant_databases, [ "foo", "bar" ])
 
         result = adapter_class_name.constantize.stub(:new, adapter_mock) do
-          ActiveRecord::Tenanted::DatabaseAdapter.list_tenant_databases(create_config(adapter))
+          ActiveRecord::Tenanted::DatabaseAdapter.tenant_databases(create_config(adapter))
         end
 
         assert_equal [ "foo", "bar" ], result

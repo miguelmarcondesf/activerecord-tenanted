@@ -28,8 +28,8 @@ module ActiveRecord
           adapter_for(db_config).acquire_ready_lock(db_config, &block)
         end
 
-        def list_tenant_databases(db_config)
-          adapter_for(db_config).list_tenant_databases
+        def tenant_databases(db_config)
+          adapter_for(db_config).tenant_databases
         end
 
         def validate_tenant_name(db_config, tenant_name)

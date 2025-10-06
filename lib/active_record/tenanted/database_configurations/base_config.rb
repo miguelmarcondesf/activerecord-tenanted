@@ -36,7 +36,7 @@ module ActiveRecord
         end
 
         def tenants
-          ActiveRecord::Tenanted::DatabaseAdapter.list_tenant_databases(self)
+          ActiveRecord::Tenanted::DatabaseAdapter.tenant_databases(self)
         end
 
         def new_tenant_config(tenant_name)

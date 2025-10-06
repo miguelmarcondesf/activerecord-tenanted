@@ -27,11 +27,9 @@ module ActiveRecord
         raise ArgumentError, "Could not find a tenanted database" unless root_config = root_database_config
 
         root_config.tenants.each do |tenant|
-          root_config.database_path_for(tenant).tap do |path|
-            db_config = root_config.new_tenant_config(tenant)
-            ActiveRecord::Tenanted::DatabaseAdapter.drop_database(db_config)
-            $stdout.puts "Dropped database '#{path}'" if verbose?
-          end
+          db_config = root_config.new_tenant_config(tenant)
+          ActiveRecord::Tenanted::DatabaseAdapter.drop_database(db_config)
+          $stdout.puts "Dropped database '#{db_config.database_path}'" if verbose?
         end
       end
 

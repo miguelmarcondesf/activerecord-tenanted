@@ -9,8 +9,6 @@ module ActiveRecord
         end
 
         def create_database
-          database_path = get_database_path(db_config)
-
           # Ensure the directory exists
           database_dir = File.dirname(database_path)
           FileUtils.mkdir_p(database_dir) unless File.directory?(database_dir)
@@ -20,8 +18,6 @@ module ActiveRecord
         end
 
         def drop_database
-          database_path = get_database_path(db_config)
-
           # Remove the SQLite database file and associated files
           FileUtils.rm_f(database_path)
           FileUtils.rm_f("#{database_path}-wal")  # Write-Ahead Logging file
@@ -29,16 +25,14 @@ module ActiveRecord
         end
 
         def database_exist?
-          database_path = get_database_path(db_config)
           File.exist?(database_path)
         end
 
         def database_ready?
-          database_path = get_database_path(db_config)
           File.exist?(database_path) && !ActiveRecord::Tenanted::Mutex::Ready.locked?(database_path)
         end
 
-        def list_tenant_databases
+        def tenant_databases
           glob = db_config.database_path_for("*")
           scanner = Regexp.new(db_config.database_path_for("(.+)"))
 
@@ -52,7 +46,7 @@ module ActiveRecord
         end
 
         def acquire_ready_lock(db_config, &block)
-          ActiveRecord::Tenanted::Mutex::Ready.lock(get_database_path(db_config), &block)
+          ActiveRecord::Tenanted::Mutex::Ready.lock(database_path, &block)
         end
 
         def validate_tenant_name(tenant_name)
@@ -64,12 +58,8 @@ module ActiveRecord
         private
           attr_reader :db_config
 
-          def get_database_path(db_config)
-            if db_config.respond_to?(:database_path) && db_config.database_path
-              db_config.database_path
-            else
-              db_config.database
-            end
+          def database_path
+            db_config.database_path
           end
       end
     end
