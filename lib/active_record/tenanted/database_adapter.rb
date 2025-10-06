@@ -36,17 +36,16 @@ module ActiveRecord
           adapter_for(db_config).validate_tenant_name(tenant_name)
         end
 
-        def adapter_for(db_config, *arguments)
-          adapter_name = db_config.adapter || db_config.configuration_hash[:adapter]
-          adapter_class_name = ADAPTERS[adapter_name]
+        def adapter_for(db_config)
+          adapter_class_name = ADAPTERS[db_config.adapter]
 
           if adapter_class_name.nil?
             raise ActiveRecord::Tenanted::UnsupportedDatabaseError,
-                  "Unsupported database adapter for tenanting: #{adapter_name}. " \
+                  "Unsupported database adapter for tenanting: #{db_config.adapter}. " \
                   "Supported adapters: #{ADAPTERS.keys.join(', ')}"
           end
 
-          adapter_class_name.constantize.new(db_config, *arguments)
+          adapter_class_name.constantize.new(db_config)
         end
       end
     end
