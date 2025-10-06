@@ -102,7 +102,7 @@ module ActiveRecord
 
         def tenant_exist?(tenant_name)
           db_config = tenanted_root_config.new_tenant_config(tenant_name)
-          ActiveRecord::Tenanted::DatabaseAdapter.database_exist?(db_config)
+          ActiveRecord::Tenanted::DatabaseAdapter.database_ready?(db_config)
         end
 
         def with_tenant(tenant_name, prohibit_shard_swapping: true, &block)
@@ -124,7 +124,7 @@ module ActiveRecord
           db_config = tenanted_root_config.new_tenant_config(tenant_name)
 
           ActiveRecord::Tenanted::DatabaseAdapter.acquire_ready_lock(db_config) do
-            unless ActiveRecord::Tenanted::DatabaseAdapter.database_exist?(db_config, skip_lock: true)
+            unless ActiveRecord::Tenanted::DatabaseAdapter.database_exist?(db_config)
 
               ActiveRecord::Tenanted::DatabaseAdapter.create_database(db_config)
 
@@ -209,7 +209,7 @@ module ActiveRecord
           tenant = current_tenant
           db_config = tenanted_root_config.new_tenant_config(tenant)
 
-          unless ActiveRecord::Tenanted::DatabaseAdapter.database_exist?(db_config, skip_lock: true)
+          unless ActiveRecord::Tenanted::DatabaseAdapter.database_exist?(db_config)
             raise TenantDoesNotExistError, "The database for tenant #{tenant.inspect} does not exist."
           end
           pool = establish_connection(db_config)

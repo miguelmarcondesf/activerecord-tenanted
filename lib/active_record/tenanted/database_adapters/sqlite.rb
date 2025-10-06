@@ -28,14 +28,14 @@ module ActiveRecord
           FileUtils.rm_f("#{database_path}-shm")  # Shared Memory file
         end
 
-        def database_exist?(arguments = {})
+        def database_exist?
           database_path = get_database_path(db_config)
+          File.exist?(database_path)
+        end
 
-          if arguments.dig(:skip_lock) == true
-            File.exist?(database_path)
-          else
-            File.exist?(database_path) && !ActiveRecord::Tenanted::Mutex::Ready.locked?(database_path)
-          end
+        def database_ready?
+          database_path = get_database_path(db_config)
+          File.exist?(database_path) && !ActiveRecord::Tenanted::Mutex::Ready.locked?(database_path)
         end
 
         def list_tenant_databases

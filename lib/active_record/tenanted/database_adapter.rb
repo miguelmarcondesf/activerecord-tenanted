@@ -16,8 +16,12 @@ module ActiveRecord
           adapter_for(db_config).drop_database
         end
 
-        def database_exist?(db_config, arguments = {})
-          adapter_for(db_config).database_exist?(arguments)
+        def database_exist?(db_config)
+          adapter_for(db_config).database_exist?
+        end
+
+        def database_ready?(db_config)
+          adapter_for(db_config).database_ready?
         end
 
         def acquire_ready_lock(db_config, &block)
