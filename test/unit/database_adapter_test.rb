@@ -12,7 +12,7 @@ describe ActiveRecord::Tenanted::DatabaseAdapter do
     test "raises error for unsupported adapter" do
       unsupported_config = create_config("mongodb")
 
-      error = assert_raises ActiveRecord::Tenanted::Error do
+      error = assert_raises ActiveRecord::Tenanted::UnsupportedDatabaseError do
         ActiveRecord::Tenanted::DatabaseAdapter.adapter_for(unsupported_config)
       end
 

@@ -37,7 +37,7 @@ module ActiveRecord
           adapter_class_name = ADAPTERS[adapter_name]
 
           if adapter_class_name.nil?
-            raise ActiveRecord::Tenanted::Error,
+            raise ActiveRecord::Tenanted::UnsupportedDatabaseError,
                   "Unsupported database adapter for tenanting: #{adapter_name}. " \
                   "Supported adapters: #{ADAPTERS.keys.join(', ')}"
           end

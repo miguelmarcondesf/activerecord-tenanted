@@ -37,8 +37,6 @@ module ActiveRecord
 
         def tenants
           ActiveRecord::Tenanted::DatabaseAdapter.list_tenant_databases(self)
-        rescue
-          []
         end
 
         def new_tenant_config(tenant_name)
