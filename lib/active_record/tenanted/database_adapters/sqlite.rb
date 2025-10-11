@@ -9,11 +9,7 @@ module ActiveRecord
         end
 
         def create_database
-          # Ensure the directory exists
-          database_dir = File.dirname(database_path)
-          FileUtils.mkdir_p(database_dir) unless File.directory?(database_dir)
-
-          # Create the SQLite database file
+          ensure_database_directory_exists
           FileUtils.touch(database_path)
         end
 
@@ -52,6 +48,15 @@ module ActiveRecord
         def validate_tenant_name(tenant_name)
           if tenant_name.match?(%r{[/'"`]})
             raise BadTenantNameError, "Tenant name contains an invalid character: #{tenant_name.inspect}"
+          end
+        end
+
+        def ensure_database_directory_exists
+          return unless database_path
+
+          database_dir = File.dirname(database_path)
+          unless File.directory?(database_dir)
+            FileUtils.mkdir_p(database_dir)
           end
         end
 

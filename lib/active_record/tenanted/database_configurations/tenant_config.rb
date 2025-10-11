@@ -9,7 +9,10 @@ module ActiveRecord
         end
 
         def new_connection
-          ensure_database_directory_exists # adapter doesn't handle this if the database is a URI
+          # TODO: The Rails SQLite adapter doesn't handle directory creation for file: URIs. I would
+          # like to fix that upstream, and remove this line.
+          ActiveRecord::Tenanted::DatabaseAdapter.adapter_for(self).ensure_database_directory_exists
+
           super.tap { |conn| conn.tenant = tenant }
         end
 
@@ -40,16 +43,6 @@ module ActiveRecord
         def database_path
           configuration_hash[:database_path]
         end
-
-        private
-          def ensure_database_directory_exists
-            return unless database_path
-
-            database_dir = File.dirname(database_path)
-            unless File.directory?(database_dir)
-              FileUtils.mkdir_p(database_dir)
-            end
-          end
       end
     end
   end
