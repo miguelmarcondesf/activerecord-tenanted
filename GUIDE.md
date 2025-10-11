@@ -551,9 +551,9 @@ TODO:
   - [x] schema load
     - if first thread loads the schema and inserts data, can the second thread accidentally drop/load causing data loss?
   - [ ] destroy
-    - should delete the wal and shm files, too
-    - we need to be close existing connections / statements / transactions(?)
+    - [x] should delete the wal and shm files, too
       - relevant adapter code https://github.com/rails/rails/blob/91d456366638ac6c3f6dec38670c8ada5e7c69b1/activerecord/lib/active_record/tasks/sqlite_database_tasks.rb#L23-L26
+    - [ ] we need to be close existing connections / statements / transactions(?)
       - relevant issue/pull-request https://github.com/rails/rails/pull/53893
 
 - pruning connections and connection pools
