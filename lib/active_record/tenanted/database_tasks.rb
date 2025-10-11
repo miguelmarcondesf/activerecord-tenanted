@@ -29,7 +29,7 @@ module ActiveRecord
         root_config.tenants.each do |tenant|
           db_config = root_config.new_tenant_config(tenant)
           ActiveRecord::Tenanted::DatabaseAdapter.drop_database(db_config)
-          $stdout.puts "Dropped database '#{db_config.database_path}'" if verbose?
+          $stdout.puts "Dropped database '#{db_config.database}'" if verbose?
         end
       end
 
