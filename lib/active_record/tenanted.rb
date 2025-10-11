@@ -4,6 +4,9 @@ require "active_record"
 
 require "zeitwerk"
 loader = Zeitwerk::Loader.for_gem_extension(ActiveRecord)
+loader.inflector.inflect(
+  "sqlite" => "SQLite",
+)
 loader.setup
 
 module ActiveRecord
@@ -34,6 +37,9 @@ module ActiveRecord
 
     # Raised when the Rails integration is being invoked but has not been configured.
     class IntegrationNotConfiguredError < Error; end
+
+    # Raised when an unsupported database adapter is used.
+    class UnsupportedDatabaseError < Error; end
 
     def self.connection_class
       # TODO: cache this / speed this up
