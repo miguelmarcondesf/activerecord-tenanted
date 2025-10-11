@@ -25,7 +25,7 @@ module ActiveRecord
         end
 
         def acquire_ready_lock(db_config, &block)
-          adapter_for(db_config).acquire_ready_lock(db_config, &block)
+          adapter_for(db_config).acquire_ready_lock(&block)
         end
 
         def tenant_databases(db_config)

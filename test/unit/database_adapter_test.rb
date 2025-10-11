@@ -93,7 +93,7 @@ describe ActiveRecord::Tenanted::DatabaseAdapter do
 
       test "#{adapter} .acquire_ready_lock calls adapter's #acquire_ready_lock" do
         fake_adapter = Object.new
-        fake_adapter.define_singleton_method(:acquire_ready_lock) do |id, &blk|
+        fake_adapter.define_singleton_method(:acquire_ready_lock) do |&blk|
           blk&.call
         end
 

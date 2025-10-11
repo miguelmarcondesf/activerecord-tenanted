@@ -41,7 +41,7 @@ module ActiveRecord
           end
         end
 
-        def acquire_ready_lock(db_config, &block)
+        def acquire_ready_lock(&block)
           ActiveRecord::Tenanted::Mutex::Ready.lock(database_path, &block)
         end
 
