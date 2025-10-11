@@ -9,6 +9,7 @@
 
 ### Improved
 
+- The majority of the SQLite-specific code has been extracted into an adapter object. #204 @andrewmarkle
 - For tenanted model instances, `#inspect` now outputs the tenant attribute first, before the column attributes. #191 @lairtonmendes
 - The `debug` gem is now available during testing. #200 @andrewmarkle
 
