@@ -8,7 +8,7 @@ namespace :db do
       next
     end
 
-    unless ActiveRecord::Tenanted::DatabaseTasks.root_database_config
+    unless ActiveRecord::Tenanted::DatabaseTasks.base_config
       warn "WARNING: No tenanted database found, skipping tenanted migration"
     else
       begin
@@ -42,7 +42,7 @@ namespace :db do
 
   desc "Drop all tenanted databases for the current environment"
   task "drop:tenant" => "load_config" do
-    unless ActiveRecord::Tenanted::DatabaseTasks.root_database_config
+    unless ActiveRecord::Tenanted::DatabaseTasks.base_config
       warn "WARNING: No tenanted database found, skipping tenanted reset"
     else
       begin

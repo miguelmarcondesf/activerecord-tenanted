@@ -3,10 +3,10 @@
 require "test_helper"
 
 describe ActiveRecord::Tenanted::DatabaseTasks do
-  describe ".root_database_config" do
+  describe ".base_config" do
     for_each_scenario do
       test "returns the tenanted database configuration" do
-        assert_equal(tenanted_config, ActiveRecord::Tenanted::DatabaseTasks.root_database_config)
+        assert_equal(base_config, ActiveRecord::Tenanted::DatabaseTasks.base_config)
       end
     end
   end
@@ -14,11 +14,11 @@ describe ActiveRecord::Tenanted::DatabaseTasks do
   describe ".migrate_tenant" do
     for_each_scenario do
       setup do
-        ActiveRecord::Tenanted::DatabaseAdapter.create_database(tenanted_config.new_tenant_config("foo"))
+        ActiveRecord::Tenanted::DatabaseAdapter.create_database(base_config.new_tenant_config("foo"))
       end
 
       test "database should be created" do
-        db_path = tenanted_config.database_path_for("foo")
+        db_path = base_config.database_path_for("foo")
 
         ActiveRecord::Tenanted::DatabaseTasks.migrate_tenant("foo")
 
@@ -32,14 +32,14 @@ describe ActiveRecord::Tenanted::DatabaseTasks do
           ActiveRecord::Tenanted::DatabaseTasks.migrate_tenant("foo")
         end
 
-        config = tenanted_config.new_tenant_config("foo")
+        config = base_config.new_tenant_config("foo")
         ActiveRecord::Tasks::DatabaseTasks.with_temporary_connection(config) do |conn|
           assert_equal(20250203191115, conn.pool.migration_context.current_version)
         end
       end
 
       test "database schema file should be created" do
-        config = tenanted_config.new_tenant_config("foo")
+        config = base_config.new_tenant_config("foo")
         schema_path = ActiveRecord::Tasks::DatabaseTasks.schema_dump_path(config)
 
         assert_not(File.exist?(schema_path))
@@ -50,7 +50,7 @@ describe ActiveRecord::Tenanted::DatabaseTasks do
       end
 
       test "database schema cache file should be created" do
-        config = tenanted_config.new_tenant_config("foo")
+        config = base_config.new_tenant_config("foo")
         schema_cache_path = ActiveRecord::Tasks::DatabaseTasks.cache_dump_filename(config)
 
         assert_not(File.exist?(schema_cache_path))
@@ -70,7 +70,7 @@ describe ActiveRecord::Tenanted::DatabaseTasks do
             ActiveRecord::Tenanted::DatabaseTasks.migrate_tenant("foo")
           end
 
-          config = tenanted_config.new_tenant_config("foo")
+          config = base_config.new_tenant_config("foo")
           ActiveRecord::Tasks::DatabaseTasks.with_temporary_connection(config) do |conn|
             assert_equal(20250203191115, conn.pool.migration_context.current_version)
           end
@@ -86,7 +86,7 @@ describe ActiveRecord::Tenanted::DatabaseTasks do
               ActiveRecord::Tenanted::DatabaseTasks.migrate_tenant("foo")
             end
 
-            config = tenanted_config.new_tenant_config("foo")
+            config = base_config.new_tenant_config("foo")
             ActiveRecord::Tasks::DatabaseTasks.with_temporary_connection(config) do |conn|
               assert_equal(20250213005959, conn.pool.migration_context.current_version)
             end
@@ -105,7 +105,7 @@ describe ActiveRecord::Tenanted::DatabaseTasks do
             ActiveRecord::Tenanted::DatabaseTasks.migrate_tenant("foo")
           end
 
-          config = tenanted_config.new_tenant_config("foo")
+          config = base_config.new_tenant_config("foo")
           ActiveRecord::Tasks::DatabaseTasks.with_temporary_connection(config) do |conn|
             assert_equal(20250213005959, conn.pool.migration_context.current_version)
           end
@@ -130,7 +130,7 @@ describe ActiveRecord::Tenanted::DatabaseTasks do
         ActiveRecord::Tenanted::DatabaseTasks.migrate_all
 
         tenants.each do |tenant|
-          config = tenanted_config.new_tenant_config(tenant)
+          config = base_config.new_tenant_config(tenant)
           ActiveRecord::Tasks::DatabaseTasks.with_temporary_connection(config) do |conn|
             assert_equal(20250213005959, conn.pool.migration_context.current_version)
           end

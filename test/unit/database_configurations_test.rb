@@ -3,9 +3,6 @@
 require "test_helper"
 
 describe ActiveRecord::Tenanted::DatabaseConfigurations do
-  let(:all_configs) { ActiveRecord::Base.configurations.configs_for(include_hidden: true) }
-  let(:tenanted_config) { all_configs.find { |c| c.configuration_hash[:tenanted] } }
-
   describe Rails do
     with_scenario(:primary_named_db, :primary_record) do
       test "instantiates a BaseConfig for the tenanted database" do
@@ -19,7 +16,7 @@ describe ActiveRecord::Tenanted::DatabaseConfigurations do
       end
 
       test "the BaseConfig has tasks turned off by default" do
-        assert_not tenanted_config.database_tasks?
+        assert_not base_config.database_tasks?
       end
     end
   end
@@ -270,37 +267,36 @@ describe ActiveRecord::Tenanted::DatabaseConfigurations do
 
     for_each_scenario do
       test "raises if a connection is attempted" do
-        assert(tenanted_config)
-        assert_raises(ActiveRecord::Tenanted::NoTenantError) { tenanted_config.new_connection }
+        assert_raises(ActiveRecord::Tenanted::NoTenantError) { base_config.new_connection }
       end
 
       describe ".tenants" do
         test "returns an array of existing tenants" do
-          assert_empty(tenanted_config.tenants)
+          assert_empty(base_config.tenants)
 
           TenantedApplicationRecord.create_tenant("foo")
 
-          assert_equal([ "foo" ], tenanted_config.tenants)
+          assert_equal([ "foo" ], base_config.tenants)
 
           TenantedApplicationRecord.create_tenant("bar")
 
-          assert_same_elements([ "foo", "bar" ], tenanted_config.tenants)
+          assert_same_elements([ "foo", "bar" ], base_config.tenants)
 
           TenantedApplicationRecord.destroy_tenant("foo")
 
-          assert_equal([ "bar" ], tenanted_config.tenants)
+          assert_equal([ "bar" ], base_config.tenants)
         end
       end
     end
 
     with_scenario(:primary_db, :primary_record) do
       test "handles non-alphanumeric characters" do
-        assert_empty(tenanted_config.tenants)
+        assert_empty(base_config.tenants)
 
         crazy_name = 'a~!@#$%^&*()_-+=:;[{]}|,.?9' # please don't do this
         TenantedApplicationRecord.create_tenant(crazy_name)
 
-        assert_equal([ crazy_name ], tenanted_config.tenants)
+        assert_equal([ crazy_name ], base_config.tenants)
       end
     end
   end
@@ -327,7 +323,7 @@ describe ActiveRecord::Tenanted::DatabaseConfigurations do
         # This is probably not behavior we want, long-term. See notes about the sqlite3 adapter in
         # tenant.rb. This test is descriptive, not prescriptive.
         test "creates a file if one does not exist" do
-          config = tenanted_config.new_tenant_config("foo")
+          config = base_config.new_tenant_config("foo")
           conn = config.new_connection
 
           assert_not(File.exist?(config.database))

@@ -6,34 +6,34 @@ module ActiveRecord
       extend self
 
       def migrate_all
-        raise ArgumentError, "Could not find a tenanted database" unless root_config = root_database_config
+        raise ArgumentError, "Could not find a tenanted database" unless config = base_config
 
-        tenants = root_config.tenants.presence || [ get_current_tenant ].compact
+        tenants = config.tenants.presence || [ get_current_tenant ].compact
         tenants.each do |tenant|
-          tenant_config = root_config.new_tenant_config(tenant)
+          tenant_config = config.new_tenant_config(tenant)
           migrate(tenant_config)
         end
       end
 
       def migrate_tenant(tenant_name = set_current_tenant)
-        raise ArgumentError, "Could not find a tenanted database" unless root_config = root_database_config
+        raise ArgumentError, "Could not find a tenanted database" unless config = base_config
 
-        tenant_config = root_config.new_tenant_config(tenant_name)
+        tenant_config = config.new_tenant_config(tenant_name)
 
         migrate(tenant_config)
       end
 
       def drop_all
-        raise ArgumentError, "Could not find a tenanted database" unless root_config = root_database_config
+        raise ArgumentError, "Could not find a tenanted database" unless config = base_config
 
-        root_config.tenants.each do |tenant|
-          db_config = root_config.new_tenant_config(tenant)
+        config.tenants.each do |tenant|
+          db_config = config.new_tenant_config(tenant)
           ActiveRecord::Tenanted::DatabaseAdapter.drop_database(db_config)
           $stdout.puts "Dropped database '#{db_config.database}'" if verbose?
         end
       end
 
-      def root_database_config
+      def base_config
         db_configs = ActiveRecord::Base.configurations.configs_for(
           env_name: ActiveRecord::Tasks::DatabaseTasks.env,
           include_hidden: true
