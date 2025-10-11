@@ -22,88 +22,90 @@ describe ActiveRecord::Tenanted::DatabaseAdapter do
 
   describe "delegation" do
     ActiveRecord::Tenanted::DatabaseAdapter::ADAPTERS.each do |adapter, adapter_class_name|
-      test "#{adapter} .create_database calls adapter's #create_database" do
-        adapter_mock = Minitest::Mock.new
-        adapter_mock.expect(:create_database, nil)
+      describe adapter do
+        test ".create_database" do
+          adapter_mock = Minitest::Mock.new
+          adapter_mock.expect(:create_database, nil)
 
-        adapter_class_name.constantize.stub(:new, adapter_mock) do
-          ActiveRecord::Tenanted::DatabaseAdapter.create_database(create_config(adapter))
+          adapter_class_name.constantize.stub(:new, adapter_mock) do
+            ActiveRecord::Tenanted::DatabaseAdapter.create_database(create_config(adapter))
+          end
+
+          assert_mock adapter_mock
         end
 
-        assert_mock adapter_mock
-      end
+        test ".drop_database" do
+          adapter_mock = Minitest::Mock.new
+          adapter_mock.expect(:drop_database, nil)
 
-      test "#{adapter} .drop_database calls adapter's #drop_database" do
-        adapter_mock = Minitest::Mock.new
-        adapter_mock.expect(:drop_database, nil)
+          adapter_class_name.constantize.stub(:new, adapter_mock) do
+            ActiveRecord::Tenanted::DatabaseAdapter.drop_database(create_config(adapter))
+          end
 
-        adapter_class_name.constantize.stub(:new, adapter_mock) do
-          ActiveRecord::Tenanted::DatabaseAdapter.drop_database(create_config(adapter))
+          assert_mock adapter_mock
         end
 
-        assert_mock adapter_mock
-      end
+        test ".database_exist?" do
+          adapter_mock = Minitest::Mock.new
+          adapter_mock.expect(:database_exist?, true)
 
-      test "#{adapter} .database_exist? calls adapter's #database_exist?" do
-        adapter_mock = Minitest::Mock.new
-        adapter_mock.expect(:database_exist?, true)
+          result = adapter_class_name.constantize.stub(:new, adapter_mock) do
+            ActiveRecord::Tenanted::DatabaseAdapter.database_exist?(create_config(adapter))
+          end
 
-        result = adapter_class_name.constantize.stub(:new, adapter_mock) do
-          ActiveRecord::Tenanted::DatabaseAdapter.database_exist?(create_config(adapter))
+          assert_equal true, result
+          assert_mock adapter_mock
         end
 
-        assert_equal true, result
-        assert_mock adapter_mock
-      end
+        test ".database_ready?" do
+          adapter_mock = Minitest::Mock.new
+          adapter_mock.expect(:database_ready?, true)
 
-      test "#{adapter} .database_ready? calls adapter's #database_ready?" do
-        adapter_mock = Minitest::Mock.new
-        adapter_mock.expect(:database_ready?, true)
+          result = adapter_class_name.constantize.stub(:new, adapter_mock) do
+            ActiveRecord::Tenanted::DatabaseAdapter.database_ready?(create_config(adapter))
+          end
 
-        result = adapter_class_name.constantize.stub(:new, adapter_mock) do
-          ActiveRecord::Tenanted::DatabaseAdapter.database_ready?(create_config(adapter))
+          assert_equal true, result
+          assert_mock adapter_mock
         end
 
-        assert_equal true, result
-        assert_mock adapter_mock
-      end
+        test ".tenant_databases" do
+          adapter_mock = Minitest::Mock.new
+          adapter_mock.expect(:tenant_databases, [ "foo", "bar" ])
 
-      test "#{adapter} .tenant_databases calls adapter's #tenant_databases" do
-        adapter_mock = Minitest::Mock.new
-        adapter_mock.expect(:tenant_databases, [ "foo", "bar" ])
+          result = adapter_class_name.constantize.stub(:new, adapter_mock) do
+            ActiveRecord::Tenanted::DatabaseAdapter.tenant_databases(create_config(adapter))
+          end
 
-        result = adapter_class_name.constantize.stub(:new, adapter_mock) do
-          ActiveRecord::Tenanted::DatabaseAdapter.tenant_databases(create_config(adapter))
+          assert_equal [ "foo", "bar" ], result
+          assert_mock adapter_mock
         end
 
-        assert_equal [ "foo", "bar" ], result
-        assert_mock adapter_mock
-      end
+        test ".validate_tenant_name" do
+          adapter_mock = Minitest::Mock.new
+          adapter_mock.expect(:validate_tenant_name, nil, [ "tenant1" ])
 
-      test "#{adapter} .validate_tenant_name calls adapter's #validate_tenant_name" do
-        adapter_mock = Minitest::Mock.new
-        adapter_mock.expect(:validate_tenant_name, nil, [ "tenant1" ])
+          adapter_class_name.constantize.stub(:new, adapter_mock) do
+            ActiveRecord::Tenanted::DatabaseAdapter.validate_tenant_name(create_config(adapter), "tenant1")
+          end
 
-        adapter_class_name.constantize.stub(:new, adapter_mock) do
-          ActiveRecord::Tenanted::DatabaseAdapter.validate_tenant_name(create_config(adapter), "tenant1")
+          assert_mock adapter_mock
         end
 
-        assert_mock adapter_mock
-      end
+        test ".acquire_ready_lock" do
+          fake_adapter = Object.new
+          fake_adapter.define_singleton_method(:acquire_ready_lock) do |&blk|
+            blk&.call
+          end
 
-      test "#{adapter} .acquire_ready_lock calls adapter's #acquire_ready_lock" do
-        fake_adapter = Object.new
-        fake_adapter.define_singleton_method(:acquire_ready_lock) do |&blk|
-          blk&.call
+          yielded = false
+          result = adapter_class_name.constantize.stub(:new, fake_adapter) do
+            ActiveRecord::Tenanted::DatabaseAdapter.acquire_ready_lock(create_config(adapter)) { yielded = true; :ok }
+          end
+
+          assert_equal true, yielded
+          assert_equal :ok, result
         end
-
-        yielded = false
-        result = adapter_class_name.constantize.stub(:new, fake_adapter) do
-          ActiveRecord::Tenanted::DatabaseAdapter.acquire_ready_lock(create_config(adapter)) { yielded = true; :ok }
-        end
-
-        assert_equal true, yielded
-        assert_equal :ok, result
       end
     end
   end
