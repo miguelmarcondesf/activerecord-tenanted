@@ -49,7 +49,6 @@ module ActiveRecord
           config_hash = configuration_hash.dup.tap do |hash|
             hash[:tenant] = tenant_name
             hash[:database] = database_for(tenant_name)
-            hash[:database_path] = database_path_for(tenant_name)
             hash[:tenanted_config_name] = name
           end
           Tenanted::DatabaseConfigurations::TenantConfig.new(env_name, config_name, config_hash)

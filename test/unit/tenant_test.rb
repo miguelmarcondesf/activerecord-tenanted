@@ -630,34 +630,34 @@ describe ActiveRecord::Tenanted::Tenant do
       test "creates the database" do
         assert_not(TenantedApplicationRecord.tenant_exist?("foo"))
 
-        db_path = TenantedApplicationRecord.create_tenant("foo") do
-          User.connection_db_config.database_path
+        db_config = TenantedApplicationRecord.create_tenant("foo") do
+          User.connection_db_config
         end
 
         assert(TenantedApplicationRecord.tenant_exist?("foo"))
-        assert(File.exist?(db_path))
+        assert_predicate(db_config.config_adapter, :database_exist?)
       end
 
       test "creates the database given a symbol" do
         assert_not(TenantedApplicationRecord.tenant_exist?("foo"))
 
-        db_path = TenantedApplicationRecord.create_tenant(:foo) do
-          User.connection_db_config.database_path
+        db_config = TenantedApplicationRecord.create_tenant(:foo) do
+          User.connection_db_config
         end
 
         assert(TenantedApplicationRecord.tenant_exist?("foo"))
-        assert(File.exist?(db_path))
+        assert_predicate(db_config.config_adapter, :database_exist?)
       end
 
       test "creates the database given an integer" do
         assert_not(TenantedApplicationRecord.tenant_exist?("12345678"))
 
-        db_path = TenantedApplicationRecord.create_tenant(12345678) do
-          User.connection_db_config.database_path
+        db_config = TenantedApplicationRecord.create_tenant(12345678) do
+          User.connection_db_config
         end
 
         assert(TenantedApplicationRecord.tenant_exist?("12345678"))
-        assert(File.exist?(db_path))
+        assert_predicate(db_config.config_adapter, :database_exist?)
       end
 
       test "yields the block in the context of the created tenant" do

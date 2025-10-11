@@ -64,7 +64,20 @@ module ActiveRecord
           attr_reader :db_config
 
           def database_path
-            db_config.database_path
+            coerce_path(db_config.database)
+          end
+
+          # A sqlite database path can be a file path or a URI (either relative or absolute).  We
+          # can't parse it as a standard URI in all circumstances, though, see
+          # https://sqlite.org/uri.html
+          def coerce_path(path)
+            if path.start_with?("file:/")
+              URI.parse(path).path
+            elsif path.start_with?("file:")
+              URI.parse(path.sub(/\?.*$/, "")).opaque
+            else
+              path
+            end
           end
       end
     end
