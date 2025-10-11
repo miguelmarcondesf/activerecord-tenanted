@@ -8,7 +8,7 @@ module ActiveRecord
       }.freeze
 
       class << self
-        def adapter_for(db_config)
+        def new(db_config)
           adapter_class_name = ADAPTERS[db_config.adapter]
 
           if adapter_class_name.nil?

@@ -15,7 +15,7 @@ module ActiveRecord
         end
 
         def config_adapter
-          @config_adapter ||= ActiveRecord::Tenanted::DatabaseAdapter.adapter_for(self)
+          @config_adapter ||= ActiveRecord::Tenanted::DatabaseAdapter.new(self)
         end
 
         def database_tasks?
