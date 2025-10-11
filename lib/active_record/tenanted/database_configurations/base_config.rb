@@ -11,6 +11,11 @@ module ActiveRecord
         def initialize(...)
           super
           @test_worker_id = nil
+          @config_adapter = nil
+        end
+
+        def config_adapter
+          @config_adapter ||= ActiveRecord::Tenanted::DatabaseAdapter.adapter_for(self)
         end
 
         def database_tasks?
@@ -36,7 +41,7 @@ module ActiveRecord
         end
 
         def tenants
-          ActiveRecord::Tenanted::DatabaseAdapter.tenant_databases(self)
+          config_adapter.tenant_databases
         end
 
         def new_tenant_config(tenant_name)
@@ -75,7 +80,7 @@ module ActiveRecord
           end
 
           def validate_tenant_name(tenant_name)
-            ActiveRecord::Tenanted::DatabaseAdapter.validate_tenant_name(self, tenant_name)
+            config_adapter.validate_tenant_name(tenant_name)
           end
 
           def test_worker_path(path)

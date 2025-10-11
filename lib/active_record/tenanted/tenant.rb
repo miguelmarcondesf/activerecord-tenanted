@@ -101,8 +101,7 @@ module ActiveRecord
         end
 
         def tenant_exist?(tenant_name)
-          db_config = tenanted_root_config.new_tenant_config(tenant_name)
-          ActiveRecord::Tenanted::DatabaseAdapter.database_ready?(db_config)
+          tenanted_root_config.new_tenant_config(tenant_name).config_adapter.database_ready?
         end
 
         def with_tenant(tenant_name, prohibit_shard_swapping: true, &block)
@@ -121,12 +120,11 @@ module ActiveRecord
 
         def create_tenant(tenant_name, if_not_exists: false, &block)
           created_db = false
-          db_config = tenanted_root_config.new_tenant_config(tenant_name)
+          adapter = tenanted_root_config.new_tenant_config(tenant_name).config_adapter
 
-          ActiveRecord::Tenanted::DatabaseAdapter.acquire_ready_lock(db_config) do
-            unless ActiveRecord::Tenanted::DatabaseAdapter.database_exist?(db_config)
-
-              ActiveRecord::Tenanted::DatabaseAdapter.create_database(db_config)
+          adapter.acquire_ready_lock do
+            unless adapter.database_exist?
+              adapter.create_database
 
               with_tenant(tenant_name) do
                 connection_pool(schema_version_check: false)
@@ -136,7 +134,7 @@ module ActiveRecord
               created_db = true
             end
           rescue
-            ActiveRecord::Tenanted::DatabaseAdapter.drop_database(db_config)
+            adapter.drop_database
             raise
           end
 
@@ -156,8 +154,7 @@ module ActiveRecord
             end
           end
 
-          db_config = tenanted_root_config.new_tenant_config(tenant_name)
-          ActiveRecord::Tenanted::DatabaseAdapter.drop_database(db_config)
+          tenanted_root_config.new_tenant_config(tenant_name).config_adapter.drop_database
         end
 
         def tenants
@@ -209,7 +206,7 @@ module ActiveRecord
           tenant = current_tenant
           db_config = tenanted_root_config.new_tenant_config(tenant)
 
-          unless ActiveRecord::Tenanted::DatabaseAdapter.database_exist?(db_config)
+          unless db_config.config_adapter.database_exist?
             raise TenantDoesNotExistError, "The database for tenant #{tenant.inspect} does not exist."
           end
           pool = establish_connection(db_config)

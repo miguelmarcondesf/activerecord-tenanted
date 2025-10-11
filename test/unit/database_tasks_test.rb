@@ -14,7 +14,7 @@ describe ActiveRecord::Tenanted::DatabaseTasks do
   describe ".migrate_tenant" do
     for_each_scenario do
       setup do
-        ActiveRecord::Tenanted::DatabaseAdapter.create_database(base_config.new_tenant_config("foo"))
+        base_config.new_tenant_config("foo").config_adapter.create_database
       end
 
       test "database should be created" do
