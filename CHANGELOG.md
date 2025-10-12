@@ -1,6 +1,6 @@
 # `activerecord-tenanted` Changelog
 
-## next / unreleased
+## v0.5.0 / 2025-10-12
 
 ### Fixed
 
