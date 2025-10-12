@@ -2,6 +2,11 @@
 
 ## next / unreleased
 
+### Fixed
+
+- Handle the new parallel testing behavior introduced by rails/rails#55769, unblocking Rails edge upgrades. #216 @flavorjones
+
+
 ### Changed
 
 - The return value from an Active Record model `#cache_key` has changed from `users/1?tenant=foo` to `foo/users/1`. For existing applications, this will invalidate any relevant cache entries. #187 @miguelmarcondesf
@@ -10,7 +15,7 @@
 
 ### Improved
 
-- The majority of the SQLite-specific code has been extracted into an adapter object. #204 @andrewmarkle
+- SQLite-specific code has been extracted into an adapter object. #204 #215 @andrewmarkle @flavorjones
 - For tenanted model instances, `#inspect` now outputs the tenant attribute first, before the column attributes. #191 @lairtonmendes
 - The `debug` gem is now available during testing. #200 @andrewmarkle
 
