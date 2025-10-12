@@ -181,18 +181,18 @@ module ActiveRecord
         ActiveRecord::Base.configurations.configs_for(include_hidden: true)
       end
 
-      def tenanted_config
+      def base_config
         all_configs.find { |c| c.configuration_hash[:tenanted] }
       end
 
       def with_schema_dump_file
         FileUtils.cp "test/scenarios/schema.rb",
-                     ActiveRecord::Tasks::DatabaseTasks.schema_dump_path(tenanted_config)
+                     ActiveRecord::Tasks::DatabaseTasks.schema_dump_path(base_config)
       end
 
       def with_schema_cache_dump_file
         FileUtils.cp "test/scenarios/schema_cache.yml",
-                     ActiveRecord::Tasks::DatabaseTasks.cache_dump_filename(tenanted_config)
+                     ActiveRecord::Tasks::DatabaseTasks.cache_dump_filename(base_config)
       end
 
       def with_new_migration_file

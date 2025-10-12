@@ -4,12 +4,24 @@ module ActiveRecord
   module Tenanted
     module DatabaseConfigurations
       class TenantConfig < ActiveRecord::DatabaseConfigurations::HashConfig
+        def initialize(...)
+          super
+          @config_adapter = nil
+        end
+
         def tenant
           configuration_hash.fetch(:tenant)
         end
 
+        def config_adapter
+          @config_adapter ||= ActiveRecord::Tenanted::DatabaseAdapter.new(self)
+        end
+
         def new_connection
-          ensure_database_directory_exists # adapter doesn't handle this if the database is a URI
+          # TODO: The Rails SQLite adapter doesn't handle directory creation for file: URIs. I would
+          # like to fix that upstream, and remove this line.
+          config_adapter.ensure_database_directory_exists
+
           super.tap { |conn| conn.tenant = tenant }
         end
 
@@ -36,20 +48,6 @@ module ActiveRecord
             File.join(db_dir, "#{tenanted_config_name}_schema_cache.yml")
           end
         end
-
-        def database_path
-          configuration_hash[:database_path]
-        end
-
-        private
-          def ensure_database_directory_exists
-            return unless database_path
-
-            database_dir = File.dirname(database_path)
-            unless File.directory?(database_dir)
-              FileUtils.mkdir_p(database_dir)
-            end
-          end
       end
     end
   end

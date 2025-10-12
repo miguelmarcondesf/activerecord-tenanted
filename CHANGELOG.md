@@ -5,6 +5,7 @@
 ### Changed
 
 - The return value from an Active Record model `#cache_key` has changed from `users/1?tenant=foo` to `foo/users/1`. For existing applications, this will invalidate any relevant cache entries. #187 @miguelmarcondesf
+- Renamed `ActiveRecord::Tenanted::DatabaseTasks.tenanted_config` to `.base_config`.
 
 
 ### Improved

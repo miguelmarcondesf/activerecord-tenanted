@@ -552,7 +552,9 @@ describe ActiveRecord::Tenanted::Tenant do
       end
 
       test "it returns false if the tenant database is in the process of being migrated" do
-        db_path = TenantedApplicationRecord.tenanted_root_config.database_path_for("foo")
+        # TODO: this test is SQLite-specific because it's using the Ready mutex directly.
+        config = TenantedApplicationRecord.tenanted_root_config
+        db_path = config.config_adapter.path_for(config.database_for("foo"))
 
         assert_not(TenantedApplicationRecord.tenant_exist?("foo"))
 
@@ -630,34 +632,34 @@ describe ActiveRecord::Tenanted::Tenant do
       test "creates the database" do
         assert_not(TenantedApplicationRecord.tenant_exist?("foo"))
 
-        db_path = TenantedApplicationRecord.create_tenant("foo") do
-          User.connection_db_config.database_path
+        db_config = TenantedApplicationRecord.create_tenant("foo") do
+          User.connection_db_config
         end
 
         assert(TenantedApplicationRecord.tenant_exist?("foo"))
-        assert(File.exist?(db_path))
+        assert_predicate(db_config.config_adapter, :database_exist?)
       end
 
       test "creates the database given a symbol" do
         assert_not(TenantedApplicationRecord.tenant_exist?("foo"))
 
-        db_path = TenantedApplicationRecord.create_tenant(:foo) do
-          User.connection_db_config.database_path
+        db_config = TenantedApplicationRecord.create_tenant(:foo) do
+          User.connection_db_config
         end
 
         assert(TenantedApplicationRecord.tenant_exist?("foo"))
-        assert(File.exist?(db_path))
+        assert_predicate(db_config.config_adapter, :database_exist?)
       end
 
       test "creates the database given an integer" do
         assert_not(TenantedApplicationRecord.tenant_exist?("12345678"))
 
-        db_path = TenantedApplicationRecord.create_tenant(12345678) do
-          User.connection_db_config.database_path
+        db_config = TenantedApplicationRecord.create_tenant(12345678) do
+          User.connection_db_config
         end
 
         assert(TenantedApplicationRecord.tenant_exist?("12345678"))
-        assert(File.exist?(db_path))
+        assert_predicate(db_config.config_adapter, :database_exist?)
       end
 
       test "yields the block in the context of the created tenant" do
@@ -839,13 +841,16 @@ describe ActiveRecord::Tenanted::Tenant do
       end
 
       test "it does not return tenants that are not ready" do
-        foo_db_path = TenantedApplicationRecord.tenanted_root_config.database_path_for("foo")
+        # TODO: this test is SQLite-specific because it's using the Ready mutex directly.
+        config = TenantedApplicationRecord.tenanted_root_config
+        db_path = config.config_adapter.path_for(config.database_for("foo"))
+
         TenantedApplicationRecord.create_tenant("bar")
 
-        ActiveRecord::Tenanted::Mutex::Ready.lock(foo_db_path) do
+        ActiveRecord::Tenanted::Mutex::Ready.lock(db_path) do
           assert_equal([ "bar" ], TenantedApplicationRecord.tenants)
 
-          FileUtils.touch(foo_db_path) # pretend the database was created
+          FileUtils.touch(db_path) # pretend the database was created
 
           assert_equal([ "bar" ], TenantedApplicationRecord.tenants)
         end
