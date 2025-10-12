@@ -28,13 +28,13 @@ end
 COLOR_FG_BLUE = "\e[0;34m"
 COLOR_RESET = "\e[0m"
 
-def run_cmd(scenario, cmd, verbose: false)
-  message = "#{COLOR_FG_BLUE}#{scenario}#{COLOR_RESET} > #{cmd}"
+def run_cmd(scenario, cmd, verbose: false, env: {})
+  message = "#{COLOR_FG_BLUE}#{scenario}#{COLOR_RESET} > #{env.presence} #{cmd}"
   print message + (PARALLEL ? "\n" : "")
 
   output = status = nil
   elapsed = ActiveSupport::Benchmark.realtime do
-    output, status = Open3.capture2e(cmd)
+    output, status = Open3.capture2e(env, cmd)
   end
 
   puts " (#{elapsed.round(2)}s)" if !PARALLEL
@@ -96,7 +96,14 @@ def run_scenario(scenario)
       FileUtils.mkdir_p(File.dirname(test_db))
       FileUtils.touch(test_db)
 
-      run_cmd(scenario, ["bin/rails test", *TEST_ARGS].join(" "), verbose: true)
+      # run in parallel half the time
+      env = if rand(2).zero?
+        { "PARALLEL_WORKERS" => "2" }
+      else
+        { "PARALLEL_WORKERS" => "1" }
+      end
+
+      run_cmd(scenario, ["bin/rails test", *TEST_ARGS].join(" "), verbose: true, env:)
     ensure
       ENV["BUNDLE_GEMFILE"] = nil
     end
