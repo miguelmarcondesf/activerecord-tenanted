@@ -38,3 +38,20 @@ Isolate the integration testing suite with `bin/test-integration`, which:
   - copy the config and test files from `test/integration/`
   - setup the databases
   - run the integration tests
+
+
+## Making a release
+
+A quick checklist for releasing activerecord-tenanted
+
+- Prechecks
+  - [ ] make sure CI is green!
+  - [ ] update `CHANGELOG.md` and `lib/active_record/tenanted/version.rb`
+  - [ ] commit and create a git tag
+- Release
+  - [ ] `bundle exec rake build`
+  - [ ] `git push && git push --tags`
+  - [ ] `gem push pkg/activerecord-tenanted*.gem`
+  - [ ] create a release at https://github.com/basecamp/activerecord-tenanted/releases
+- Post-release
+  - [ ] bump `lib/active_record/tenanted/version.rb` to a prerelease version like `1.2.3.dev`
