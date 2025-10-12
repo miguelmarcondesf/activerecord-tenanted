@@ -48,10 +48,6 @@ module ActiveRecord
             File.join(db_dir, "#{tenanted_config_name}_schema_cache.yml")
           end
         end
-
-        def database_path
-          configuration_hash[:database_path]
-        end
       end
     end
   end

@@ -18,11 +18,11 @@ describe ActiveRecord::Tenanted::DatabaseTasks do
       end
 
       test "database should be created" do
-        db_path = base_config.database_path_for("foo")
+        config = base_config.new_tenant_config("foo")
 
         ActiveRecord::Tenanted::DatabaseTasks.migrate_tenant("foo")
 
-        assert(File.exist?(db_path))
+        assert_predicate(config.config_adapter, :database_exist?)
       end
 
       test "database should be migrated" do
