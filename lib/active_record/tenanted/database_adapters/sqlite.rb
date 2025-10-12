@@ -83,7 +83,17 @@ module ActiveRecord
           if db.start_with?("file:") && db.include?("?")
             db.sub(/(\?.*)$/, "#{test_worker_suffix}\\1")
           else
-            db + test_worker_suffix
+            # This check is needed because of https://github.com/rails/rails/pull/55769 adding
+            # replicas to the parallelization setup by using `include_hidden: true` which pulls in
+            # the BaseConfig. We don't want to double-suffix the database name.
+            #
+            # TODO: Ideally we should have finer-grained filtering of database configurations in Rails
+            # (other than simply hidden or not-hidden).
+            if db.end_with?(test_worker_suffix)
+              db
+            else
+              db + test_worker_suffix
+            end
           end
         end
 
