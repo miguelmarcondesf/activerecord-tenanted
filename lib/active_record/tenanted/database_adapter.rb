@@ -2,24 +2,29 @@
 
 module ActiveRecord
   module Tenanted
-    class DatabaseAdapter # :nodoc:
-      ADAPTERS = {
-        "sqlite3" => "ActiveRecord::Tenanted::DatabaseAdapters::SQLite",
-      }.freeze
+    module DatabaseAdapter # :nodoc:
+      # Hash of registered database configuration adapters
+      @adapters = {}
 
       class << self
+        def register(name, class_name)
+          @adapters[name.to_s] = class_name
+        end
+
         def new(db_config)
-          adapter_class_name = ADAPTERS[db_config.adapter]
+          adapter_class_name = @adapters[db_config.adapter]
 
           if adapter_class_name.nil?
             raise ActiveRecord::Tenanted::UnsupportedDatabaseError,
                   "Unsupported database adapter for tenanting: #{db_config.adapter}. " \
-                  "Supported adapters: #{ADAPTERS.keys.join(', ')}"
+                  "Supported adapters: #{@adapters.keys.join(', ')}"
           end
 
           adapter_class_name.constantize.new(db_config)
         end
       end
+
+      register "sqlite3", "ActiveRecord::Tenanted::DatabaseAdapters::SQLite"
     end
   end
 end
