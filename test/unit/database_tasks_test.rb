@@ -3,14 +3,6 @@
 require "test_helper"
 
 describe ActiveRecord::Tenanted::DatabaseTasks do
-  describe ".base_config" do
-    for_each_scenario do
-      test "returns the tenanted database configuration" do
-        assert_equal(base_config, ActiveRecord::Tenanted::DatabaseTasks.base_config)
-      end
-    end
-  end
-
   describe ".migrate_tenant" do
     for_each_scenario do
       setup do
@@ -31,7 +23,7 @@ describe ActiveRecord::Tenanted::DatabaseTasks do
         ActiveRecord::Migration.verbose = true
 
         assert_output(/migrating.*create_table/m, nil) do
-          ActiveRecord::Tenanted::DatabaseTasks.migrate_tenant("foo")
+          ActiveRecord::Tenanted::DatabaseTasks.new(base_config).migrate_tenant("foo")
         end
 
         config = base_config.new_tenant_config("foo")
@@ -46,7 +38,7 @@ describe ActiveRecord::Tenanted::DatabaseTasks do
 
         assert_not(File.exist?(schema_path))
 
-        ActiveRecord::Tenanted::DatabaseTasks.migrate_tenant("foo")
+        ActiveRecord::Tenanted::DatabaseTasks.new(base_config).migrate_tenant("foo")
 
         assert(File.exist?(schema_path))
       end
@@ -57,7 +49,7 @@ describe ActiveRecord::Tenanted::DatabaseTasks do
 
         assert_not(File.exist?(schema_cache_path))
 
-        ActiveRecord::Tenanted::DatabaseTasks.migrate_tenant("foo")
+        ActiveRecord::Tenanted::DatabaseTasks.new(base_config).migrate_tenant("foo")
 
         assert(File.exist?(schema_cache_path))
       end
@@ -69,7 +61,7 @@ describe ActiveRecord::Tenanted::DatabaseTasks do
           ActiveRecord::Migration.verbose = true
 
           assert_silent do
-            ActiveRecord::Tenanted::DatabaseTasks.migrate_tenant("foo")
+            ActiveRecord::Tenanted::DatabaseTasks.new(base_config).migrate_tenant("foo")
           end
 
           config = base_config.new_tenant_config("foo")
@@ -85,7 +77,7 @@ describe ActiveRecord::Tenanted::DatabaseTasks do
             ActiveRecord::Migration.verbose = true
 
             assert_output(/migrating.*add_column/m, nil) do
-              ActiveRecord::Tenanted::DatabaseTasks.migrate_tenant("foo")
+              ActiveRecord::Tenanted::DatabaseTasks.new(base_config).migrate_tenant("foo")
             end
 
             config = base_config.new_tenant_config("foo")
@@ -104,7 +96,7 @@ describe ActiveRecord::Tenanted::DatabaseTasks do
           ActiveRecord::Migration.verbose = true
 
           assert_output(/migrating.*add_column/m, nil) do
-            ActiveRecord::Tenanted::DatabaseTasks.migrate_tenant("foo")
+            ActiveRecord::Tenanted::DatabaseTasks.new(base_config).migrate_tenant("foo")
           end
 
           config = base_config.new_tenant_config("foo")
@@ -129,7 +121,7 @@ describe ActiveRecord::Tenanted::DatabaseTasks do
       end
 
       test "migrates all existing tenants" do
-        ActiveRecord::Tenanted::DatabaseTasks.migrate_all
+        ActiveRecord::Tenanted::DatabaseTasks.new(base_config).migrate_all
 
         tenants.each do |tenant|
           config = base_config.new_tenant_config(tenant)

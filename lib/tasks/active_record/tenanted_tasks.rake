@@ -8,31 +8,25 @@ namespace :db do
       next
     end
 
-    unless ActiveRecord::Tenanted::DatabaseTasks.base_config
-      warn "WARNING: No tenanted database found, skipping tenanted migration"
-    else
-      begin
-        verbose_was = ActiveRecord::Migration.verbose
-        ActiveRecord::Migration.verbose = ActiveRecord::Tenanted::DatabaseTasks.verbose?
+    begin
+      verbose_was = ActiveRecord::Migration.verbose
+      ActiveRecord::Migration.verbose = ActiveRecord::Tenanted::DatabaseTasks.verbose?
 
-        ActiveRecord::Tenanted::DatabaseTasks.migrate_tenant
-      ensure
-        ActiveRecord::Migration.verbose = verbose_was
-      end
+      config = ActiveRecord::Tenanted.connection_class.connection_pool.db_config
+      ActiveRecord::Tenanted::DatabaseTasks.new(config).migrate_tenant
+    ensure
+      ActiveRecord::Migration.verbose = verbose_was
     end
   end
 
   desc "Migrate the database for all existing tenants"
   task "migrate:tenant:all" => "load_config" do
-    unless ActiveRecord::Tenanted.connection_class
-      warn "ActiveRecord::Tenanted integration is not configured via connection_class"
-      next
-    end
-
     verbose_was = ActiveRecord::Migration.verbose
     ActiveRecord::Migration.verbose = ActiveRecord::Tenanted::DatabaseTasks.verbose?
 
-    ActiveRecord::Tenanted::DatabaseTasks.migrate_all
+    ActiveRecord::Tenanted.base_configs.each do |config|
+      ActiveRecord::Tenanted::DatabaseTasks.new(config).migrate_all
+    end
   ensure
     ActiveRecord::Migration.verbose = verbose_was
   end
@@ -42,18 +36,14 @@ namespace :db do
 
   desc "Drop all tenanted databases for the current environment"
   task "drop:tenant" => "load_config" do
-    unless ActiveRecord::Tenanted::DatabaseTasks.base_config
-      warn "WARNING: No tenanted database found, skipping tenanted reset"
-    else
-      begin
-        verbose_was = ActiveRecord::Migration.verbose
-        ActiveRecord::Migration.verbose = ActiveRecord::Tenanted::DatabaseTasks.verbose?
+    verbose_was = ActiveRecord::Migration.verbose
+    ActiveRecord::Migration.verbose = ActiveRecord::Tenanted::DatabaseTasks.verbose?
 
-        ActiveRecord::Tenanted::DatabaseTasks.drop_all
-      ensure
-        ActiveRecord::Migration.verbose = verbose_was
-      end
+    ActiveRecord::Tenanted.base_configs.each do |config|
+      ActiveRecord::Tenanted::DatabaseTasks.new(config).drop_all
     end
+  ensure
+    ActiveRecord::Migration.verbose = verbose_was
   end
 
   desc "Set the current tenant to ARTENANT if present, else the environment default"
@@ -63,7 +53,8 @@ namespace :db do
       next
     end
 
-    ActiveRecord::Tenanted::DatabaseTasks.set_current_tenant
+    config = ActiveRecord::Tenanted.connection_class.connection_pool.db_config
+    ActiveRecord::Tenanted::DatabaseTasks.new(config).set_current_tenant
   end
 end
 

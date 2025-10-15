@@ -2,12 +2,23 @@
 
 module ActiveRecord
   module Tenanted
-    module DatabaseTasks # :nodoc:
-      extend self
+    class DatabaseTasks # :nodoc:
+      class << self
+        def verbose?
+          ActiveRecord::Tasks::DatabaseTasks.send(:verbose?)
+        end
+      end
+
+      attr_reader :config
+
+      def initialize(config)
+        unless config.is_a?(ActiveRecord::Tenanted::DatabaseConfigurations::BaseConfig)
+          raise TypeError, "Argument must be an instance of ActiveRecord::Tenanted::DatabaseConfigurations::BaseConfig"
+        end
+        @config = config
+      end
 
       def migrate_all
-        raise ArgumentError, "Could not find a tenanted database" unless config = base_config
-
         tenants = config.tenants.presence || [ get_current_tenant ].compact
         tenants.each do |tenant|
           tenant_config = config.new_tenant_config(tenant)
@@ -16,16 +27,12 @@ module ActiveRecord
       end
 
       def migrate_tenant(tenant_name = set_current_tenant)
-        raise ArgumentError, "Could not find a tenanted database" unless config = base_config
-
         tenant_config = config.new_tenant_config(tenant_name)
 
         migrate(tenant_config)
       end
 
       def drop_all
-        raise ArgumentError, "Could not find a tenanted database" unless config = base_config
-
         config.tenants.each do |tenant|
           db_config = config.new_tenant_config(tenant)
           db_config.config_adapter.drop_database
@@ -33,22 +40,15 @@ module ActiveRecord
         end
       end
 
-      def base_config
-        db_configs = ActiveRecord::Base.configurations.configs_for(
-          env_name: ActiveRecord::Tasks::DatabaseTasks.env,
-          include_hidden: true
-        )
-        db_configs.detect { |c| c.configuration_hash[:tenanted] }
-      end
-
       def get_current_tenant
+        # TODO: needs to work with multiple tenanted configs, maybe using ENV["ARTENANT_#{config.name}"]
         tenant = ENV["ARTENANT"]
 
         if tenant.present?
           $stdout.puts "Setting current tenant to #{tenant.inspect}" if verbose?
         elsif Rails.env.local?
           tenant = Rails.application.config.active_record_tenanted.default_tenant
-          $stdout.puts "Defaulting current tenant to #{tenant.inspect}" if verbose?
+          $stdout.puts "Defaulting current tenant for #{config.name.inspect} to #{tenant.inspect}" if verbose?
         else
           tenant = nil
           $stdout.puts "Cannot determine an implicit tenant: ARTENANT not set, and Rails.env is not local." if verbose?
@@ -107,7 +107,7 @@ module ActiveRecord
       end
 
       def verbose?
-        ActiveRecord::Tasks::DatabaseTasks.send(:verbose?)
+        self.class.verbose?
       end
     end
   end

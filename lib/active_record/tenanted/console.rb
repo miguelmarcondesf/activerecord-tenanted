@@ -5,7 +5,11 @@ module ActiveRecord
     module Console # :nodoc:
       module IRBConsole
         def start
-          ActiveRecord::Tenanted::DatabaseTasks.set_current_tenant if Rails.env.local?
+          # TODO: we could be setting the current tenant for all tenanted configs.
+          if Rails.env.local? && ActiveRecord::Tenanted.connection_class
+            config = ActiveRecord::Tenanted.connection_class.connection_pool.db_config
+            ActiveRecord::Tenanted::DatabaseTasks.new(config).set_current_tenant
+          end
           super
         end
       end
