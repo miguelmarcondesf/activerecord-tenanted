@@ -51,6 +51,12 @@ module ActiveRecord
           super
         end
 
+        def for_each_db_scenario(s = all_scenarios, &block)
+          s.each_key do |db_scenario|
+            with_db_scenario(db_scenario, &block)
+          end
+        end
+
         def for_each_scenario(s = all_scenarios, except: {}, &block)
           s.each do |db_scenario, model_scenarios|
             with_db_scenario(db_scenario) do
