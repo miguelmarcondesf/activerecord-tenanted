@@ -120,7 +120,8 @@ module ActiveRecord
 
         def create_tenant(tenant_name, if_not_exists: false, &block)
           created_db = false
-          adapter = tenanted_root_config.new_tenant_config(tenant_name).config_adapter
+          base_config = tenanted_root_config
+          adapter = base_config.new_tenant_config(tenant_name).config_adapter
 
           adapter.acquire_ready_lock do
             unless adapter.database_exist?
@@ -128,7 +129,7 @@ module ActiveRecord
 
               with_tenant(tenant_name) do
                 connection_pool(schema_version_check: false)
-                ActiveRecord::Tenanted::DatabaseTasks.migrate_tenant(tenant_name)
+                ActiveRecord::Tenanted::DatabaseTasks.new(base_config).migrate_tenant(tenant_name)
               end
 
               created_db = true

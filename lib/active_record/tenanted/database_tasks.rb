@@ -1,54 +1,61 @@
 # frozen_string_literal: true
 
+require "rake"
+
 module ActiveRecord
   module Tenanted
-    module DatabaseTasks # :nodoc:
-      extend self
+    class DatabaseTasks # :nodoc:
+      include Rake::DSL
 
-      def migrate_all
-        raise ArgumentError, "Could not find a tenanted database" unless config = base_config
-
-        tenants = config.tenants.presence || [ get_current_tenant ].compact
-        tenants.each do |tenant|
-          tenant_config = config.new_tenant_config(tenant)
-          migrate(tenant_config)
+      class << self
+        def verbose?
+          ActiveRecord::Tasks::DatabaseTasks.send(:verbose?)
         end
       end
 
-      def migrate_tenant(tenant_name = set_current_tenant)
-        raise ArgumentError, "Could not find a tenanted database" unless config = base_config
+      attr_reader :config
 
-        tenant_config = config.new_tenant_config(tenant_name)
+      def initialize(config)
+        unless config.is_a?(ActiveRecord::Tenanted::DatabaseConfigurations::BaseConfig)
+          raise TypeError, "Argument must be an instance of ActiveRecord::Tenanted::DatabaseConfigurations::BaseConfig"
+        end
+        @config = config
+      end
 
-        migrate(tenant_config)
+      def migrate_all
+        tenants = config.tenants.presence || [ get_default_tenant ].compact
+        tenants.each do |tenant|
+          migrate_tenant(tenant)
+        end
+      end
+
+      def migrate_tenant(tenant = set_current_tenant)
+        db_config = config.new_tenant_config(tenant)
+        migrate(db_config)
+        $stdout.puts "Migrated database '#{db_config.database}'" if verbose?
       end
 
       def drop_all
-        raise ArgumentError, "Could not find a tenanted database" unless config = base_config
-
         config.tenants.each do |tenant|
-          db_config = config.new_tenant_config(tenant)
-          db_config.config_adapter.drop_database
-          $stdout.puts "Dropped database '#{db_config.database}'" if verbose?
+          drop_tenant(tenant)
         end
       end
 
-      def base_config
-        db_configs = ActiveRecord::Base.configurations.configs_for(
-          env_name: ActiveRecord::Tasks::DatabaseTasks.env,
-          include_hidden: true
-        )
-        db_configs.detect { |c| c.configuration_hash[:tenanted] }
+      def drop_tenant(tenant = set_current_tenant)
+        db_config = config.new_tenant_config(tenant)
+        db_config.config_adapter.drop_database
+        $stdout.puts "Dropped database '#{db_config.database}'" if verbose?
       end
 
-      def get_current_tenant
+      def get_default_tenant
+        # TODO: needs to work with multiple tenanted configs, maybe using ENV["ARTENANT_#{config.name}"]
         tenant = ENV["ARTENANT"]
 
         if tenant.present?
           $stdout.puts "Setting current tenant to #{tenant.inspect}" if verbose?
         elsif Rails.env.local?
           tenant = Rails.application.config.active_record_tenanted.default_tenant
-          $stdout.puts "Defaulting current tenant to #{tenant.inspect}" if verbose?
+          $stdout.puts "Defaulting current tenant for #{config.name.inspect} to #{tenant.inspect}" if verbose?
         else
           tenant = nil
           $stdout.puts "Cannot determine an implicit tenant: ARTENANT not set, and Rails.env is not local." if verbose?
@@ -64,7 +71,7 @@ module ActiveRecord
         end
 
         if connection_class.current_tenant.nil?
-          connection_class.current_tenant = get_current_tenant
+          connection_class.current_tenant = get_default_tenant
         else
           connection_class.current_tenant
         end
@@ -107,7 +114,49 @@ module ActiveRecord
       end
 
       def verbose?
-        ActiveRecord::Tasks::DatabaseTasks.send(:verbose?)
+        self.class.verbose?
+      end
+
+      def register_rake_tasks
+        name = config.name
+
+        desc "Migrate tenanted #{name} databases for current environment"
+        task "db:migrate:#{name}" => "load_config" do
+          verbose_was = ActiveRecord::Migration.verbose
+          ActiveRecord::Migration.verbose = ActiveRecord::Tenanted::DatabaseTasks.verbose?
+
+          tenant = ENV["ARTENANT"]
+          if tenant.present?
+            migrate_tenant(tenant)
+          else
+            migrate_all
+          end
+        ensure
+          ActiveRecord::Migration.verbose = verbose_was
+        end
+        task "db:migrate" => "db:migrate:#{name}"
+        task "db:prepare" => "db:migrate:#{name}"
+
+        desc "Drop tenanted #{name} databases for current environment"
+        task "db:drop:#{name}" => "load_config" do
+          verbose_was = ActiveRecord::Migration.verbose
+          ActiveRecord::Migration.verbose = ActiveRecord::Tenanted::DatabaseTasks.verbose?
+
+          tenant = ENV["ARTENANT"]
+          if tenant.present?
+            drop_tenant(tenant)
+          else
+            drop_all
+          end
+        ensure
+          ActiveRecord::Migration.verbose = verbose_was
+        end
+        task "db:drop" => "db:drop:#{name}"
+
+        # TODO: Rails' database tasks include "db:seed" in the tasks that "db:reset" runs.
+        desc "Drop and recreate tenanted #{name} database from its schema for the current environment"
+        task "db:reset:#{name}" => [ "db:drop:#{name}", "db:migrate:#{name}" ]
+        task "db:reset" => "db:reset:#{name}"
       end
     end
   end
