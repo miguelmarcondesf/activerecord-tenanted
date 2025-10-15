@@ -405,7 +405,20 @@ Documentation outline:
 - migrations
   - create_tenant migrates the new database
   - but otherwise, creation of the connection pool for a tenant that has pending migrations will raise a PendingMigrationError
-  - `db:migrate` will migrate all tenants
+- database rake tasks (where DBNAME is the name of the database configuration, e.g. `primary`)
+  - db:migrate:DBNAME
+    - dependency of db:migrate and db:prepare
+    - it operates on all tenants by default
+    - if there are no tenants it will create a database for the default tenant
+    - the ARTENANT env var can be specified to run against a specific tenant
+  - db:drop:DBNAME replaces db:drop:tenant
+    - dependency of db:drop
+    - it operates on all tenants by default
+    - the ARTENANT env var can be specified to run against a specific tenant
+  - db:reset:DBNAME replaces db:reset:tenant
+    - dependency of db:reset
+    - it operates on all tenants by default
+    - the ARTENANT env var can be specified to run against a specific tenant
 
 TODO:
 
