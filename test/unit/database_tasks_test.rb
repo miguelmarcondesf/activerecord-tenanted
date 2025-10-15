@@ -18,9 +18,11 @@ describe ActiveRecord::Tenanted::DatabaseTasks do
       end
 
       test "database should be created" do
-        config = base_config.new_tenant_config("foo")
+        config = base_config.new_tenant_config("bar")
 
-        ActiveRecord::Tenanted::DatabaseTasks.migrate_tenant("foo")
+        assert_not_predicate(config.config_adapter, :database_exist?)
+
+        ActiveRecord::Tenanted::DatabaseTasks.new(base_config).migrate_tenant("bar")
 
         assert_predicate(config.config_adapter, :database_exist?)
       end
