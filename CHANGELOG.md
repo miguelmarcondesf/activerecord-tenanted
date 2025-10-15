@@ -1,5 +1,29 @@
 # `activerecord-tenanted` Changelog
 
+## next / unreleased
+
+### Changed
+
+Some rake task changes to rename tasks for the database name (like Rails does it):
+
+- `db:migrate:DBNAME` replaces `db:migrate:tenant` and `db:migrate:tenant:all`
+  - it operates on all tenants by default
+  - if there are no tenants it will create a database for the default tenant
+  - the `ARTENANT` env var can be specified to run against a specific tenant
+- `db:drop:DBNAME` replaces `db:drop:tenant`
+  - it operates on all tenants by default
+  - NEW: the `ARTENANT` env var can be specified to run against a specific tenant
+- `db:reset:DBNAME` replaces `db:reset:tenant`
+  - it operates on all tenants by default
+  - NEW: the `ARTENANT` env var can be specified to run against a specific tenant
+- `Tenanted::DatabaseTasks.base_config` has been removed
+
+Some additional changes:
+
+- `Tenanted::DatabaseTasks` is now a class that takes a tenanted base config as a constructor parameter.
+- `ActiveRecord::Tenanted.base_configs` is a new utility method that returns all the tenanted base configs for the current environment.
+
+
 ## v0.5.0 / 2025-10-12
 
 ### Fixed

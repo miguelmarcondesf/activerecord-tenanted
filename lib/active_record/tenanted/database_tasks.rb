@@ -32,7 +32,6 @@ module ActiveRecord
       def migrate_tenant(tenant = set_current_tenant)
         db_config = config.new_tenant_config(tenant)
         migrate(db_config)
-        $stdout.puts "Migrated database '#{db_config.database}'" if verbose?
       end
 
       def drop_all
