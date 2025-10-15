@@ -466,75 +466,191 @@ TODO:
   - [x] install a load hook
 
 - database tasks
-  - [x] make `db:migrate:tenant:all` iterate over all the tenants on disk
-  - [x] make `db:migrate:tenant ARTENANT=asdf` run migrations on just that tenant
-  - [x] make `db:migrate:tenant` run migrations on `development-tenant` in dev
-  - [x] make `db:migrate` run `db:migrate:tenant` in dev
-  - [x] make `db:prepare` run `db:migrate:tenant` in dev
+  - [x] make `db:migrate:__dbname__` migrate all the existing tenants
+  - [x] make `db:migrate:__dbname__ ARTENANT=asdf` run migrations on just that tenant
+  - [x] make `db:drop:__dbname__` drop all the existing tenants
+  - [x] make `db:drop:__dbname__ ARTENANT=asdf` drop just that tenant
+  - [x] make `db:migrate` run `db:migrate:__dbname__`
+  - [x] make `db:prepare` run `db:migrate:__dbname__`
+  - [x] make `db:drop` run `db:drop:__dbname__`
   - [x] make a decision on what output tasks should emit, and whether we need a separate verbose setting
   - [ ] make the implicit migration opt-in
-  - [ ] use the database name instead of "tenant", e.g. "db:migrate:primary"
+  - [x] use the database name instead of "tenant", e.g. "db:migrate:primary"
   - [ ] fully implement all the relevant database tasks:
-    - [ ] `db:_dump`
-    - [ ] `db:_dump:__name__`
+    - [~] `db:_dump`
+      - forwards to "db:schema:dump"
+    - [~] `db:_dump:__dbname__`
+      - created by ActiveRecord::Tasks::DatabaseTasks.for_each(databases)
+      - forwards to "db:schema:dump:__dbname__"
     - [ ] `db:abort_if_pending_migrations`
-    - [ ] `db:abort_if_pending_migrations:__name__`
+      - uses DatabaseTasks.with_temporary_pool_for_each to iterate over db configs
+    - [ ] `db:abort_if_pending_migrations:__dbname__`
+      - created by ActiveRecord::Tasks::DatabaseTasks.for_each(databases)
+      - implemented with ActiveRecord::Tasks::DatabaseTasks.with_temporary_pool_for_each(env: Rails.env, name: name)
     - [ ] `db:charset`
+      - only seems to work against "primary"
+      - error caused by nil returned from configs_for(env_name: env_name, name: db_name)
+      - maybe we don't need to support this immediately?
     - [ ] `db:check_protected_environments`
+      - loops over configs_for(env_name: environment)
+      - we probably do not want or need to check all of the tenant databases. maybe check just the first tenant?
     - [ ] `db:collation`
+      - only seems to work against "primary"
+      - error caused by nil returned from configs_for(env_name: env_name, name: db_name)
+      - maybe we don't need to support this immediately?
     - [ ] `db:create`
+      - forwards to ActiveRecord::Tasks::DatabaseTasks.create_current
     - [ ] `db:create:all`
-    - [ ] `db:create:__name__`
+      - forwards to ActiveRecord::Tasks::DatabaseTasks.create_all
+    - [ ] `db:create:__dbname__`
+      - created by ActiveRecord::Tasks::DatabaseTasks.for_each(databases)
+      - implemented with ActiveRecord::Base.configurations.configs_for(env_name: Rails.env, name: name)
     - [ ] `db:drop`
+      - forwards to "db:drop:_unsafe"
     - [ ] `db:drop:_unsafe`
+      - forwards to ActiveRecord::Tasks::DatabaseTasks.drop_current
     - [ ] `db:drop:all`
-    - [ ] `db:drop:__name__`
-    - [ ] `db:encryption:init`
+      - forwards to ActiveRecord::Tasks::DatabaseTasks.drop_all
+    - [ ] `db:drop:__dbname__`
+      - created by ActiveRecord::Tasks::DatabaseTasks.for_each(databases)
+      - implemented with ActiveRecord::Base.configurations.configs_for(env_name: Rails.env, name: name)
+    - [~] `db:encryption:init`
+      - orthogonal to tenanting
     - [ ] `db:environment:set`
-    - [ ] `db:fixtures:identify`
+      - uses ActiveRecord::Tasks::DatabaseTasks.migration_connection_pool which raises NoTenantError if tenanted is primary
+    - [~] `db:fixtures:identify`
+      - orthogonal to tenanting
     - [ ] `db:fixtures:load`
-    - [ ] `db:forward`
-    - [ ] `db:install:migrations`
-    - [ ] `db:load_config`
-    - [ ] `db:migrate` with support for VERSION
+      - I think the current behavior is the desired behavior: use ARTENANT (fallback to default tenant) as the target database
+    - [ ] `db:forward` with support for STEP
+      - **migration**
+      - calls ActiveRecord::Tasks::DatabaseTasks.migration_connection_pool.migration_context.forward(step)
+    - [~] `db:load_config`
+      - orthogonal to tenanting
+    - [ ] `db:migrate` with support for VERSION and SCOPE
+      - **migration**
+      - calls ActiveRecord::Tasks::DatabaseTasks.migrate_all
     - [ ] `db:migrate:down` with support for VERSION
-    - [ ] `db:migrate:down:__name__`
-    - [ ] `db:migrate:__name__`
+      - **migration**
+      - calls ActiveRecord::Tasks::DatabaseTasks.migration_connection_pool.migration_context.run(:down, target_version)
+    - [ ] `db:migrate:down:__dbname__`
+      - **migration**
+      - created by ActiveRecord::Tasks::DatabaseTasks.for_each(databases)
+      - implemented with DatabaseTasks.with_temporary_pool_for_each(env: Rails.env, name: name)
+      - calls pool.migration_context.run(:down, ActiveRecord::Tasks::DatabaseTasks.target_version)
+    - [ ] `db:migrate:__dbname__`
+      - **migration**
+      - created by ActiveRecord::Tasks::DatabaseTasks.for_each(databases)
+      - implemented with ActiveRecord::Tasks::DatabaseTasks.with_temporary_pool_for_each(env: Rails.env, name: name)
+      - calls ActiveRecord::Tasks::DatabaseTasks.migrate
     - [ ] `db:migrate:redo` with support for STEP and VERSION
-    - [ ] `db:migrate:redo:__name__`
-    - [ ] `db:migrate:reset`
+      - **migration**
+      - forwards to either:
+        - "db:migrate:down" + "db:migrate:up"
+        - "db:rollback" + "db:migrate"
+    - [ ] `db:migrate:redo:__dbname__`
+      - **migration**
+      - created by ActiveRecord::Tasks::DatabaseTasks.for_each(databases)
+      - forwards to either:
+        - "db:migrate:down:__dbname__" + "db:migrate:up:__dbname__"
+        - "db:rollback:__dbname__" + "db:migrate:__dbname__"
+    - [~] `db:migrate:reset`
+      - invokes "db:drop", "db:create", "db:schema:dump", "db:migrate"
     - [ ] `db:migrate:status`
-    - [ ] `db:migrate:status:__name__`
+      - implemented with ActiveRecord::Tasks::DatabaseTasks.with_temporary_pool_for_each
+      - calls ActiveRecord::Tasks::DatabaseTasks.migrate_status
+    - [ ] `db:migrate:status:__dbname__`
+      - created by ActiveRecord::Tasks::DatabaseTasks.for_each(databases)
+      - implemented with ActiveRecord::Tasks::DatabaseTasks.with_temporary_pool_for_each(env: Rails.env, name: name)
+      - calls ActiveRecord::Tasks::DatabaseTasks.migrate_status
     - [ ] `db:migrate:up` with support for VERSION
-    - [ ] `db:migrate:up:__name__`
+      - **migration**
+      - calls ActiveRecord::Tasks::DatabaseTasks.migration_connection_pool.migration_context.run(:up, target_version)
+    - [ ] `db:migrate:up:__dbname__`
+      - **migration**
+      - created by ActiveRecord::Tasks::DatabaseTasks.for_each(databases)
+      - implemented with DatabaseTasks.with_temporary_pool_for_each(env: Rails.env, name: name)
+      - calls pool.migration_context.run(:up, ActiveRecord::Tasks::DatabaseTasks.target_version)
     - [ ] `db:prepare`
+      - forwards to ActiveRecord::Tasks::DatabaseTasks.prepare_all
     - [ ] `db:purge` (see Known Issues below)
+      - forwards to ActiveRecord::Tasks::DatabaseTasks.purge_current
     - [ ] `db:purge:all` (see Known Issues below)
+      - forwards to ActiveRecord::Tasks::DatabaseTasks.purge_all
     - [ ] `db:reset`
+      - forwards to "db:drop", "db:create", "db:schema:dump", "db:migrate"
     - [ ] `db:reset:all`
-    - [ ] `db:reset:__name__`
+      - forwards to "db:drop", "db:setup"
+    - [ ] `db:reset:__dbname__`
+      - created by ActiveRecord::Tasks::DatabaseTasks.for_each(databases)
+      - forwards to "db:drop:__dbname__", "db:setup:__dbname__"
     - [ ] `db:rollback` with support for STEP
-    - [ ] `db:rollback:__name__`
+      - **migration**
+      - calls ActiveRecord::Tasks::DatabaseTasks.migration_connection_pool.migration_context.rollback(step)
+    - [ ] `db:rollback:__dbname__`
+      - **migration**
+      - created by ActiveRecord::Tasks::DatabaseTasks.for_each(databases)
+      - implemented with ActiveRecord::Tasks::DatabaseTasks.with_temporary_pool_for_each(env: Rails.env, name: name)
+      - calls pool.migration_context.rollback(step)
     - [ ] `db:schema:cache:clear`
+      - iterates with ActiveRecord::Base.configurations.configs_for(env_name: ActiveRecord::Tasks::DatabaseTasks.env).each
+      - we can probably skip implementing this since the gem needs the schema cache to operate, but whatever, maybe it's useful to force a re-dump
     - [ ] `db:schema:cache:dump`
+      - iterates with ActiveRecord::Tasks::DatabaseTasks.with_temporary_pool_for_each
+      - we can probably skip implementing this since the gem automatically dumps the schema cache for tenanted databases
     - [ ] `db:schema:dump`
-    - [ ] `db:schema:dump:__name__`
+      - forwards to ActiveRecord::Tasks::DatabaseTasks.dump_all
+      - I think we can skip this? Check that the gem always dumps the schema.
+    - [ ] `db:schema:dump:__dbname__`
+      - created by ActiveRecord::Tasks::DatabaseTasks.for_each(databases)
+      - iterates with ActiveRecord::Tasks::DatabaseTasks.with_temporary_pool_for_each(name: name)
+      - calls ActiveRecord::Tasks::DatabaseTasks.dump_schema
+      - I think we can skip this? Check that the gem always dumps the schema.
     - [ ] `db:schema:load`
-    - [ ] `db:schema:load:__name__`
+      - forwards to ActiveRecord::Tasks::DatabaseTasks.load_schema_current(nil, ENV["SCHEMA"])
+    - [ ] `db:schema:load:__dbname__`
+      - created by ActiveRecord::Tasks::DatabaseTasks.for_each(databases)
+      - implemented with ActiveRecord::Tasks::DatabaseTasks.with_temporary_pool_for_each(name: name)
+      - calls ActiveRecord::Tasks::DatabaseTasks.load_schema
+      - I think we can skip this since the schema is automatically applied at tenant creation time
     - [ ] `db:seed`
+      - forwards to ActiveRecord::Tasks::DatabaseTasks.load_seed
+      - I think the current behavior is the desired behavior: use ARTENANT (fallback to default tenant) as the target database
     - [ ] `db:seed:replant`
+      - forwards to :load_config, :truncate_all, :seed
     - [ ] `db:setup`
+      - forwards to "db:create", :environment, "db:schema:load", :seed
     - [ ] `db:setup:all`
-    - [ ] `db:setup:__name__`
+      - forwards to "db:create", :environment, "db:schema:load", :seed
+    - [ ] `db:setup:__dbname__`
+      - created by ActiveRecord::Tasks::DatabaseTasks.for_each(databases)
+      - forwards to "db:create:__dbname__", :environment, "db:schema:load:__dbname__", "db:seed"
     - [ ] `db:test:load_schema`
-    - [ ] `db:test:load_schema:__name__`
+      - implemented with ActiveRecord::Tasks::DatabaseTasks.with_temporary_pool_for_each(env: "test")
+      - calls ActiveRecord::Tasks::DatabaseTasks.load_schema
+    - [ ] `db:test:load_schema:__dbname__`
+      - created by ActiveRecord::Tasks::DatabaseTasks.for_each(databases)
+      - implemented with ActiveRecord::Tasks::DatabaseTasks.with_temporary_pool_for_each(env: "test", name: name)
+      - calls ActiveRecord::Tasks::DatabaseTasks.load_schema
     - [ ] `db:test:prepare`
-    - [ ] `db:test:prepare:__name__`
+      - forwards to "db:test:load_schema"
+    - [ ] `db:test:prepare:__dbname__`
+      - created by ActiveRecord::Tasks::DatabaseTasks.for_each(databases)
+      - forwards to "db:test:load_schema:__dbname__"
     - [ ] `db:test:purge`
-    - [ ] `db:test:purge:__name__`
+      - implemented with ActiveRecord::Base.configurations.configs_for(env_name: "test")
+      - calls ActiveRecord::Tasks::DatabaseTasks.purge(db_config)
+    - [ ] `db:test:purge:__dbname__`
+      - created by ActiveRecord::Tasks::DatabaseTasks.for_each(databases)
+      - implemented with ActiveRecord::Tasks::DatabaseTasks.with_temporary_pool_for_each(env: "test", name: name)
+      - calls ActiveRecord::Tasks::DatabaseTasks.purge(db_config)
     - [ ] `db:truncate_all`
+      - forwards to ActiveRecord::Tasks::DatabaseTasks.truncate_all
     - [ ] `db:version`
-    - [ ] `db:version:__name__`
+      - implemented with ActiveRecord::Tasks::DatabaseTasks.with_temporary_pool_for_each(env: Rails.env)
+    - [ ] `db:version:__dbname__`
+      - created by ActiveRecord::Tasks::DatabaseTasks.for_each(databases)
+      - implemented with ActiveRecord::Base.configurations.configs_for(env_name: Rails.env, name: name)
 
 - installation
   - [ ] install a variation on the default database.yml with primary tenanted and non-primary "global" untenanted
