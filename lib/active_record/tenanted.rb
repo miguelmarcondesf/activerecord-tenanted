@@ -41,6 +41,8 @@ module ActiveRecord
     # Raised when an unsupported database adapter is used.
     class UnsupportedDatabaseError < Error; end
 
+    # Return the constantized connection class configured in `config.active_record_tenanted.connection_class`,
+    # or nil if none is configured.
     def self.connection_class
       # TODO: cache this / speed this up
       Rails.application.config.active_record_tenanted.connection_class&.constantize
