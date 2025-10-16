@@ -28,6 +28,10 @@ module ActiveRecord
         ActiveRecord::ConnectionAdapters::BoundSchemaReflection.new(schema_reflection, self)
       end
 
+      def size
+        db_config.max_connections
+      end
+
       def lease_connection(...)
         raise Tenanted::NoTenantError, "Cannot connect to a tenanted database while untenanted (#{@model})."
       end

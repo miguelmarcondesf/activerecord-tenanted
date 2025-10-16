@@ -2,7 +2,7 @@
 
 ## next / unreleased
 
-### Changed
+### Breaking change: Rake tasks
 
 Some rake task changes to rename tasks for the database name (like Rails does it):
 
@@ -22,6 +22,11 @@ Some additional changes:
 
 - `Tenanted::DatabaseTasks` is now a class that takes a tenanted base config as a constructor parameter.
 - `ActiveRecord::Tenanted.base_configs` is a new utility method that returns all the tenanted base configs for the current environment.
+
+
+### Added
+
+- `UntenantedConnectionPool#size` returns the database configuration's `max_connections` value, so that code (like Solid Queue) can inspect config params without a tenant context.
 
 
 ## v0.5.0 / 2025-10-12
