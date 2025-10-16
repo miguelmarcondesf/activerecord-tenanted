@@ -19,5 +19,10 @@ describe ActiveRecord::Tenanted::UntenantedConnectionPool do
         assert_equal("Cannot connect to a tenanted database while untenanted (User).", e.message)
       end
     end
+
+    test "size returns max_connections from db_config" do
+      def config.max_connections; 42; end
+      assert_equal 42, subject.size
+    end
   end
 end
