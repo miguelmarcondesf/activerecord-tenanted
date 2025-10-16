@@ -59,6 +59,8 @@ Read the [Rails Guide documentation on `config.active_record.query_log_tags`](ht
 
 ### Added
 
+- Add callbacks for `:with_tenant` which are invoked when `.with_tenant` is called.
+- Add callbacks for `:set_current_tenant` which are invoked when `.current_tenant=` is called.
 - `UntenantedConnectionPool#size` returns the database configuration's `max_connections` value, so that code (like Solid Queue) can inspect config params without a tenant context.
 
 
