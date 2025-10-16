@@ -10,7 +10,7 @@
 
 ## Contents
 
-<!-- regenerate TOC with `rake format:toc` -->
+<!-- regenerate TOC with `rake toc` -->
 
 <!-- toc -->
 
@@ -19,6 +19,7 @@
   * [1.2 High-level implementation](#12-high-level-implementation)
   * [1.3 Concepts](#13-concepts)
   * [1.4 Prior Art](#14-prior-art)
+  * [1.5 Shared state (WIP)](#15-shared-state-wip)
 - [2. Application Configuration](#2-application-configuration)
   * [2.1 The Default Configuration](#21-the-default-configuration)
   * [2.2 Configuring the Database](#22-configuring-the-database)
@@ -125,6 +126,17 @@ Released in 2011, the [`apartment`](https://github.com/rails-on-services/apartme
 In December 2020, [Rails 6.1 was released](https://guides.rubyonrails.org/6_1_release_notes.html) with support for horizontal sharding and multi-database. This functionality provided new thread-safe capabilities for connection switching in Rails.
 
 In early 2025, Julik Tarkhanov published a [tenanting implementation named "Shardine"](https://blog.julik.nl/2025/04/a-can-of-shardines) that uses the Rails sharding API. However, it also provided very limited integration with the rest of the Rails framework.
+
+
+### 1.5 Shared state (WIP)
+
+- when we talk about "integration with the rest of rails" we're talking about Rails' assumptions about shared state
+- some of these assumptions are now busted
+  - database ids are no longer unique
+  - global ids are no longer global
+  - cache is no longer global
+  - cable channels are no longer global
+  - jobs are no longer global
 
 
 ## 2. Application Configuration
@@ -384,19 +396,10 @@ TODO:
 
 Documentation outline:
 
-  - configuring either tenant-by-subdomain or a tenant-by-root-path-element
-  - fragment cache disambiguation
-  - global id disambiguation
-  - invalid characters in a tenant name
+  - invalid characters in a tenant name (which is database-dependent)
     - and how the application may want to do additional validation (e.g. ICANN subdomain restrictions)
   - `#tenant` is a readonly attribute on all tenanted model instances
   - `.current_tenant` returns the execution context for the model connection class
-- talk a bit about busted assumptions about shared state
-  - database ids are no longer unique
-  - global ids are no longer global
-  - cache is no longer global
-  - cable channels are no longer global
-  - jobs are no longer global
 - and what we do in this gem to help manage that "current tenant" state
 - logging
   - SQL query logs
