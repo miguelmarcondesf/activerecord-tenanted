@@ -657,8 +657,7 @@ describe ActiveRecord::Tenanted::Tenant do
         ActiveRecord::Base.connection.add_column :announcements, :custom_tenant_id, :string
         ActiveRecord::Base.connection.add_column :announcements, :user_id, :integer
 
-        User.cross_tenant_config(tenant_column: :custom_tenant_id)
-        User.has_one :announcement, class_name: "Announcement"
+        User.has_one :announcement, class_name: "Announcement", tenant_key: :custom_tenant_id
         Announcement.belongs_to :user
       end
 
@@ -688,8 +687,7 @@ describe ActiveRecord::Tenanted::Tenant do
         ActiveRecord::Base.connection.add_column :announcements, :custom_tenant_id, :string
         ActiveRecord::Base.connection.add_column :announcements, :user_id, :integer
 
-        User.cross_tenant_config(tenant_column: :custom_tenant_id)
-        User.has_many :announcements, class_name: "Announcement"
+        User.has_many :announcements, class_name: "Announcement", tenant_key: :custom_tenant_id
         Announcement.belongs_to :user
       end
 
