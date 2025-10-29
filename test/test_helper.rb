@@ -183,6 +183,16 @@ module ActiveRecord
         Rails.application.config.active_record_tenanted.tenant_resolver         = @old_tenant_resolver
       end
 
+      def run(...)
+        if defined?(with_debug_event_reporting)
+          with_debug_event_reporting do
+            super
+          end
+        else
+          super
+        end
+      end
+
       def all_configs
         ActiveRecord::Base.configurations.configs_for(include_hidden: true)
       end
