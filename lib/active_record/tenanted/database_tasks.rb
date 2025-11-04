@@ -23,7 +23,6 @@ module ActiveRecord
       end
 
       def migrate_all
-        tenants = config.tenants.presence || [ get_default_tenant ].compact
         tenants.each do |tenant|
           migrate_tenant(tenant)
         end
@@ -35,7 +34,7 @@ module ActiveRecord
       end
 
       def drop_all
-        config.tenants.each do |tenant|
+        tenants.each do |tenant|
           drop_tenant(tenant)
         end
       end
@@ -44,6 +43,10 @@ module ActiveRecord
         db_config = config.new_tenant_config(tenant)
         db_config.config_adapter.drop_database
         $stdout.puts "Dropped database '#{db_config.database}'" if verbose?
+      end
+
+      def tenants
+        config.tenants.presence || [ get_default_tenant ].compact
       end
 
       def get_default_tenant
