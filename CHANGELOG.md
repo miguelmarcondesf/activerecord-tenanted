@@ -1,6 +1,6 @@
 # `activerecord-tenanted` Changelog
 
-## next / unreleased
+## v0.6.0 / 2025-11-05
 
 ### Breaking change: Rake tasks
 
