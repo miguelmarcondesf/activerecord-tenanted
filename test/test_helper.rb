@@ -12,7 +12,12 @@ class TestSuiteRailtie < ::Rails::Railtie
   initializer "turn off the Rails integrations when running this test suite" do
     ActiveSupport.on_load(:active_record_tenanted) do
       Rails.application.config.active_record_tenanted.connection_class = nil
+      Rails.application.config.active_record.query_log_tags = [ :tenant ]
     end
+  end
+
+  initializer "enabled query log tags for tests" do
+    Rails.application.config.active_record.query_log_tags_enabled = true
   end
 end
 

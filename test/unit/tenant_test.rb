@@ -1020,7 +1020,7 @@ describe ActiveRecord::Tenanted::Tenant do
           end
         end
 
-        assert_includes(log.string, "[tenant=foo]")
+        assert_includes(log.string, "tenant='foo'")
       end
     end
 

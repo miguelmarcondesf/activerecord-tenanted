@@ -24,6 +24,32 @@ Some additional changes:
 - `ActiveRecord::Tenanted.base_configs` is a new utility method that returns all the tenanted base configs for the current environment.
 
 
+### Breaking change: SQL query logging
+
+Recent cascading changes on Rails `main` related to structured logging have made it challenging to continue to support log output like this:
+
+```
+# old log structure
+Account Count [tenant=686465299] (0.1ms)  SELECT COUNT(*) FROM "accounts"
+```
+
+This version of the gem moves to using a query log tag named `:tenant`, which is more in line with how Rails wants extensions to inject content into the query logs. To use it, set this in your application config:
+
+```ruby
+Rails.application.config.active_record.query_log_tags_enabled = true
+Rails.application.config.active_record.query_log_tags = [ :tenant ]
+```
+
+When configured, the application will emit logs like this:
+
+```
+# new log structure
+Account Count (0.3ms)  SELECT COUNT(*) FROM "accounts" /*tenant='686465299'*/
+```
+
+Read the [Rails Guide documentation on `config.active_record.query_log_tags`](https://guides.rubyonrails.org/configuring.html#config-active-record-query-log-tags) for more information on query logs in general.
+
+
 ### Added
 
 - `UntenantedConnectionPool#size` returns the database configuration's `max_connections` value, so that code (like Solid Queue) can inspect config params without a tenant context.

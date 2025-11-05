@@ -402,7 +402,9 @@ Documentation outline:
   - `.current_tenant` returns the execution context for the model connection class
 - and what we do in this gem to help manage that "current tenant" state
 - logging
-  - SQL query logs
+  - SQL query logs - see rdocs in connection_adapter.rb
+    - set `config.active_record.query_log_tags = [ :tenant ]`
+    - must also have `config.active_record.query_log_tags_enabled = true`
   - TaggedLogging and config.log_tenant_tag
   - suggest how to add to structured logs if people are doing that
 - migrations
