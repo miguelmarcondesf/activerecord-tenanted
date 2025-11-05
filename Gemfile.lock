@@ -1,6 +1,6 @@
 GIT
   remote: https://github.com/rails/rails.git
-  revision: def13087d55a6dbbfa80d114c847555927ce2ed7
+  revision: bc41ad696a76a151db56259938dccf64ef87b501
   branch: main
   specs:
     actioncable (8.2.0.alpha)
@@ -102,7 +102,7 @@ GIT
 PATH
   remote: .
   specs:
-    activerecord-tenanted (0.5.0)
+    activerecord-tenanted (0.6.0)
       activerecord (>= 8.1.beta)
       railties (>= 8.1.beta)
       zeitwerk
@@ -186,7 +186,7 @@ GEM
       timeout
     net-smtp (0.5.1)
       net-protocol
-    nio4r (2.7.4)
+    nio4r (2.7.5)
     nokogiri (1.18.10-arm64-darwin)
       racc (~> 1.4)
     nokogiri (1.18.10-x86_64-darwin)
