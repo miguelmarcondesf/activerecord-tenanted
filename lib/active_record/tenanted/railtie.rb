@@ -148,6 +148,10 @@ module ActiveRecord
       end
 
       config.after_initialize do
+        ActiveRecord::QueryLogs.taggings = ActiveRecord::QueryLogs.taggings.merge(
+          tenant: ->(context) { context[:connection].tenant }
+        )
+
         if defined?(Rails::Console)
           require "rails/commands/console/irb_console"
           Rails::Console::IRBConsole.prepend ActiveRecord::Tenanted::Console::IRBConsole
