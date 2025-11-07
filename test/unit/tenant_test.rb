@@ -69,6 +69,18 @@ describe ActiveRecord::Tenanted::Tenant do
         assert_nothing_raised { User.first }
       end
 
+      test ".current_tenant=nil clears tenant context" do
+        assert_nil(TenantedApplicationRecord.current_tenant)
+
+        TenantedApplicationRecord.current_tenant = "foo"
+
+        assert_equal("foo", TenantedApplicationRecord.current_tenant)
+
+        TenantedApplicationRecord.current_tenant = nil
+
+        assert_nil(TenantedApplicationRecord.current_tenant)
+      end
+
       test ".current_tenant= sets tenant context for a symbol" do
         TenantedApplicationRecord.create_tenant("foo")
 

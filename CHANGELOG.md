@@ -1,5 +1,12 @@
 # `activerecord-tenanted` Changelog
 
+## next / unreleased
+
+### Fixed
+
+- `.current_tenant = nil` now clears the tenant context, properly setting the shard to `UNTENANTED_SENTINEL` instead of `""` @flavorjones
+
+
 ## v0.6.0 / 2025-11-05
 
 ### Breaking change: Rake tasks

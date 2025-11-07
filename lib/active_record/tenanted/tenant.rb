@@ -95,7 +95,14 @@ module ActiveRecord
         end
 
         def current_tenant=(tenant_name)
-          tenant_name = tenant_name.to_s unless tenant_name == UNTENANTED_SENTINEL
+          case tenant_name
+          when nil
+            tenant_name = UNTENANTED_SENTINEL
+          when UNTENANTED_SENTINEL
+            # no-op
+          else
+            tenant_name = tenant_name.to_s
+          end
 
           connection_class_for_self.connecting_to(shard: tenant_name, role: ActiveRecord.writing_role)
         end
