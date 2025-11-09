@@ -115,6 +115,22 @@ describe ActiveRecord::Tenanted::Tenant do
         assert_equal("bar", TenantedApplicationRecord.current_tenant)
       end
 
+      test ".current_tenant= fires callbacks" do
+        before_callback_fired = false
+        after_callback_fired = false
+        TenantedApplicationRecord.set_callback :set_current_tenant, :before do
+          before_callback_fired = true
+        end
+        TenantedApplicationRecord.set_callback :set_current_tenant, :after do
+          after_callback_fired = true
+        end
+
+        TenantedApplicationRecord.current_tenant = "foo"
+
+        assert(before_callback_fired, "Before callback should be fired")
+        assert(after_callback_fired, "After callback should be fired")
+      end
+
       test "using a record after changing tenant raises WrongTenantError" do
         TenantedApplicationRecord.create_tenant("foo")
         TenantedApplicationRecord.create_tenant("bar")
@@ -280,6 +296,40 @@ describe ActiveRecord::Tenanted::Tenant do
         assert_raises(ActiveRecord::Tenanted::TenantDoesNotExistError) do
           TenantedApplicationRecord.with_tenant("baz") { User.count }
         end
+      end
+
+      test ".with_tenant fires callbacks" do
+        around_callback_fired = false
+        block_called = false
+        TenantedApplicationRecord.set_callback :with_tenant, :around do |_, block|
+          around_callback_fired = true
+          block.call
+        end
+
+        TenantedApplicationRecord.with_tenant("foo") do
+          block_called = true
+        end
+
+        assert(around_callback_fired, "Around callback should be fired")
+        assert(block_called, "Block should be called")
+      end
+
+      test ".with_tenant fires callbacks even when tenant doesn't change" do
+        around_callback_fired = 0
+        block_called = false
+        TenantedApplicationRecord.set_callback :with_tenant, :around do |_, block|
+          around_callback_fired += 1
+          block.call
+        end
+
+        TenantedApplicationRecord.with_tenant("foo") do
+          TenantedApplicationRecord.with_tenant("foo") do
+            block_called = true
+          end
+        end
+
+        assert_equal(2, around_callback_fired, "Around callback should be fired for each call")
+        assert(block_called, "Block should be called")
       end
     end
 
