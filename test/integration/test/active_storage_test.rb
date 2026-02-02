@@ -1,6 +1,11 @@
 require "test_helper"
 
 class TestActiveStorage < ActionDispatch::IntegrationTest
+  test "fixtures work with ActiveStorage::FixtureSet" do
+    note = notes(:one)
+    assert_predicate(note.image, :attached?, "Expected note fixture to have an attached image from ActiveStorage fixtures")
+  end
+
   test "can upload a file" do
     post(notes_path,
          params: {
