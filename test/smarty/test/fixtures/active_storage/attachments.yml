@@ -1,0 +1,4 @@
+one_image:
+  name: image
+  record: one (Note)
+  blob: one_image_blob

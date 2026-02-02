@@ -17,11 +17,7 @@ module ActiveRecord
         end
 
         def path_for(key)
-          if ActiveRecord::Tenanted.connection_class
-            # TODO: this is brittle if the key isn't tenanted ... errors in folder_for:
-            #
-            #   NoMethodError undefined method '[]' for nil (NoMethodError) [ key[0..1], key[2..3] ].join("/")
-            #
+          if ActiveRecord::Tenanted.connection_class && key.include?("/")
             tenant, key = key.split("/", 2)
             File.join(root, tenant, folder_for(key), key)
           else

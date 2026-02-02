@@ -2,9 +2,15 @@
 
 ## next / unreleased
 
+### Added
+
+- Add callbacks for `:with_tenant` which are invoked when `.with_tenant` is called. @flavorjones
+- Add callbacks for `:set_current_tenant` which are invoked when `.current_tenant=` is called. @flavorjones
+
 ### Fixed
 
 - `.current_tenant = nil` now clears the tenant context, properly setting the shard to `UNTENANTED_SENTINEL` instead of `""` @flavorjones
+- `Tenanted::DiskService#path_for` now handles keys without a tenant prefix (e.g., from `ActiveStorage::FixtureSet.blob`) by falling back to standard DiskService behavior. @flavorjones
 
 
 ## v0.6.0 / 2025-11-05
@@ -59,8 +65,6 @@ Read the [Rails Guide documentation on `config.active_record.query_log_tags`](ht
 
 ### Added
 
-- Add callbacks for `:with_tenant` which are invoked when `.with_tenant` is called.
-- Add callbacks for `:set_current_tenant` which are invoked when `.current_tenant=` is called.
 - `UntenantedConnectionPool#size` returns the database configuration's `max_connections` value, so that code (like Solid Queue) can inspect config params without a tenant context.
 
 

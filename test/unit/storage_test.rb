@@ -85,6 +85,19 @@ describe ActiveRecord::Tenanted::Storage do
           end
         end
       end
+
+      test "Disk Service path_for falls back for keys without tenant prefix" do
+        ActiveRecord::Tenanted.stub(:connection_class, TenantedApplicationRecord) do
+          TenantedApplicationRecord.create_tenant("foo") do
+            blob = ActiveStorage::Blob.new(filename: "foo.jpg", byte_size: 100, checksum: "abc123", service_name: service_name)
+
+            # Keys from ActiveStorage::FixtureSet don't have tenant prefix
+            non_tenanted_key = "abc123def456"
+            expected_path = "/path/to/storage/ab/c1/#{non_tenanted_key}"
+            assert_equal expected_path, blob.service.path_for(non_tenanted_key)
+          end
+        end
+      end
     end
   end
 end
